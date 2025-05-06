@@ -3,82 +3,179 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Incident Management POC</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/style.css">
+  <title>Incident Ticket Creation</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <div class="sidebar">
-      <div class="logo">Incident App</div>
-      <ul>
-        <li><a href="#" class="active" onclick="showPage('dashboard')">Dashboard</a></li>
-        <li><a href="#" onclick="showPage('create-ticket')">Create Ticket</a></li>
-        <li><a href="#" onclick="showPage('chat')">Chat</a></li>
-      </ul>
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <img src="https://i.imgur.com/BhdkZG0.png" alt="Quinnz Logo">
     </div>
-    <div class="main-content">
-      <header>
-        <h1>Incident Management</h1>
-        <div class="user-profile">User</div>
-      </header>
-      <div id="dashboard" class="page active">
-        <div class="dashboard">
-          <div class="card">
-            <h3>Open Tickets</h3>
-            <p id="open-tickets">0</p>
-          </div>
-          <div class="card">
-            <h3>High Impact</h3>
-            <p id="high-impact">0</p>
-          </div>
-          <div class="card">
-            <h3>Recent Tickets</h3>
-            <ul id="recent-tickets">
-              <li>No tickets yet</li>
-            </ul>
-          </div>
-          <div class="card chart">
-            <h3>Ticket Trends</h3>
-            <canvas id="ticketChart"></canvas>
-          </div>
-        </div>
+    <div class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">☰</div>
+    <div class="menu">
+      <div class="menu-item" data-tooltip="Dashboard">
+        <span aria-label="Dashboard Icon">🏠</span>
+        <a href="https://codepen.io/Berry-Bee/pen/yyyMGdG">Dashboard</a>
       </div>
-      <div id="create-ticket" class="page">
-        <div class="card form-card">
-          <h3>Create Ticket</h3>
-          <form id="ticket-form">
-            <div class="mb-3">
-              <label class="form-label">Title</label>
-              <input type="text" class="form-control" id="title" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Description</label>
-              <textarea class="form-control" id="description"></textarea>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Impact</label>
-              <input type="text" class="form-control" id="impact">
-            </div>
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </form>
-        </div>
+      <div class="menu-item active" data-tooltip="Incidents">
+        <span aria-label="Incidents Icon">🎫</span>
+        <span>Incidents</span>
       </div>
-      <div id="chat" class="page">
-        <div class="card chat-card">
-          <h3>Chat</h3>
-          <div class="chat-box" id="chat-box">
-            <p>No messages yet.</p>
-          </div>
-          <form id="chat-form">
-            <input type="text" class="form-control" id="chat-message" placeholder="Type a message">
-            <button type="submit" class="btn btn-primary mt-2">Send</button>
-          </form>
-        </div>
+      <div class="menu-item" data-tooltip="Monitoring">
+        <span aria-label="Monitoring Icon">📈</span>
+        <span>Monitoring</span>
+      </div>
+      <div class="menu-item" data-tooltip="Workflows">
+        <span aria-label="Workflows Icon">⚙️</span>
+        <span>Workflows</span>
+      </div>
+      <div class="menu-item" data-tooltip="Communications">
+        <span aria-label="Communications Icon">💬</span>
+        <span>Communications</span>
+      </div>
+      <div class="menu-item" data-tooltip="Reports">
+        <span aria-label="Reports Icon">📊</span>
+        <span>Reports</span>
+      </div>
+      <div class="menu-item" data-tooltip="Integrations">
+        <span aria-label="Integrations Icon">🔌</span>
+        <span>Integrations</span>
+      </div>
+      <div class="menu-item" data-tooltip="Settings">
+        <span aria-label="Settings Icon">⚙️</span>
+        <span>Settings</span>
       </div>
     </div>
+    <button class="create-btn" disabled aria-label="Create Incident (Disabled)">+ Create Incident</button>
   </div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/app.js"></script>
+  <main class="main-content" id="main-content">
+    <div class="header">
+      <h1>Create Incident Ticket</h1>
+    </div>
+    <div class="form-container">
+      <form id="incident-form">
+        <div class="form-grid">
+          <!-- Left Column: User Details -->
+          <div class="form-column">
+            <div class="form-group">
+              <label for="ticket-number">Ticket Number</label>
+              <input type="text" id="ticket-number" name="ticket-number" readonly value="Pending">
+            </div>
+            <div class="form-group">
+              <label for="user-profile">User Profile</label>
+              <select id="user-profile" name="user-profile" required>
+                <option value="" disabled selected>Select a user</option>
+                <option value="alice-johnson">Alice Johnson</option>
+                <option value="bob-smith">Bob Smith</option>
+                <option value="clara-lee">Clara Lee</option>
+                <option value="david-brown">David Brown</option>
+                <option value="Jack-Berry">Jack Berry</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="user-name">User Name</label>
+              <input type="text" id="user-name" name="user-name" readonly>
+            </div>
+            <div class="form-group">
+              <label for="location">Location</label>
+              <input type="text" id="location" name="location" readonly>
+            </div>
+            <div class="form-group">
+              <label for="contact-number">Contact Number</label>
+              <input type="text" id="contact-number" name="contact-number" readonly>
+            </div>
+            <div class="form-group">
+              <label for="app-service">Application/Service/Infrastructure</label>
+              <select id="app-service" name="app-service" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="citrix-storefront">Citrix Storefront</option>
+                <option value="email-service">Email Service</option>
+                <option value="server-cluster-a">Server Cluster A</option>
+                <option value="printer-service">Printer Service</option>
+                <option value="billing-app">Billing Application</option>
+                <option value="network-router">Network Router</option>
+                <option value="helpdesk-portal">Helpdesk Portal</option>
+                <option value="database-b">Database B</option>
+                <option value="vpn-service">VPN Service</option>
+                <option value="file-server">File Server</option>
+                <option value="sap-erp">SAP ERP</option>
+                <option value="zoom-service">Zoom Service</option>
+                <option value="aws-lambda">AWS Lambda</option>
+                <option value="password-reset">Password Reset</option>
+                <option value="Access Request">Access Request</option>
+              </select>
+            </div>
+          </div>
+          <!-- Right Column: Incident Details -->
+          <div class="form-column">
+            <div class="form-group">
+              <label for="priority">Priority</label>
+              <input type="text" id="priority" name="priority" readonly>
+            </div>
+            <div class="form-group">
+              <label for="impact">Impact</label>
+              <select id="impact" name="impact" required>
+                <option value="" disabled selected>Select impact level</option>
+                <option value="High">High (Widespread)</option>
+                <option value="Medium">Medium (Localized)</option>
+                <option value="Low">Low (Individualized)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="urgency">Urgency</label>
+              <select id="urgency" name="urgency" required>
+                <option value="" disabled selected>Select urgency level</option>
+                <option value="High">High (Immediate)</option>
+                <option value="Medium">Medium (Prompt)</option>
+                <option value="Low">Low (Standard)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="assignment-group">Assignment Group</label>
+              <input type="text" id="assignment-group" name="assignment-group" readonly>
+            </div>
+            <div class="form-group">
+              <label for="category">Category</label>
+              <input type="text" id="category" name="category" readonly>
+            </div>
+            <div class="form-group">
+              <label for="state">State</label>
+              <select id="state" name="state" required>
+                <option value="New" selected>New</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- Bottom Section: Description Fields -->
+        <div class="form-description">
+          <div class="form-group">
+            <label for="short-description">Short Description (max 80 characters)</label>
+            <input type="text" id="short-description" name="short-description" maxlength="80" required>
+          </div>
+          <div class="form-group">
+            <label for="additional-comments">Additional Comments</label>
+            <textarea id="additional-comments" name="additional-comments" rows="4"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="business-impact">Business Impact</label>
+            <textarea id="business-impact" name="business-impact" rows="4" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="work-notes">Work Notes</label>
+            <textarea id="work-notes" name="work-notes" rows="4"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="cta-btn">Create Ticket</button>
+      </form>
+    </div>
+    <div id="toast" class="toast hidden">
+      <span id="toast-message"></span>
+    </div>
+  </main>
+  <script src="script.js"></script>
 </body>
 </html>
