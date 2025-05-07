@@ -6,9 +6,7 @@
   <title>Quinnz Incident Management</title>
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Chart.js for dashboard charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Muuri.js for dashboard widget grid -->
   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
 </head>
 <body>
@@ -23,7 +21,7 @@
         <span aria-label="Dashboard Icon">🏠</span>
         <span>Dashboard</span>
       </div>
-      <div class="menu-item" data-tooltip="Incidents" onclick="showPage('create-ticket')">
+      <div class="menu-item" data-tooltip="Incidents" onclick="showPage('incidents')">
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
@@ -52,7 +50,7 @@
         <span>Settings</span>
       </div>
     </div>
-    <button class="create-btn" onclick="showPage('create-ticket')" aria-label="Create Incident">+ Create Incident</button>
+    <button class="create-btn" onclick="showPage('incidents')" aria-label="Create Incident">+ Create Incident</button>
   </aside>
 
   <!-- Main Content -->
@@ -75,7 +73,6 @@
         </div>
       </div>
       <div class="widget-grid muuri">
-        <!-- Incident Status (Pie Chart) -->
         <div class="widget uniform muuri-item" data-id="incident-status">
           <div class="muuri-item-content">
             <h3>Incident Status</h3>
@@ -87,21 +84,19 @@
             </div>
           </div>
         </div>
-        <!-- Incidents by Priority Over Time (Stacked Area Chart) -->
         <div class="widget uniform muuri-item" data-id="priority-over-time">
           <div class="muuri-item-content">
             <h3>Incidents by Priority Over Time</h3>
             <canvas id="priorityChart"></canvas>
           </div>
         </div>
-        <!-- Recent Monitoring Alerts -->
         <div class="widget uniform muuri-item" data-id="monitoring-alerts">
           <div class="muuri-item-content">
             <h3>Recent Monitoring Alerts</h3>
             <div class="list">
               <div class="list-item">High CPU Usage on Server X - 10:15 AM</div>
               <div class="list-item">Network Latency Spike - 9:30 AM</div>
-              <div class="list-item">Disk Space Low on Server Y - 8:45 AM</div>
+              <div class="list-item">Disk Space Low on Server Y - 8: System: Server not found
               <div class="list-item">Application Crash - 7:20 AM</div>
               <div class="list-item">Database Connection Error - 6:10 AM</div>
               <div class="list-item">Memory Leak Detected - 5:55 AM</div>
@@ -113,7 +108,6 @@
             <p class="scroll-label">Scroll for more</p>
           </div>
         </div>
-        <!-- SLA Compliance (Gauge) -->
         <div class="widget uniform muuri-item" data-id="sla-compliance">
           <div class="muuri-item-content">
             <h3>SLA Compliance</h3>
@@ -121,7 +115,6 @@
             <p>92% of incidents on track</p>
           </div>
         </div>
-        <!-- Team Activity -->
         <div class="widget uniform muuri-item" data-id="team-activity">
           <div class="muuri-item-content">
             <h3>Team Activity</h3>
@@ -141,7 +134,6 @@
             </div>
           </div>
         </div>
-        <!-- Team On-Call Schedule -->
         <div class="widget uniform muuri-item" data-id="on-call-schedule">
           <div class="muuri-item-content">
             <h3>Team On-Call Schedule</h3>
@@ -203,7 +195,6 @@
             </div>
           </div>
         </div>
-        <!-- Dynatrace Alerts (Line Chart) -->
         <div class="widget muuri-item" data-id="dynatrace-alerts">
           <div class="muuri-item-content">
             <h3>Dynatrace Alerts</h3>
@@ -211,7 +202,6 @@
             <p>CPU Usage Over Time</p>
           </div>
         </div>
-        <!-- Splunk Alerts (Line Chart) -->
         <div class="widget muuri-item" data-id="splunk-alerts">
           <div class="muuri-item-content">
             <h3>Splunk Alerts</h3>
@@ -219,7 +209,6 @@
             <p>Error Rate Over Time</p>
           </div>
         </div>
-        <!-- Current Change Tickets -->
         <div class="widget uniform change-tickets muuri-item" data-id="change-tickets">
           <div class="muuri-item-content">
             <h3>Current Change Tickets</h3>
@@ -228,7 +217,6 @@
             <p class="scroll-label">Scroll for more</p>
           </div>
         </div>
-        <!-- PagerDuty Alerts -->
         <div class="widget uniform muuri-item" data-id="pagerduty-alerts">
           <div class="muuri-item-content">
             <h3>PagerDuty Alerts</h3>
@@ -236,7 +224,6 @@
             <p>Incident Frequency Over Time</p>
           </div>
         </div>
-        <!-- Incident Response Time (Bar Chart) -->
         <div class="widget uniform muuri-item" data-id="response-time">
           <div class="muuri-item-content">
             <h3>Incident Response Time</h3>
@@ -244,7 +231,6 @@
             <p>Average Response Time (Minutes)</p>
           </div>
         </div>
-        <!-- Service Health Widget -->
         <div class="widget uniform service-health muuri-item" data-id="service-health">
           <div class="muuri-item-content">
             <h3>Service Health</h3>
@@ -270,18 +256,17 @@
         </div>
       </div>
       <button class="add-widget-btn cta-btn">Add New Widget</button>
-      <button class="cta-btn" onclick="showPage('create-ticket')">Create New Incident</button>
+      <button class="cta-btn" onclick="showPage('incidents')">Create New Incident</button>
     </section>
 
-    <!-- Ticket Form Page -->
-    <section id="create-ticket" class="page" style="display: none;">
+    <!-- Incidents Page -->
+    <section id="incidents" class="page" style="display: none;">
       <div class="header">
         <h1>Create Incident Ticket</h1>
       </div>
       <div class="form-container">
         <form id="incident-form">
           <div class="form-grid">
-            <!-- Left Column: User Details -->
             <div class="form-column">
               <div class="form-group">
                 <label for="ticket-number">Ticket Number</label>
@@ -332,7 +317,6 @@
                 </select>
               </div>
             </div>
-            <!-- Right Column: Incident Details -->
             <div class="form-column">
               <div class="form-group">
                 <label for="priority">Priority</label>
@@ -375,7 +359,6 @@
               </div>
             </div>
           </div>
-          <!-- Bottom Section: Description Fields -->
           <div class="form-description">
             <div class="form-group">
               <label for="short-description">Short Description (max 80 characters)</label>

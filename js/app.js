@@ -2,15 +2,46 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page Navigation
     const pages = document.querySelectorAll('.page');
     const menuItems = document.querySelectorAll('.menu-item');
+    let grid = null;
   
     function showPage(pageId) {
-      pages.forEach(page => {
-        page.style.display = page.id === pageId ? 'block' : 'none';
-      });
-      menuItems.forEach(item => {
-        item.classList.toggle('active', item.getAttribute('onclick')?.includes(pageId));
-      });
+      try {
+        // Toggle page visibility
+        pages.forEach(page => {
+          page.style.display = page.id === pageId ? 'block' : 'none';
+        });
+  
+        // Update active menu item
+        menuItems.forEach(item => {
+          const onclickAttr = item.getAttribute('onclick') || '';
+          const isActive = onclickAttr.includes(`showPage('${pageId}')`);
+          item.classList.toggle('active', isActive);
+        });
+  
+        // Reinitialize Muuri grid for dashboard
+        if (pageId === 'dashboard' && grid) {
+          grid.refreshItems().layout();
+        }
+  
+        console.log(`Navigated to page: ${pageId}`);
+      } catch (error) {
+        console.error('Error in showPage:', error);
+      }
     }
+  
+    // Event Delegation for Menu Items
+    document.querySelector('.menu').addEventListener('click', (e) => {
+      const menuItem = e.target.closest('.menu-item');
+      if (menuItem) {
+        const onclickAttr = menuItem.getAttribute('onclick');
+        if (onclickAttr && onclickAttr.includes('showPage')) {
+          const pageIdMatch = onclickAttr.match(/showPage\('([^']+)'\)/);
+          if (pageIdMatch) {
+            showPage(pageIdMatch[1]);
+          }
+        }
+      }
+    });
   
     // Sidebar Toggle
     const sidebar = document.querySelector('.sidebar');
@@ -22,19 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('collapsed');
         mainContent.classList.toggle('collapsed');
         console.log('Sidebar toggled:', sidebar.classList.contains('collapsed') ? 'Collapsed' : 'Expanded');
+        if (grid) {
+          grid.refreshItems().layout();
+        }
       });
     } else {
       console.error('Toggle button not found');
     }
   
-    // Dashboard Functionality (from https://codepen.io/Berry-Bee/pen/yyyMGdG)
-    // Page Contact Function for On-Call Schedule
+    // Dashboard Functionality
     function pageContact(name, team) {
       alert(`Paging ${name} for ${team} team...`);
     }
   
-    // Initialize Muuri Grid
-    let grid;
     try {
       if (typeof Muuri === 'undefined') {
         throw new Error('Muuri library not loaded');
@@ -76,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Muuri initialization failed:', error);
     }
   
-    // Add New Widget
     const addWidgetBtn = document.querySelector('.add-widget-btn');
     if (addWidgetBtn) {
       addWidgetBtn.addEventListener('click', () => {
@@ -92,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   
-    // Dashboard Charts (simplified; add all charts as in original CodePen)
+    // Dashboard Charts
     try {
       const incidentChart = document.getElementById('incidentChart')?.getContext('2d');
       if (incidentChart) {
@@ -113,11 +143,189 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       }
+  
+      const priorityChart = document.getElementById('priorityChart')?.getContext('2d');
+      if (priorityChart) {
+        new Chart(priorityChart, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+            datasets: [
+              {
+                label: 'P1 High',
+                data: [5, 3, 4, 2, 1],
+                borderColor: '#EF4444',
+                fill: true
+              },
+              {
+                label: 'P2 Medium',
+                data: [10, 8, 7, 9, 6],
+                borderColor: '#FBBF24',
+                fill: true
+              },
+              {
+                label: 'P3 Low',
+                data: [15, 12, 14, 11, 13],
+                borderColor: '#60A5FA',
+                fill: true
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+  
+      const slaChart = document.getElementById('slaChart')?.getContext('2d');
+      if (slaChart) {
+        new Chart(slaChart, {
+          type: 'doughnut',
+          data: {
+            labels: ['On Track', 'At Risk'],
+            datasets: [{
+              data: [92, 8],
+              backgroundColor: ['#22C55E', '#EF4444'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+  
+      const dynatraceChart = document.getElementById('dynatraceChart')?.getContext('2d');
+      if (dynatraceChart) {
+        new Chart(dynatraceChart, {
+          type: 'line',
+          data: {
+            labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+            datasets: [{
+              label: 'CPU Usage (%)',
+              data: [20, 30, 25, 40, 35],
+              borderColor: '#4F46E5',
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+  
+      const splunkChart = document.getElementById('splunkChart')?.getContext('2d');
+      if (splunkChart) {
+        new Chart(splunkChart, {
+          type: 'line',
+          data: {
+            labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+            datasets: [{
+              label: 'Error Rate',
+              data: [5, 10, 8, 12, 7],
+              borderColor: '#EF4444',
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+  
+      const changeTicketsChart = document.getElementById('changeTicketsChart')?.getContext('2d');
+      if (changeTicketsChart) {
+        new Chart(changeTicketsChart, {
+          type: 'bar',
+          data: {
+            labels: ['Open', 'In Review', 'Approved'],
+            datasets: [{
+              label: 'Change Tickets',
+              data: [10, 5, 3],
+              backgroundColor: '#4F46E5'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+  
+      const pagerDutyChart = document.getElementById('pagerDutyChart')?.getContext('2d');
+      if (pagerDutyChart) {
+        new Chart(pagerDutyChart, {
+          type: 'line',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+            datasets: [{
+              label: 'Incidents',
+              data: [3, 5, 2, 4, 1],
+              borderColor: '#FBBF24',
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+  
+      const responseTimeChart = document.getElementById('responseTimeChart')?.getContext('2d');
+      if (responseTimeChart) {
+        new Chart(responseTimeChart, {
+          type: 'bar',
+          data: {
+            labels: ['P1', 'P2', 'P3'],
+            datasets: [{
+              label: 'Response Time (min)',
+              data: [10, 20, 30],
+              backgroundColor: '#60A5FA'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
+  
+      const serviceHealthChart = document.getElementById('serviceHealthChart')?.getContext('2d');
+      if (serviceHealthChart) {
+        new Chart(serviceHealthChart, {
+          type: 'bar',
+          data: {
+            labels: ['P1', 'P2', 'P3'],
+            datasets: [{
+              label: 'Incidents',
+              data: [3, 5, 7],
+              backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+      }
     } catch (error) {
-      console.error('Incident Chart failed:', error);
+      console.error('Chart initialization failed:', error);
     }
   
-    // Ticket Form Functionality (from https://codepen.io/Berry-Bee/pen/wBBqryr)
+    // Incidents (Ticket Form) Functionality
     const createBtn = document.querySelector('.create-btn');
     const form = document.getElementById('incident-form');
     const userProfileSelect = document.getElementById('user-profile');
@@ -141,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
     if (createBtn) {
       createBtn.addEventListener('click', () => {
-        showPage('create-ticket');
+        showPage('incidents');
       });
     }
   
@@ -182,7 +390,132 @@ document.addEventListener('DOMContentLoaded', () => {
         urgency: 'High',
         priorityCap: 'P1 High'
       },
-      // Add other autoPopulateData entries as in original CodePen
+      'email-service': {
+        assignmentGroup: 'Email Team',
+        category: 'Service Disruption',
+        shortDescription: 'Email service outage affecting users',
+        businessImpact: 'Users cannot send or receive emails, impacting communication.',
+        impact: 'High',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'server-cluster-a': {
+        assignmentGroup: 'Server Team',
+        category: 'Hardware Failure',
+        shortDescription: 'Server Cluster A down',
+        businessImpact: 'Critical services hosted on Server Cluster A are unavailable.',
+        impact: 'High',
+        urgency: 'High',
+        priorityCap: 'P1 High'
+      },
+      'printer-service': {
+        assignmentGroup: 'IT Support',
+        category: 'Peripheral Issue',
+        shortDescription: 'Printer service not responding',
+        businessImpact: 'Users cannot print documents, affecting workflow.',
+        impact: 'Low',
+        urgency: 'Low',
+        priorityCap: 'P4 Low'
+      },
+      'billing-app': {
+        assignmentGroup: 'Billing Team',
+        category: 'Application Issue',
+        shortDescription: 'Billing application errors',
+        businessImpact: 'Billing processes delayed, impacting financial operations.',
+        impact: 'Medium',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'network-router': {
+        assignmentGroup: 'Network Team',
+        category: 'Network Failure',
+        shortDescription: 'Network router offline',
+        businessImpact: 'Network connectivity disrupted, affecting multiple services.',
+        impact: 'High',
+        urgency: 'High',
+        priorityCap: 'P1 High'
+      },
+      'helpdesk-portal': {
+        assignmentGroup: 'Helpdesk Team',
+        category: 'Portal Issue',
+        shortDescription: 'Helpdesk portal inaccessible',
+        businessImpact: 'Users cannot submit or track support tickets.',
+        impact: 'Medium',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'database-b': {
+        assignmentGroup: 'Database Team',
+        category: 'Database Failure',
+        shortDescription: 'Database B connection errors',
+        businessImpact: 'Applications relying on Database B are non-functional.',
+        impact: 'High',
+        urgency: 'High',
+        priorityCap: 'P1 High'
+      },
+      'vpn-service': {
+        assignmentGroup: 'Network Team',
+        category: 'Service Disruption',
+        shortDescription: 'VPN service unavailable',
+        businessImpact: 'Remote users cannot access internal resources.',
+        impact: 'High',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'file-server': {
+        assignmentGroup: 'Server Team',
+        category: 'Storage Issue',
+        shortDescription: 'File server access denied',
+        businessImpact: 'Users cannot access shared files, impacting collaboration.',
+        impact: 'Medium',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'sap-erp': {
+        assignmentGroup: 'ERP Team',
+        category: 'Application Failure',
+        shortDescription: 'SAP ERP system errors',
+        businessImpact: 'Business processes disrupted, affecting operations.',
+        impact: 'High',
+        urgency: 'High',
+        priorityCap: 'P1 High'
+      },
+      'zoom-service': {
+        assignmentGroup: 'Communication Team',
+        category: 'Service Disruption',
+        shortDescription: 'Zoom service outage',
+        businessImpact: 'Virtual meetings cannot be conducted.',
+        impact: 'Medium',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'aws-lambda': {
+        assignmentGroup: 'Cloud Team',
+        category: 'Cloud Service Issue',
+        shortDescription: 'AWS Lambda functions failing',
+        businessImpact: 'Serverless applications impacted.',
+        impact: 'Medium',
+        urgency: 'Medium',
+        priorityCap: 'P2 Medium'
+      },
+      'password-reset': {
+        assignmentGroup: 'Helpdesk Team',
+        category: 'Access Issue',
+        shortDescription: 'Password reset requests not processing',
+        businessImpact: 'Users locked out of accounts, affecting productivity.',
+        impact: 'Low',
+        urgency: 'Low',
+        priorityCap: 'P3 Low'
+      },
+      'Access Request': {
+        assignmentGroup: 'Security Team',
+        category: 'Access Issue',
+        shortDescription: 'Access request delays',
+        businessImpact: 'New users cannot access systems, delaying onboarding.',
+        impact: 'Low',
+        urgency: 'Low',
+        priorityCap: 'P3 Low'
+      }
     };
   
     const formatTicketNumber = (num) => `INC${String(num).padStart(6, '0')}`;
@@ -277,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   
-    // Settings Functionality (from https://codepen.io/Berry-Bee/pen/PwwQmyY)
+    // Settings Functionality
     const loginContainer = document.getElementById('login-container');
     const settingsContainer = document.getElementById('settings-container');
     const loginForm = document.getElementById('login-form');
@@ -297,10 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
     };
   
-    let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || {
-      'citrix-storefront': { assignmentGroup: 'Citrix Team', category: 'Application Failure', shortDescription: 'Employees unable to access Citrix Storefront and virtual apps', businessImpact: 'Staff and external partners are unable to access Citrix Storefront and their associated virtual applications and desktops.', impact: 'High', urgency: 'High', priorityCap: 'P1 High' },
-      // Add other entries as in original CodePen
-    };
+    let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || autoPopulateData;
   
     const showToast = (message) => {
       toastMessage.textContent = message;
@@ -315,113 +645,4 @@ document.addEventListener('DOMContentLoaded', () => {
         row.innerHTML = `
           <td>${user.userName}</td>
           <td>${user.location}</td>
-          <td>${user.email}</td>
-          <td>${user.contactNumber}</td>
-          <td>${user.jobTitle}</td>
-          <td><button class="remove-btn" data-key="${key}">Remove</button></td>
-        `;
-        userTableBody.appendChild(row);
-      });
-      localStorage.setItem('userProfiles', JSON.stringify(userProfilesSettings));
-    };
-  
-    const updateAppTable = () => {
-      appTableBody.innerHTML = '';
-      Object.entries(autoPopulateDataSettings).forEach(([key, app]) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
-          <td>${app.priorityCap}</td>
-          <td>${app.urgency}</td>
-          <td>${app.impact}</td>
-          <td>${app.assignmentGroup}</td>
-          <td>${app.category}</td>
-          <td><button class="remove-btn" data-key="${key}">Remove</button></td>
-        `;
-        appTableBody.appendChild(row);
-      });
-      localStorage.setItem('autoPopulateData', JSON.stringify(autoPopulateDataSettings));
-    };
-  
-    if (loginForm) {
-      loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-          loginContainer.classList.add('hidden');
-          settingsContainer.classList.remove('hidden');
-          updateUserTable();
-          updateAppTable();
-          showToast('Logged in successfully');
-        } else {
-          showToast('Invalid credentials');
-        }
-      });
-    }
-  
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        loginContainer.classList.remove('hidden');
-        settingsContainer.classList.add('hidden');
-        loginForm.reset();
-        showToast('Logged out');
-      });
-    }
-  
-    if (userForm) {
-      userForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const userName = document.getElementById('user-name-input').value;
-        const key = userName.toLowerCase().replace(/\s+/g, '-');
-        userProfilesSettings[key] = {
-          userName,
-          location: document.getElementById('user-location').value,
-          email: document.getElementById('user-email').value,
-          contactNumber: document.getElementById('user-contact').value,
-          jobTitle: document.getElementById('user-job-title').value
-        };
-        updateUserTable();
-        userForm.reset();
-        showToast('User added successfully');
-      });
-    }
-  
-    if (appForm) {
-      appForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const appName = document.getElementById('app-name').value;
-        const key = appName.toLowerCase().replace(/\s+/g, '-');
-        autoPopulateDataSettings[key] = {
-          assignmentGroup: document.getElementById('app-assignment-group').value,
-          category: document.getElementById('app-category').value,
-          shortDescription: document.getElementById('app-short-description').value,
-          businessImpact: document.getElementById('app-business-impact').value,
-          impact: document.getElementById('app-impact').value,
-          urgency: document.getElementById('app-urgency').value,
-          priorityCap: document.getElementById('app-priority-cap').value
-        };
-        updateAppTable();
-        appForm.reset();
-        showToast('Application/Service added successfully');
-      });
-    }
-  
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('remove-btn')) {
-        const key = e.target.dataset.key;
-        if (userProfilesSettings[key]) {
-          delete userProfilesSettings[key];
-          updateUserTable();
-          showToast('User removed');
-        } else if (autoPopulateDataSettings[key]) {
-          delete autoPopulateDataSettings[key];
-          updateAppTable();
-          showToast('Application/Service removed');
-        }
-      }
-    });
-  
-    // Initialize Dashboard
-    showPage('dashboard');
-  });
+          <td>${user.email

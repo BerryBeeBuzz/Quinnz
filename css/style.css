@@ -6,11 +6,10 @@
   }
   
   body {
-    background: #F9FAFB; /* Unified from ticket form/dashboard */
+    background: #F9FAFB;
     overflow-x: hidden;
   }
   
-  /* Sidebar (primarily from ticket form, compatible with all) */
   .sidebar {
     width: 230px;
     height: 100vh;
@@ -152,7 +151,6 @@
     justify-content: center;
   }
   
-  /* Main Content */
   .main-content {
     margin-left: 230px;
     min-height: 100vh;
@@ -163,12 +161,10 @@
     margin-left: 60px;
   }
   
-  /* Page */
   .page {
     padding: 20px;
   }
   
-  /* Header (shared across pages) */
   .header {
     display: flex;
     justify-content: space-between;
@@ -183,7 +179,6 @@
     font-weight: bold;
   }
   
-  /* Dashboard Styles (from https://codepen.io/Berry-Bee/pen/yyyMGdG) */
   .filters {
     display: flex;
     gap: 10px;
@@ -556,7 +551,6 @@
     opacity: 0.8;
   }
   
-  /* Ticket Form Styles (from https://codepen.io/Berry-Bee/pen/wBBqryr) */
   .form-container {
     background: #FFFFFF;
     border-radius: 10px;
@@ -617,7 +611,6 @@
     margin-top: 20px;
   }
   
-  /* Settings Styles (from https://codepen.io/Berry-Bee/pen/PwwQmyY) */
   .login-container {
     display: flex;
     justify-content: center;
@@ -664,7 +657,6 @@
     float: right;
   }
   
-  /* Toast (unified, using ticket form’s style) */
   .toast {
     position: fixed;
     top: 20px;
@@ -687,7 +679,6 @@
     opacity: 1;
   }
   
-  /* Responsiveness (merged from all CodePens) */
   @media (max-width: 1250px) {
     .widget-grid.muuri {
       grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
