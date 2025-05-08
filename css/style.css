@@ -317,19 +317,17 @@
   }
   
   .widget.uniform .on-call-list .contact-info span:nth-child(2)::before {
-    content: '📞';
+    content: 'Phone';
     margin-right: 5px;
     color: #4F46E5;
   }
-  
   .widget.uniform .on-call-list .contact-info span:nth-child(3)::before {
-    content: '📱';
+    content: 'Mobile';
     margin-right: 5px;
     color: #4F46E5;
   }
-  
   .widget.uniform .on-call-list .contact-info span:nth-child(4)::before {
-    content: '✉️';
+    content: 'Email';
     margin-right: 5px;
     color: #4F46E5;
   }
