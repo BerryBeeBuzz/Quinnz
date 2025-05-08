@@ -2,46 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page Navigation
     const pages = document.querySelectorAll('.page');
     const menuItems = document.querySelectorAll('.menu-item');
-    let grid = null;
   
     function showPage(pageId) {
-      try {
-        // Toggle page visibility
-        pages.forEach(page => {
-          page.style.display = page.id === pageId ? 'block' : 'none';
-        });
-  
-        // Update active menu item
-        menuItems.forEach(item => {
-          const onclickAttr = item.getAttribute('onclick') || '';
-          const isActive = onclickAttr.includes(`showPage('${pageId}')`);
-          item.classList.toggle('active', isActive);
-        });
-  
-        // Reinitialize Muuri grid for dashboard
-        if (pageId === 'dashboard' && grid) {
-          grid.refreshItems().layout();
-        }
-  
-        console.log(`Navigated to page: ${pageId}`);
-      } catch (error) {
-        console.error('Error in showPage:', error);
-      }
+      pages.forEach(page => {
+        page.style.display = page.id === pageId ? 'block' : 'none';
+      });
+      menuItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('onclick')?.includes(pageId));
+      });
     }
-  
-    // Event Delegation for Menu Items
-    document.querySelector('.menu').addEventListener('click', (e) => {
-      const menuItem = e.target.closest('.menu-item');
-      if (menuItem) {
-        const onclickAttr = menuItem.getAttribute('onclick');
-        if (onclickAttr && onclickAttr.includes('showPage')) {
-          const pageIdMatch = onclickAttr.match(/showPage\('([^']+)'\)/);
-          if (pageIdMatch) {
-            showPage(pageIdMatch[1]);
-          }
-        }
-      }
-    });
   
     // Sidebar Toggle
     const sidebar = document.querySelector('.sidebar');
@@ -53,9 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('collapsed');
         mainContent.classList.toggle('collapsed');
         console.log('Sidebar toggled:', sidebar.classList.contains('collapsed') ? 'Collapsed' : 'Expanded');
-        if (grid) {
-          grid.refreshItems().layout();
-        }
       });
     } else {
       console.error('Toggle button not found');
@@ -66,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`Paging ${name} for ${team} team...`);
     }
   
+    let grid;
     try {
       if (typeof Muuri === 'undefined') {
         throw new Error('Muuri library not loaded');
@@ -645,4 +612,113 @@ document.addEventListener('DOMContentLoaded', () => {
         row.innerHTML = `
           <td>${user.userName}</td>
           <td>${user.location}</td>
-          <td>${user.email
+          <td>${user.email}</td>
+          <td>${user.contactNumber}</td>
+          <td>${user.jobTitle}</td>
+          <td><button class="remove-btn" data-key="${key}">Remove</button></td>
+        `;
+        userTableBody.appendChild(row);
+      });
+      localStorage.setItem('userProfiles', JSON.stringify(userProfilesSettings));
+    };
+  
+    const updateAppTable = () => {
+      appTableBody.innerHTML = '';
+      Object.entries(autoPopulateDataSettings).forEach(([key, app]) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+          <td>${app.priorityCap}</td>
+          <td>${app.urgency}</td>
+          <td>${app.impact}</td>
+          <td>${app.assignmentGroup}</td>
+          <td>${app.category}</td>
+          <td><button class="remove-btn" data-key="${key}">Remove</button></td>
+        `;
+        appTableBody.appendChild(row);
+      });
+      localStorage.setItem('autoPopulateData', JSON.stringify(autoPopulateDataSettings));
+    };
+  
+    if (loginForm) {
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+          loginContainer.classList.add('hidden');
+          settingsContainer.classList.remove('hidden');
+          updateUserTable();
+          updateAppTable();
+          showToast('Logged in successfully');
+        } else {
+          showToast('Invalid credentials');
+        }
+      });
+    }
+  
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        loginContainer.classList.remove('hidden');
+        settingsContainer.classList.add('hidden');
+        loginForm.reset();
+        showToast('Logged out');
+      });
+    }
+  
+    if (userForm) {
+      userForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const userName = document.getElementById('user-name-input').value;
+        const key = userName.toLowerCase().replace(/\s+/g, '-');
+        userProfilesSettings[key] = {
+          userName,
+          location: document.getElementById('user-location').value,
+          email: document.getElementById('user-email').value,
+          contactNumber: document.getElementById('user-contact').value,
+          jobTitle: document.getElementById('user-job-title').value
+        };
+        updateUserTable();
+        userForm.reset();
+        showToast('User added successfully');
+      });
+    }
+  
+    if (appForm) {
+      appForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const appName = document.getElementById('app-name').value;
+        const key = appName.toLowerCase().replace(/\s+/g, '-');
+        autoPopulateDataSettings[key] = {
+          assignmentGroup: document.getElementById('app-assignment-group').value,
+          category: document.getElementById('app-category').value,
+          shortDescription: document.getElementById('app-short-description').value,
+          businessImpact: document.getElementById('app-business-impact').value,
+          impact: document.getElementById('app-impact').value,
+          urgency: document.getElementById('app-urgency').value,
+          priorityCap: document.getElementById('app-priority-cap').value
+        };
+        updateAppTable();
+        appForm.reset();
+        showToast('Application/Service added successfully');
+      });
+    }
+  
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-btn')) {
+        const key = e.target.dataset.key;
+        if (userProfilesSettings[key]) {
+          delete userProfilesSettings[key];
+          updateUserTable();
+          showToast('User removed');
+        } else if (autoPopulateDataSettings[key]) {
+          delete autoPopulateDataSettings[key];
+          updateAppTable();
+          showToast('Application/Service removed');
+        }
+      }
+    });
+  
+    // Initialize Dashboard
+    showPage('dashboard');
+  });
