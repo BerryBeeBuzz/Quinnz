@@ -2,36 +2,77 @@ document.addEventListener('DOMContentLoaded', () => {
     // Page Navigation
     const pages = document.querySelectorAll('.page');
     const menuItems = document.querySelectorAll('.menu-item');
+    const dashboardCreateBtn = document.querySelector('.cta-btn');
+    const sidebarCreateBtn = document.querySelector('.create-btn');
   
     function showPage(pageId) {
-      console.log(`showPage called with pageId: ${pageId}`); // Debug log
+      console.log(`[NAV] showPage called with pageId: ${pageId}`);
       try {
+        // Log available pages
+        console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
+  
         // Toggle page visibility
         pages.forEach(page => {
-          if (page.id === pageId) {
-            page.style.display = 'block';
-            console.log(`Showing page: ${page.id}`);
-          } else {
-            page.style.display = 'none';
-            console.log(`Hiding page: ${page.id}`);
-          }
+          const isVisible = page.id === pageId;
+          page.style.display = isVisible ? 'block' : 'none';
+          console.log(`[NAV] Page ${page.id} set to display: ${page.style.display}`);
         });
+  
+        // Log available menu items
+        console.log(`[NAV] Available menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
   
         // Update active menu item
         menuItems.forEach(item => {
-          const isActive = item.getAttribute('data-tooltip').toLowerCase() === pageId;
+          const onclickAttr = item.getAttribute('onclick') || '';
+          const isActive = onclickAttr.includes(`showPage('${pageId}')`);
           item.classList.toggle('active', isActive);
-          console.log(`Menu item ${item.getAttribute('data-tooltip')} active: ${isActive}`);
+          console.log(`[NAV] Menu item '${item.textContent.trim()}' active: ${isActive}`);
         });
   
         // Refresh Muuri grid for dashboard
         if (pageId === 'dashboard' && window.grid) {
-          console.log('Refreshing Muuri grid');
+          console.log('[NAV] Refreshing Muuri grid');
           window.grid.refreshItems().layout();
         }
       } catch (error) {
-        console.error('Error in showPage:', error);
+        console.error('[NAV] Error in showPage:', error);
       }
+    }
+  
+    // Explicitly handle menu item clicks
+    menuItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const onclickAttr = item.getAttribute('onclick') || '';
+        const match = onclickAttr.match(/showPage\('([^']+)'\)/);
+        if (match) {
+          console.log(`[NAV] Menu item clicked: ${match[1]}`);
+          showPage(match[1]);
+        } else {
+          console.warn(`[NAV] No showPage match for menu item: ${item.textContent.trim()}`);
+        }
+      });
+    });
+  
+    // Handle dashboard Create New Incident button
+    if (dashboardCreateBtn) {
+      dashboardCreateBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[NAV] Dashboard Create New Incident button clicked');
+        showPage('incidents');
+      });
+    }
+  
+    // Handle sidebar Create Incident button
+    if (sidebarCreateBtn) {
+      sidebarCreateBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[NAV] Sidebar Create Incident button clicked');
+        showPage('incidents');
+      });
     }
   
     // Sidebar Toggle
