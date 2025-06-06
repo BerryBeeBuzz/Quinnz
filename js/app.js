@@ -2,10 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Page Navigation
   const pages = document.querySelectorAll('.page');
   const menuItems = document.querySelectorAll('.menu-item');
-  const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="showPage(\'incidents\')"]');
+  const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="window.showPage(\'incidents\')"]');
   const sidebarCreateBtn = document.querySelector('.create-btn');
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
+  window.isAdminAuthenticated = false; // Track admin login state
 
   function showToast(message) {
     if (toast && toastMessage) {
@@ -15,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function showPage(pageId) {
+  window.showPage = function(pageId) {
     console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
       console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
@@ -60,10 +61,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderReportsTable();
         updateReportsChart();
       }
+      if (pageId === 'settings') {
+        console.log('[INIT] Initializing Settings page');
+        const loginContainer = document.getElementById('login-container');
+        const settingsContainer = document.getElementById('settings-container');
+        if (loginContainer && settingsContainer) {
+          if (!window.isAdminAuthenticated) {
+            loginContainer.classList.remove('hidden');
+            settingsContainer.classList.add('hidden');
+          } else {
+            loginContainer.classList.add('hidden');
+            settingsContainer.classList.remove('hidden');
+            updateUserTable();
+            updateAppTable();
+          }
+        }
+      }
     } catch (error) {
       console.error('[NAV] Error in showPage:', error);
     }
-  }
+  };
 
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -73,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const match = onclickAttr.match(/showPage\('([^']+)'\)/);
       if (match) {
         console.log(`[NAV] Menu item clicked: ${match[1]}`);
-        showPage(match[1]);
+        window.showPage(match[1]);
       } else {
         console.warn(`[NAV] No showPage match for menu item: ${item.textContent.trim()}`);
       }
@@ -85,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Dashboard Create New Incident button clicked');
-      showPage('incidents');
+      window.showPage('incidents');
     });
   }
 
@@ -94,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Sidebar Create Incident button clicked');
-      showPage('incidents');
+      window.showPage('incidents');
     });
   }
 
@@ -422,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Reports Functionality
-  const reportsFilter = document.getElementById('reports-filter');
+  const reportsFilter = document.getElement Pulp ById('reports-filter');
   const reportsDate = document.getElementById('reports-date');
   let reports = JSON.parse(localStorage.getItem('reports')) || [
     { ticket: 'INC000001', priority: 'P1', date: '2025-06-05', status: 'Open' },
@@ -463,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Incidents (Ticket Form) Functionality
-  const form = document.getElementById('incident-form');
+  const incidentForm = document.getElementById('incident-form');
   const userProfileSelect = document.getElementById('user-profile');
   const userNameInput = document.getElementById('user-name');
   const locationInput = document.getElementById('location');
@@ -637,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     'Access Request': {
       assignmentGroup: 'Security Team',
-      category: 'Access Issue',
+      category: 'Automation',
       shortDescription: 'Access request delays',
       businessImpact: 'New users cannot access systems, delaying onboarding.',
       impact: 'Low',
@@ -697,8 +714,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (form) {
-    form.addEventListener('submit', (e) => {
+  if (incidentForm) {
+    incidentForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
         showToast('Business Impact, Impact, and Urgency are required');
@@ -735,7 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(`An incident has been created and sent for review. Ticket Number: ${ticketNumber}`);
       ticketCounter++;
       localStorage.setItem('ticketCounter', ticketCounter);
-      form.reset();
+      incidentForm.reset();
       currentTicketNumber = null;
       ticketNumberInput.value = 'Pending';
       userProfileSelect.dispatchEvent(new Event('change'));
@@ -760,7 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'bob-smith': { userName: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@example.com', contactNumber: '312-555-0202', jobTitle: 'Technician' },
     'clara-lee': { userName: 'Clara Lee', location: 'San Francisco, CA', email: 'clara.lee@example.com', contactNumber: '415-555-0303', jobTitle: 'Analyst' },
     'david-brown': { userName: 'David Brown', location: 'Austin, TX', email: 'david.brown@example.com', contactNumber: '512-555-0404', jobTitle: 'Engineer' },
-    'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
+    'Jack-Barry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
   };
 
   let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || autoPopulateData;
@@ -806,6 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        window.isAdminAuthenticated = true;
         loginContainer.classList.add('hidden');
         settingsContainer.classList.remove('hidden');
         updateUserTable();
@@ -819,6 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
+      window.isAdminAuthenticated = false;
       loginContainer.classList.remove('hidden');
       settingsContainer.classList.add('hidden');
       loginForm.reset();
@@ -826,74 +845,102 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function checkAdminPassword(actionCallback) {
+    if (window.isAdminAuthenticated) {
+      actionCallback();
+    } else {
+      const password = prompt('Enter admin password:');
+      if (password === ADMIN_CREDENTIALS.password) {
+        actionCallback();
+      } else {
+        showToast('Incorrect admin password');
+      }
+    }
+  }
+
   if (userForm) {
     userForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const userName = document.getElementById('user-name-input').value;
-      const key = userName.toLowerCase().replace(/\s+/g, '-');
-      userProfilesSettings[key] = {
-        userName,
-        location: document.getElementById('user-location').value,
-        email: document.getElementById('user-email').value,
-        contactNumber: document.getElementById('user-contact').value,
-        jobTitle: document.getElementById('user-job-title').value
-      };
-      updateUserTable();
-      userForm.reset();
-      showToast('User added successfully');
+      checkAdminPassword(() => {
+        const userName = document.getElementById('user-name-input').value.trim();
+        const key = userName.toLowerCase().replace(/\s+/g, '-');
+        userProfilesSettings[key] = {
+          userName,
+          location: document.getElementById('user-location').value.trim(),
+          email: document.getElementById('user-email').value.trim(),
+          contactNumber: document.getElementById('user-contact').value.trim(),
+          jobTitle: document.getElementById('user-job-title').value.trim()
+        };
+        updateUserTable();
+        userForm.reset();
+        showToast('User added successfully');
+      });
     });
   }
 
   if (appForm) {
     appForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const appName = document.getElementById('app-name').value;
-      const key = appName.toLowerCase().replace(/\s+/g, '-');
-      autoPopulateDataSettings[key] = {
-        priorityCap: document.getElementById('app-priority-cap').value,
-        urgency: document.getElementById('app-urgency').value,
-        impact: document.getElementById('app-impact').value,
-        assignmentGroup: document.getElementById('app-assignment-group').value,
-        category: document.getElementById('app-category').value,
-        shortDescription: document.getElementById('app-short-description').value,
-        businessImpact: document.getElementById('app-business-impact').value
-      };
-      updateAppTable();
-      appForm.reset();
-      showToast('Application/Service added successfully');
+      checkAdminPassword(() => {
+        const appName = document.getElementById('app-name').value.trim();
+        const key = appName.toLowerCase().replace(/\s+/g, '-');
+        autoPopulateDataSettings[key] = {
+          priorityCap: document.getElementById('app-priority-cap').value,
+          urgency: document.getElementById('app-urgency').value,
+          impact: document.getElementById('app-impact').value,
+          assignmentGroup: document.getElementById('app-assignment-group').value.trim(),
+          category: document.getElementById('app-category').value.trim(),
+          shortDescription: document.getElementById('app-short-description').value.trim(),
+          businessImpact: document.getElementById('app-business-impact').value.trim()
+        };
+        updateAppTable();
+        appForm.reset();
+        showToast('Application/Service added successfully');
+      });
     });
   }
 
   // Handle Remove Buttons for Settings Tables
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn')) {
-      const key = e.target.dataset.key;
-      const table = e.target.closest('table').id;
-      if (table === 'user-table-body') {
-        delete userProfilesSettings[key];
-        updateUserTable();
-        showToast('User removed successfully');
-      } else if (table === 'app-table-body') {
-        delete autoPopulateDataSettings[key];
-        updateAppTable();
-        showToast('Application/Service removed successfully');
-      }
+      e.preventDefault();
+      checkAdminPassword(() => {
+        const key = e.target.dataset.key;
+        const table = e.target.closest('table').id;
+        if (table === 'user-table-body') {
+          delete userProfilesSettings[key];
+          updateUserTable();
+          showToast('User removed successfully');
+        } else if (table === 'app-table-body') {
+          delete autoPopulateDataSettings[key];
+          updateAppTable();
+          showToast('Application/Service removed successfully');
+        }
+      });
     }
   });
 
-  // Initialize Settings Tables
-  if (settingsContainer && !settingsContainer.classList.contains('hidden')) {
-    updateUserTable();
-    updateAppTable();
-  }
-
   // Integrations Functionality
   const ADMIN_PASSWORD = 'admin123';
+  const integrationIcons = {
+    'PagerDuty': 'fa-bell',
+    'Nagios': 'fa fa-exclamation-circle',
+    'SolarWinds': 'fa fa-sun',
+    'Splunk': 'fa fa-chart-line',
+    'Dynatrace': 'fa fa-tachometer-alt',
+    'AWS': 'fa fa-aws',
+    'ServiceNow': 'fa fa-cogs',
+    'Datadog': 'fa fa-dog',
+    'Zabbix': 'fa fa-eye',
+    'Jira': 'fa fa-ticket-alt',
+    'Custom Webhook': 'fa fa-plug'
+  };
+
   let integrations = JSON.parse(localStorage.getItem('integrations')) || [
     {
       id: 'INT0001',
       name: 'PagerDuty',
-      category: 'Incident Management',
+      category: 'Dataset',
       status: 'Active',
       lastSync: '2025-06-05 18:00',
       apiKey: 'pd_abc123',
@@ -926,15 +973,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const syncLogList = document.getElementById('sync-log-list');
   let selectedIntegration = null;
 
-  function checkAdminPassword(actionCallback) {
-    const password = prompt('Enter admin password to proceed:');
-    if (password === ADMIN_PASSWORD) {
-      actionCallback();
-    } else {
-      showToast('Incorrect admin password');
-    }
-  }
-
   function renderIntegrationsList() {
     if (!integrationsList) return;
     const filterValue = statusFilter ? statusFilter.value : 'all';
@@ -945,7 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.className = `list-item ${selectedIntegration && selectedIntegration.id === integration.id ? 'active' : ''}`;
         item.innerHTML = `
-          <span><img src="https://via.placeholder.com/24" class="integration-icon" alt="${integration.name} icon">${integration.name}</span>
+          <span><i class="fa ${integrationIcons[integration.name] || 'fa-cog'} integration-icon" aria-hidden="true"></i> ${integration.name}</span>
           <span>${integration.category}</span>
           <span><span class="status-badge status-${integration.status.toLowerCase()}">${integration.status}</span></span>
           <span>${integration.lastSync}</span>
@@ -1088,47 +1126,49 @@ document.addEventListener('DOMContentLoaded', () => {
   if (integrationForm) {
     integrationForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = document.getElementById('integration-name').value;
-      const apiKey = document.getElementById('api-key').value;
-      const endpoint = document.getElementById('endpoint').value;
-      const syncInterval = parseInt(document.getElementById('sync-interval').value);
-      const newIntegration = {
-        id: `INT${String(integrations.length + 1).padStart(4, '0')}`,
-        name,
-        category: {
-          'PagerDuty': 'Incident Management',
-          'Nagios': 'Monitoring',
-          'SolarWinds': 'Monitoring',
-          'Splunk': 'Monitoring',
-          'Dynatrace': 'Monitoring',
-          'AWS': 'Cloud',
-          'ServiceNow': 'ITSM',
-          'Datadog': 'Monitoring',
-          'Zabbix': 'Monitoring',
-          'Jira': 'Project Management',
-          'Custom Webhook': 'Custom'
-        }[name] || 'Other',
-        status: 'Active',
-        lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
-        apiKey,
-        endpoint,
-        syncInterval,
-        eventsSynced: 0
-      };
-      integrations.push(newIntegration);
-      syncLog.unshift({
-        id: newIntegration.id,
-        timestamp: newIntegration.lastSync,
-        status: 'Success',
-        message: `Added new integration: ${name}`
+      checkAdminPassword(() => {
+        const name = document.getElementById('integration-name').value;
+        const apiKey = document.getElementById('api-key').value;
+        const endpoint = document.getElementById('endpoint').value;
+        const syncInterval = parseInt(document.getElementById('sync-interval').value);
+        const newIntegration = {
+          id: `INT${String(integrations.length + 1).padStart(4, '0')}`,
+          name,
+          category: {
+            'PagerDuty': 'Incident Management',
+            'Nagios': 'Monitoring',
+            'SolarWinds': 'Monitoring',
+            'Splunk': 'Monitoring',
+            'Dynatrace': 'Monitoring',
+            'AWS': 'Cloud',
+            'ServiceNow': 'ITSM',
+            'Datadog': 'Monitoring',
+            'Zabbix': 'Monitoring',
+            'Jira': 'Project Management',
+            'Custom Webhook': 'Custom'
+          }[name] || 'Other',
+          status: 'Active',
+          lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
+          apiKey,
+          endpoint,
+          syncInterval,
+          eventsSynced: 0
+        };
+        integrations.push(newIntegration);
+        syncLog.unshift({
+          id: newIntegration.id,
+          timestamp: newIntegration.lastSync,
+          status: 'Success',
+          message: `Added new integration: ${name}`
+        });
+        localStorage.setItem('integrations', JSON.stringify(integrations));
+        localStorage.setItem('syncLog', JSON.stringify(syncLog));
+        renderIntegrationsList();
+        renderSyncLog();
+        updateSyncChart();
+        closeAddIntegrationModal();
+        showToast(`Integration ${name} added`);
       });
-      localStorage.setItem('integrations', JSON.stringify(integrations));
-      localStorage.setItem('syncLog', JSON.stringify(syncLog));
-      renderIntegrationsList();
-      renderSyncLog();
-      updateSyncChart();
-      closeAddIntegrationModal();
-      showToast(`Integration ${name} added`);
     });
   }
 
@@ -1137,5 +1177,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Ensure Dashboard is Shown on Load
-  showPage('dashboard');
+  window.showPage('dashboard');
 });
