@@ -3,569 +3,390 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quinnz Incident Management</title>
+  <meta name="description" content="Quinnz Incident Management Dashboard">
+  <title>Quinnz</title>
   <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
 </head>
 <body>
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="logo">
-      <img src="https://i.imgur.com/BhdkZG0.png" alt="Quinnz Logo">
-    </div>
-    <div class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">☰</div>
-    <div class="menu">
-      <div class="menu-item active" data-tooltip="Dashboard" onclick="showPage('dashboard')">
-        <span aria-label="Dashboard Icon">🏠</span>
-        <span>Dashboard</span>
+  <div class="container">
+    <nav class="sidebar">
+      <div class="logo">
+        <img src="https://via.placeholder.com/40" alt="Quinnz Logo" aria-hidden="true">
+        <span>Quinnz</span>
       </div>
-      <div class="menu-item" data-tooltip="Incidents" onclick="showPage('incidents')">
-        <span aria-label="Incidents Icon">🎫</span>
-        <span>Incidents</span>
-      </div>
-      <div class="menu-item" data-tooltip="Monitoring" onclick="alert('Monitoring not implemented')">
-        <span aria-label="Monitoring Icon">📈</span>
-        <span>Monitoring</span>
-      </div>
-      <div class="menu-item" data-tooltip="Workflows" onclick="alert('Workflows not implemented')">
-        <span aria-label="Workflows Icon">⚙️</span>
-        <span>Workflows</span>
-      </div>
-      <div class="menu-item" data-tooltip="Communications" onclick="alert('Communications not implemented')">
-        <span aria-label="Communications Icon">💬</span>
-        <span>Communications</span>
-      </div>
-      <div class="menu-item" data-tooltip="Reports" onclick="alert('Reports not implemented')">
-        <span aria-label="Reports Icon">📊</span>
-        <span>Reports</span>
-      </div>
-      <div class="menu-item" data-tooltip="Integrations" onclick="showPage('integrations')">
-        <span aria-label="Integrations Icon">🔌</span>
-        <span>Integrations</span>
-      </div>
-      <div class="menu-item" data-tooltip="Settings" onclick="showPage('settings')">
-        <span aria-label="Settings Icon">⚙️</span>
-        <span>Settings</span>
-      </div>
-    </div>
-    <button class="create-btn" onclick="showPage('incidents')" aria-label="Create Incident">+ Create Incident</button>
-  </aside>
-
-  <!-- Main Content -->
-  <main class="main-content" id="main-content">
-    <div id="toast" class="toast hidden">
-      <span id="toast-message"></span>
-    </div>
-    <!-- Dashboard Page -->
-    <section id="dashboard" class="page">
-      <div class="header">
-        <h1>Dashboard</h1>
-        <div class="filters">
-          <select>
-            <option>Today</option>
-            <option>This Week</option>
-            <option>This Month</option>
-          </select>
-          <select>
-            <option>All Teams</option>
-            <option>DevOps</option>
-            <option>IT</option>
-          </select>
+      <div class="menu">
+        <div class="menu-item active" data-tooltip="Dashboard" onclick="showPage('dashboard')">
+          <span aria-label="Dashboard Icon">🏠</span><span>Dashboard</span>
+        </div>
+        <div class="menu-item" data-tooltip="Incidents" onclick="showPage('incidents')">
+          <span aria-label="Incidents Icon">🎫</span><span>Incidents</span>
+        </div>
+        <div class="menu-item" data-tooltip="Monitoring" onclick="showPage('monitoring')">
+          <span aria-label="Monitoring Icon">📈</span><span>Monitoring</span>
+        </div>
+        <div class="menu-item" data-tooltip="Workflows" onclick="showPage('workflows')">
+          <span aria-label="Workflows Icon">⚙️</span><span>Workflows</span>
+        </div>
+        <div class="menu-item" data-tooltip="Communications" onclick="showPage('communications')">
+          <span aria-label="Communications Icon">💬</span><span>Communications</span>
+        </div>
+        <div class="menu-item" data-tooltip="Reports" onclick="showPage('reports')">
+          <span aria-label="Reports Icon">📊</span><span>Reports</span>
+        </div>
+        <div class="menu-item" data-tooltip="Integrations" onclick="showPage('integrations')">
+          <span aria-label="Integrations Icon">🔌</span><span>Integrations</span>
+        </div>
+        <div class="menu-item" data-tooltip="Settings" onclick="showPage('settings')">
+          <span aria-label="Settings Icon">⚙️</span><span>Settings</span>
         </div>
       </div>
-      <div class="widget-grid muuri">
-        <div class="widget uniform muuri-item" data-id="incident-status">
-          <div class="muuri-item-content">
+      <button id="toggle-btn" aria-label="Toggle Sidebar">☰</button>
+    </nav>
+    <main class="main-content">
+      <header class="topbar">
+        <div class="user-profile">
+          <img src="https://via.placeholder.com/32" alt="User Avatar" aria-hidden="true">
+          <span>Jack Berry</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="create-btn" aria-label="Create Incident">+ Create Incident</button>
+          <button class="theme-toggle" aria-label="Toggle Dark Mode">🌙</button>
+        </div>
+      </header>
+      <section id="dashboard" class="page">
+        <div class="dashboard-header">
+          <h1>Dashboard</h1>
+          <button class="cta-btn" onclick="showPage('incidents')">Create New Incident</button>
+        </div>
+        <div class="widget-grid muuri">
+          <div class="widget muuri-item uniform">
             <h3>Incident Status</h3>
-            <canvas id="incidentChart"></canvas>
-            <div class="legend">
-              <span class="legend-item open">Open: 15</span>
-              <span class="legend-item in-progress">In Progress: 8</span>
-              <span class="legend-item resolved">Resolved: 22</span>
-            </div>
+            <canvas id="incidentChart" aria-label="Incident Status Chart"></canvas>
           </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="priority-over-time">
-          <div class="muuri-item-content">
-            <h3>Incidents by Priority Over Time</h3>
-            <canvas id="priorityChart"></canvas>
+          <div class="widget muuri-item uniform">
+            <h3>Priority Trend</h3>
+            <canvas id="priorityChart" aria-label="Priority Trend Chart"></canvas>
           </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="monitoring-alerts">
-          <div class="muuri-item-content">
-            <h3>Recent Monitoring Alerts</h3>
-            <div class="list">
-              <div class="list-item">High CPU Usage on Server X - 10:15 AM</div>
-              <div class="list-item">Network Latency Spike - 9:30 AM</div>
-              <div class="list-item">Disk Space Low on Server Y - 8:45 AM</div>
-              <div class="list-item">Application Crash - 7:20 AM</div>
-              <div class="list-item">Database Connection Error - 6:10 AM</div>
-              <div class="list-item">Memory Leak Detected - 5:55 AM</div>
-              <div class="list-item">Server Z Unresponsive - 5:30 AM</div>
-              <div class="list-item">API Rate Limit Exceeded - 4:45 AM</div>
-              <div class="list-item">Authentication Failure Spike - 4:00 AM</div>
-              <div class="list-item">Backup Failure on Server A - 3:15 AM</div>
-            </div>
-            <p class="scroll-label">Scroll for more</p>
-          </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="sla-compliance">
-          <div class="muuri-item-content">
+          <div class="widget muuri-item uniform">
             <h3>SLA Compliance</h3>
-            <canvas id="slaChart"></canvas>
-            <p>92% of incidents on track</p>
+            <canvas id="slaChart" aria-label="SLA Compliance Chart"></canvas>
           </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="team-activity">
-          <div class="muuri-item-content">
-            <h3>Team Activity</h3>
-            <div class="timeline">
-              <div class="timeline-item">
-                <span class="avatar">👤</span>
-                <span>John assigned ticket #123 - 9:45 AM</span>
-              </div>
-              <div class="timeline-item">
-                <span class="avatar">👤</span>
-                <span>Sarah resolved ticket #122 - 9:30 AM</span>
-              </div>
-              <div class="timeline-item">
-                <span class="avatar">👤</span>
-                <span>Mike commented on ticket #121 - 9:15 AM</span>
-              </div>
-            </div>
+          <div class="widget muuri-item uniform">
+            <h3>Dynatrace CPU</h3>
+            <canvas id="dynatraceChart" aria-label="Dynatrace CPU Chart"></canvas>
           </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="on-call-schedule">
-          <div class="muuri-item-content">
-            <h3>Team On-Call Schedule</h3>
-            <div class="list on-call-list">
-              <div class="list-item">
-                <div class="contact-info">
-                  <span><strong>Network</strong>: Alice Johnson, Network Engineer</span>
-                  <span>Office (555) 123-4567</span>
-                  <span>Cell (555) 987-6543</span>
-                  <span>Email - alice.johnson@tech.com</span>
-                </div>
-                <button class="page-btn" onclick="pageContact('Alice Johnson', 'Network')">Page</button>
-              </div>
-              <div class="list-item">
-                <div class="contact-info">
-                  <span><strong>Server</strong>: Bob Smith, Server Admin</span>
-                  <span>Office (555) 234-5678</span>
-                  <span>Cell (555) 876-5432</span>
-                  <span>Email - bob.smith@tech.com</span>
-                </div>
-                <button class="page-btn" onclick="pageContact('Bob Smith', 'Server')">Page</button>
-              </div>
-              <div class="list-item">
-                <div class="contact-info">
-                  <span><strong>Cybersecurity</strong>: Clara Davis, Security Analyst</span>
-                  <span>Office (555) 345-6789</span>
-                  <span>Cell (555) 765-4321</span>
-                  <span>Email - clara.davis@tech.com</span>
-                </div>
-                <button class="page-btn" onclick="pageContact('Clara Davis', 'Cybersecurity')">Page</button>
-              </div>
-              <div class="list-item">
-                <div class="contact-info">
-                  <span><strong>Software Dev</strong>: David Lee, Lead Developer</span>
-                  <span>Office (555) 456-7890</span>
-                  <span>Cell (555) 654-3210</span>
-                  <span>Email - david.lee@tech.com</span>
-                </div>
-                <button class="page-btn" onclick="pageContact('David Lee', 'Software Dev')">Page</button>
-              </div>
-              <div class="list-item">
-                <div class="contact-info">
-                  <span><strong>Infrastructure</strong>: Emma Brown, Infra Engineer</span>
-                  <span>Office (555) 567-8901</span>
-                  <span>Cell (555) 543-2109</span>
-                  <span>Email - emma.brown@tech.com</span>
-                </div>
-                <button class="page-btn" onclick="pageContact('Emma Brown', 'Infrastructure')">Page</button>
-              </div>
-              <div class="list-item">
-                <div class="contact-info">
-                  <span><strong>VoIP</strong>: Frank Wilson, VoIP Specialist</span>
-                  <span>Office (555) 678-9012</span>
-                  <span>Cell (555) 432-1098</span>
-                  <span>Email - frank.wilson@tech.com</span>
-                </div>
-                <button class="page-btn" onclick="pageContact('Frank Wilson', 'VoIP')">Page</button>
-              </div>
-            </div>
+          <div class="widget muuri-item uniform">
+            <h3>Splunk Errors</h3>
+            <canvas id="splunkChart" aria-label="Splunk Errors Chart"></canvas>
           </div>
-        </div>
-        <div class="widget muuri-item" data-id="dynatrace-alerts">
-          <div class="muuri-item-content">
-            <h3>Dynatrace Alerts</h3>
-            <canvas id="dynatraceChart"></canvas>
-            <p>CPU Usage Over Time</p>
+          <div class="widget muuri-item uniform">
+            <h3>Change Tickets</h3>
+            <canvas id="changeTicketsChart" aria-label="Change Tickets Chart"></canvas>
           </div>
-        </div>
-        <div class="widget muuri-item" data-id="splunk-alerts">
-          <div class="muuri-item-content">
-            <h3>Splunk Alerts</h3>
-            <canvas id="splunkChart"></canvas>
-            <p>Error Rate Over Time</p>
+          <div class="widget muuri-item uniform">
+            <h3>PagerDuty Incidents</h3>
+            <canvas id="pagerDutyChart" aria-label="PagerDuty Incidents Chart"></canvas>
           </div>
-        </div>
-        <div class="widget uniform change-tickets muuri-item" data-id="change-tickets">
-          <div class="muuri-item-content">
-            <h3>Current Change Tickets</h3>
-            <canvas id="changeTicketsChart"></canvas>
-            <div class="list" id="changeTicketsList"></div>
-            <p class="scroll-label">Scroll for more</p>
+          <div class="widget muuri-item uniform">
+            <h3>Response Time</h3>
+            <canvas id="responseTimeChart" aria-label="Response Time Chart"></canvas>
           </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="pagerduty-alerts">
-          <div class="muuri-item-content">
-            <h3>PagerDuty Alerts</h3>
-            <canvas id="pagerDutyChart"></canvas>
-            <p>Incident Frequency Over Time</p>
-          </div>
-        </div>
-        <div class="widget uniform muuri-item" data-id="response-time">
-          <div class="muuri-item-content">
-            <h3>Incident Response Time</h3>
-            <canvas id="responseTimeChart"></canvas>
-            <p>Average Response Time (Minutes)</p>
-          </div>
-        </div>
-        <div class="widget uniform service-health muuri-item" data-id="service-health">
-          <div class="muuri-item-content">
+          <div class="widget muuri-item uniform">
             <h3>Service Health</h3>
-            <div class="incident-counts">
-              <div class="incident-item p1">
-                <span class="incident-icon">🔴</span>
-                <span class="incident-label">Priority 1 Incidents: </span>
-                <span class="incident-value">3</span>
-              </div>
-              <div class="incident-item p2">
-                <span class="incident-icon">🟠</span>
-                <span class="incident-label">Priority 2 Incidents: </span>
-                <span class="incident-value">5</span>
-              </div>
-              <div class="incident-item p3">
-                <span class="incident-icon">🟡</span>
-                <span class="incident-label">Priority 3 Incidents: </span>
-                <span class="incident-value">7</span>
-              </div>
-            </div>
-            <canvas id="serviceHealthChart"></canvas>
+            <canvas id="serviceHealthChart" aria-label="Service Health Chart"></canvas>
+          </div>
+          <div class="widget muuri-item uniform">
+            <h3>Active Incidents</h3>
+            <ul>
+              <li>INC000123 - Citrix Storefront (P1) <button onclick="pageContact('Alice', 'Citrix')">Page</button></li>
+              <li>INC000124 - Email Service (P2) <button onclick="pageContact('Bob', 'Email')">Page</button></li>
+            </ul>
           </div>
         </div>
-      </div>
-      <button class="add-widget-btn cta-btn">Add New Widget</button>
-      <button class="cta-btn" onclick="showPage('incidents')">Create New Incident</button>
-    </section>
-
-    <!-- Incidents Page -->
-    <section id="incidents" class="page" style="display: none;">
-      <div class="header">
-        <h1>Create Incident Ticket</h1>
-      </div>
-      <div class="form-container">
-        <form id="incident-form">
-          <div class="form-grid">
-            <div class="form-column">
-              <div class="form-group">
-                <label for="ticket-number">Ticket Number</label>
-                <input type="text" id="ticket-number" name="ticket-number" readonly value="Pending">
-              </div>
-              <div class="form-group">
-                <label for="user-profile">User Profile</label>
-                <select id="user-profile" name="user-profile" required>
-                  <option value="" disabled selected>Select a user</option>
-                  <option value="alice-johnson">Alice Johnson</option>
-                  <option value="bob-smith">Bob Smith</option>
-                  <option value="clara-lee">Clara Lee</option>
-                  <option value="david-brown">David Brown</option>
-                  <option value="Jack-Berry">Jack Berry</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="user-name">User Name</label>
-                <input type="text" id="user-name" name="user-name" readonly>
-              </div>
-              <div class="form-group">
-                <label for="location">Location</label>
-                <input type="text" id="location" name="location" readonly>
-              </div>
-              <div class="form-group">
-                <label for="contact-number">Contact Number</label>
-                <input type="text" id="contact-number" name="contact-number" readonly>
-              </div>
-              <div class="form-group">
-                <label for="app-service">Application/Service/Infrastructure</label>
-                <select id="app-service" name="app-service" required>
-                  <option value="" disabled selected>Select an option</option>
-                  <option value="citrix-storefront">Citrix Storefront</option>
-                  <option value="email-service">Email Service</option>
-                  <option value="server-cluster-a">Server Cluster A</option>
-                  <option value="printer-service">Printer Service</option>
-                  <option value="billing-app">Billing Application</option>
-                  <option value="network-router">Network Router</option>
-                  <option value="helpdesk-portal">Helpdesk Portal</option>
-                  <option value="database-b">Database B</option>
-                  <option value="vpn-service">VPN Service</option>
-                  <option value="file-server">File Server</option>
-                  <option value="sap-erp">SAP ERP</option>
-                  <option value="zoom-service">Zoom Service</option>
-                  <option value="aws-lambda">AWS Lambda</option>
-                  <option value="password-reset">Password Reset</option>
-                  <option value="Access Request">Access Request</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-column">
-              <div class="form-group">
-                <label for="priority">Priority</label>
-                <input type="text" id="priority" name="priority" readonly>
-              </div>
-              <div class="form-group">
-                <label for="impact">Impact</label>
-                <select id="impact" name="impact" required>
-                  <option value="" disabled selected>Select impact level</option>
-                  <option value="High">High (Widespread)</option>
-                  <option value="Medium">Medium (Localized)</option>
-                  <option value="Low">Low (Individualized)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="urgency">Urgency</label>
-                <select id="urgency" name="urgency" required>
-                  <option value="" disabled selected>Select urgency level</option>
-                  <option value="High">High (Immediate)</option>
-                  <option value="Medium">Medium (Prompt)</option>
-                  <option value="Low">Low (Standard)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="assignment-group">Assignment Group</label>
-                <input type="text" id="assignment-group" name="assignment-group" readonly>
-              </div>
-              <div class="form-group">
-                <label for="category">Category</label>
-                <input type="text" id="category" name="category" readonly>
-              </div>
-              <div class="form-group">
-                <label for="state">State</label>
-                <select id="state" name="state" required>
-                  <option value="New" selected>New</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
-                </select>
-              </div>
-            </div>
+        <button class="add-widget-btn" aria-label="Add Widget">+ Add Widget</button>
+      </section>
+      <section id="incidents" class="page" style="display: none;">
+        <h1>Create Incident</h1>
+        <form id="incident-form" class="form-container">
+          <div class="form-group">
+            <label for="ticket-number">Ticket Number</label>
+            <input type="text" id="ticket-number" readonly value="Pending" aria-readonly="true">
           </div>
-          <div class="form-description">
-            <div class="form-group">
-              <label for="short-description">Short Description (max 80 characters)</label>
-              <input type="text" id="short-description" name="short-description" maxlength="80" required>
-            </div>
-            <div class="form-group">
-              <label for="additional-comments">Additional Comments</label>
-              <textarea id="additional-comments" name="additional-comments" rows="4"></textarea>
-            </div>
-            <div class="form-group">
-              <label for="business-impact">Business Impact</label>
-              <textarea id="business-impact" name="business-impact" rows="4" required></textarea>
-            </div>
-            <div class="form-group">
-              <label for="work-notes">Work Notes</label>
-              <textarea id="work-notes" name="work-notes" rows="4"></textarea>
-            </div>
-          </div>
-          <button type="submit" class="cta-btn">Create Ticket</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- Integrations Page (CodePen Content) -->
-    <section id="integrations" class="page" style="display: none;">
-      <div class="integrations">
-        <div class="header">
-          <h1>Integrations</h1>
-          <div class="filters">
-            <select id="status-filter" aria-label="Filter by status">
-              <option value="all">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+          <div class="form-group">
+            <label for="user-profile">User Profile</label>
+            <select id="user-profile" aria-label="Select User Profile">
+              <option value="">Select User</option>
+              <option value="alice-johnson">Alice Johnson</option>
+              <option value="bob-smith">Bob Smith</option>
+              <option value="clara-lee">Clara Lee</option>
+              <option value="david-brown">David Brown</option>
+              <option value="Jack-Berry">Jack Berry</option>
             </select>
-            <button class="cta-btn" onclick="openAddIntegrationModal()" aria-label="Add new integration">Add Integration</button>
-          </div>
-        </div>
-        <div class="integrations-grid">
-          <div class="integrations-list">
-            <div class="list-header">
-              <span>Integration</span>
-              <span>Category</span>
-              <span>Status</span>
-              <span>Last Sync</span>
-              <span>Actions</span>
-            </div>
-            <div class="list" id="integrations-list" role="listbox" aria-label="Integrations list"></div>
-            <p class="scroll-label">Scroll for more</p>
-          </div>
-          <div class="integration-details" id="integration-details" style="display: none;">
-            <h3>Integration Details</h3>
-            <div class="details-content">
-              <p><strong>Name:</strong> <span id="detail-name"></span></p>
-              <p><strong>Category:</strong> <span id="detail-category"></span></p>
-              <p><strong>API Key:</strong> <input type="text" id="detail-api-key" readonly aria-label="API key"></p>
-              <p><strong>Endpoint:</strong> <input type="text" id="detail-endpoint" readonly aria-label="Endpoint URL"></p>
-              <p><strong>Sync Interval (min):</strong> <input type="number" id="detail-sync-interval" readonly aria-label="Sync interval"></p>
-              <button class="cta-btn" onclick="editIntegrationDetails()" aria-label="Edit integration details">Edit</button>
-              <button class="cta-btn secondary" onclick="saveIntegrationDetails()" style="display: none;" aria-label="Save integration details">Save</button>
-              <button class="cta-btn secondary" onclick="closeIntegrationDetails()" aria-label="Close details">Close</button>
-            </div>
-          </div>
-        </div>
-        <div class="sync-status">
-          <h3>Sync Status Dashboard</h3>
-          <div class="charts">
-            <div class="chart-widget">
-              <h4>Events Synced by Integration</h4>
-              <canvas id="syncChart"></canvas>
-            </div>
-          </div>
-          <div class="sync-log">
-            <h4>Recent Sync Activity</h4>
-            <div class="log-list" id="sync-log-list" role="log" aria-label="Sync activity log"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Settings Page -->
-    <section id="settings" class="page" style="display: none;">
-      <div class="header">
-        <h1>Settings</h1>
-      </div>
-      <div class="login-container" id="login-container">
-        <form id="login-form" class="form-container">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
           </div>
           <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+            <label for="user-name">User Name</label>
+            <input type="text" id="user-name" readonly aria-readonly="true">
           </div>
-          <button type="submit" class="cta-btn">Login</button>
+          <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" readonly aria-readonly="true">
+          </div>
+          <div class="form-group">
+            <label for="contact-number">Contact Number</label>
+            <input type="text" id="contact-number" readonly aria-readonly="true">
+          </div>
+          <div class="form-group">
+            <label for="app-service">Application/Service</label>
+            <select id="app-service" aria-label="Select Application or Service">
+              <option value="">Select Application</option>
+              <option value="citrix-storefront">Citrix Storefront</option>
+              <option value="email-service">Email Service</option>
+              <option value="server-cluster-a">Server Cluster A</option>
+              <option value="printer-service">Printer Service</option>
+              <option value="billing-app">Billing App</option>
+              <option value="network-router">Network Router</option>
+              <option value="helpdesk-portal">Helpdesk Portal</option>
+              <option value="database-b">Database B</option>
+              <option value="vpn-service">VPN Service</option>
+              <option value="file-server">File Server</option>
+              <option value="sap-erp">SAP ERP</option>
+              <option value="zoom-service">Zoom Service</option>
+              <option value="aws-lambda">AWS Lambda</option>
+              <option value="password-reset">Password Reset</option>
+              <option value="Access Request">Access Request</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priority">Priority</label>
+            <input type="text" id="priority" readonly aria-readonly="true">
+          </div>
+          <div class="form-group">
+            <label for="impact">Impact</label>
+            <select id="impact" aria-label="Select Impact Level">
+              <option value="">Select Impact</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="urgency">Urgency</label>
+            <select id="urgency" aria-label="Select Urgency Level">
+              <option value="">Select Urgency</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="assignment-group">Assignment Group</label>
+            <input type="text" id="assignment-group" readonly aria-readonly="true">
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" id="category" readonly aria-readonly="true">
+          </div>
+          <div class="form-group">
+            <label for="short-description">Short Description</label>
+            <input type="text" id="short-description" readonly aria-readonly="true">
+          </div>
+          <div class="form-group">
+            <label for="business-impact">Business Impact</label>
+            <textarea id="business-impact" aria-label="Business Impact Description"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="additional-comments">Additional Comments</label>
+            <textarea id="additional-comments" aria-label="Additional Comments"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="work-notes">Work Notes</label>
+            <textarea id="work-notes" aria-label="Work Notes"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="state">State</label>
+            <select id="state" aria-label="Select Incident State">
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+          <button type="submit" class="cta-btn" aria-label="Submit Incident">Submit Incident</button>
         </form>
-      </div>
-      <div class="settings-container hidden" id="settings-container">
-        <button id="logout-btn" class="cta-btn logout-btn">Logout</button>
-        <div class="form-container">
-          <h2>Manage User Profiles</h2>
-          <form id="user-form">
-            <div class="form-grid">
-              <div class="form-column">
-                <div class="form-group">
-                  <label for="user-name-input">User Name</label>
-                  <input type="text" id="user-name-input" name="user-name" required>
-                </div>
-                <div class="form-group">
-                  <label for="user-location">Location</label>
-                  <input type="text" id="user-location" name="location" required>
-                </div>
-                <div class="form-group">
-                  <label for="user-email">Email Address</label>
-                  <input type="email" id="user-email" name="email" required>
-                </div>
-              </div>
-              <div class="form-column">
-                <div class="form-group">
-                  <label for="user-contact">Contact Number</label>
-                  <input type="tel" id="user-contact" name="contact-number" required>
-                </div>
-                <div class="form-group">
-                  <label for="user-job-title">Job Title</label>
-                  <input type="text" id="user-job-title" name="job-title" required>
-                </div>
-              </div>
+      </section>
+      <section id="monitoring" class="page" style="display: none;">
+        <h1>Monitoring</h1>
+        <p>Monitoring features coming soon.</p>
+      </section>
+      <section id="workflows" class="page" style="display: none;">
+        <h1>Workflows</h1>
+        <p>Workflow automation coming soon.</p>
+      </section>
+      <section id="communications" class="page" style="display: none;">
+        <h1>Communications</h1>
+        <p>Communication tools coming soon.</p>
+      </section>
+      <section id="reports" class="page" style="display: none;">
+        <h1>Reports</h1>
+        <p>Reporting features coming soon.</p>
+      </section>
+      <section id="integrations" class="page" style="display: none;">
+        <div class="integrations">
+          <div class="header">
+            <h1>Integrations</h1>
+            <div class="filters">
+              <select id="status-filter" aria-label="Filter by status">
+                <option value="all">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+              <button class="cta-btn" onclick="openAddIntegrationModal()" aria-label="Add new integration">Add Integration</button>
             </div>
-            <button type="submit" class="cta-btn">Add User</button>
+          </div>
+          <div class="integrations-grid">
+            <div class="integrations-list">
+              <div class="list-header">
+                <span>Integration</span>
+                <span>Category</span>
+                <span>Status</span>
+                <span>Last Sync</span>
+                <span>Actions</span>
+              </div>
+              <div class="list" id="integrations-list" role="listbox" aria-label="Integrations list"></div>
+              <p class="scroll-label">Scroll for more</p>
+            </div>
+          </div>
+          <div class="modal" id="add-integration-modal" style="display: none;">
+            <div class="modal-content">
+              <h2>Add New Integration</h2>
+              <form id="integrationForm">
+                <div class="form-group">
+                  <label for="integration-name">Integration</label>
+                  <select id="integration-name" required aria-label="Select integration">
+                    <option value="">Select Integration</option>
+                    <option value="PagerDuty">PagerDuty</option>
+                    <option value="Splunk">Splunk</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="api-key">API Key</label>
+                  <input type="text" id="api-key" placeholder="Enter API key" required aria-label="API key">
+                </div>
+                <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
+                <button type="button" class="cta-btn secondary" onclick="closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="settings" class="page" style="display: none;">
+        <div id="login-container">
+          <h2>Admin Login</h2>
+          <form id="login-form">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" required aria-label="Admin Username">
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" required aria-label="Admin Password">
+            </div>
+            <button type="submit" class="cta-btn" aria-label="Login">Login</button>
           </form>
-          <table class="settings-table">
+        </div>
+        <div id="settings-container" class="hidden">
+          <h2>Settings</h2>
+          <button id="logout-btn" class="cta-btn secondary" aria-label="Logout">Logout</button>
+          <h3>Add User</h3>
+          <form id="user-form">
+            <div class="form-group">
+              <label for="user-name-input">User Name</label>
+              <input type="text" id="user-name-input" required aria-label="User Name">
+            </div>
+            <div class="form-group">
+              <label for="user-location">Location</label>
+              <input type="text" id="user-location" required aria-label="User Location">
+            </div>
+            <div class="form-group">
+              <label for="user-email">Email</label>
+              <input type="email" id="user-email" required aria-label="User Email">
+            </div>
+            <div class="form-group">
+              <label for="user-contact">Contact Number</label>
+              <input type="text" id="user-contact" required aria-label="User Contact Number">
+            </div>
+            <div class="form-group">
+              <label for="user-job-title">Job Title</label>
+              <input type="text" id="user-job-title" required aria-label="User Job Title">
+            </div>
+            <button type="submit" class="cta-btn" aria-label="Add User">Add User</button>
+          </form>
+          <h3>Users</h3>
+          <table class="settings-table" aria-label="Users Table">
             <thead>
               <tr>
-                <th>User Name</th>
+                <th>Name</th>
                 <th>Location</th>
                 <th>Email</th>
-                <th>Contact Number</th>
+                <th>Contact</th>
                 <th>Job Title</th>
-                <th>Action</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="user-table-body"></tbody>
           </table>
-        </div>
-        <div class="form-container">
-          <h2>Manage Applications/Services/Infrastructure</h2>
+          <h3>Add Application/Service</h3>
           <form id="app-form">
-            <div class="form-grid">
-              <div class="form-column">
-                <div class="form-group">
-                  <label for="app-name">Name</label>
-                  <input type="text" id="app-name" name="app-name" required>
-                </div>
-                <div class="form-group">
-                  <label for="app-priority-cap">Priority Cap</label>
-                  <select id="app-priority-cap" name="priority-cap" required>
-                    <option value="" disabled selected>Select priority cap</option>
-                    <option value="P1 High">P1 High</option>
-                    <option value="P2 Medium">P2 Medium</option>
-                    <option value="P3 Low">P3 Low</option>
-                    <option value="P4 Low">P4 Low</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="app-urgency">Urgency</label>
-                  <select id="app-urgency" name="urgency" required>
-                    <option value="" disabled selected>Select urgency</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="app-impact">Impact</label>
-                  <select id="app-impact" name="impact" required>
-                    <option value="" disabled selected>Select impact</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-column">
-                <div class="form-group">
-                  <label for="app-assignment-group">Assignment Group</label>
-                  <input type="text" id="app-assignment-group" name="assignment-group" required>
-                </div>
-                <div class="form-group">
-                  <label for="app-category">Category</label>
-                  <input type="text" id="app-category" name="category" required>
-                </div>
-                <div class="form-group">
-                  <label for="app-short-description">Short Description</label>
-                  <input type="text" id="app-short-description" name="short-description" maxlength="80" required>
-                </div>
-                <div class="form-group">
-                  <label for="app-business-impact">Business Impact</label>
-                  <textarea id="app-business-impact" name="business-impact" rows="4" required></textarea>
-                </div>
-              </div>
+            <div class="form-group">
+              <label for="app-name">Application Name</label>
+              <input type="text" id="app-name" required aria-label="Application Name">
             </div>
-            <button type="submit" class="cta-btn">Add Application/Service</button>
+            <div class="form-group">
+              <label for="app-priority-cap">Priority Cap</label>
+              <select id="app-priority-cap" required aria-label="Priority Cap">
+                <option value="P1 High">P1 High</option>
+                <option value="P2 Medium">P2 Medium</option>
+                <option value="P3 Low">P3 Low</option>
+                <option value="P4 Low">P4 Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="app-urgency">Urgency</label>
+              <select id="app-urgency" required aria-label="Urgency">
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="app-impact">Impact</label>
+              <select id="app-impact" required aria-label="Impact">
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="app-assignment-group">Assignment Group</label>
+              <input type="text" id="app-assignment-group" required aria-label="Assignment Group">
+            </div>
+            <div class="form-group">
+              <label for="app-category">Category</label>
+              <input type="text" id="app-category" required aria-label="Category">
+            </div>
+            <div class="form-group">
+              <label for="app-short-description">Short Description</label>
+              <input type="text" id="app-short-description" required aria-label="Short Description">
+            </div>
+            <div class="form-group">
+              <label for="app-business-impact">Business Impact</label>
+              <textarea id="app-business-impact" required aria-label="Business Impact"></textarea>
+            </div>
+            <button type="submit" class="cta-btn" aria-label="Add Application">Add Application</button>
           </form>
-          <table class="settings-table">
+          <h3>Applications/Services</h3>
+          <table class="settings-table" aria-label="Applications Table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -574,55 +395,18 @@
                 <th>Impact</th>
                 <th>Assignment Group</th>
                 <th>Category</th>
-                <th>Action</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="app-table-body"></tbody>
           </table>
         </div>
-      </div>
-    </section>
-
-    <!-- Add Integration Modal -->
-    <div class="modal" id="add-integration-modal" style="display: none;">
-      <div class="modal-content">
-        <h2>Add New Integration</h2>
-        <form id="integrationForm">
-          <div class="form-group">
-            <label for="integration-name">Integration</label>
-            <select id="integration-name" required aria-label="Select integration">
-              <option value="">Select Integration</option>
-              <option value="PagerDuty">PagerDuty</option>
-              <option value="Nagios">Nagios</option>
-              <option value="SolarWinds">SolarWinds</option>
-              <option value="Splunk">Splunk</option>
-              <option value="Dynatrace">Dynatrace</option>
-              <option value="AWS">AWS</option>
-              <option value="ServiceNow">ServiceNow</option>
-              <option value="Datadog">Datadog</option>
-              <option value="Zabbix">Zabbix</option>
-              <option value="Jira">Jira</option>
-              <option value="Custom Webhook">Custom Webhook</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="api-key">API Key</label>
-            <input type="text" id="api-key" placeholder="Enter API key" required aria-label="API key">
-          </div>
-          <div class="form-group">
-            <label for="endpoint">Endpoint URL</label>
-            <input type="text" id="endpoint" placeholder="Enter endpoint URL" required aria-label="Endpoint URL">
-          </div>
-          <div class="form-group">
-            <label for="sync-interval">Sync Interval (minutes)</label>
-            <input type="number" id="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
-          </div>
-          <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
-          <button type="button" class="cta-btn secondary" onclick="closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
-        </form>
-      </div>
-    </div>
-  </main>
+      </section>
+    </main>
+  </div>
+  <div id="toast" role="alert">
+    <span id="toast-message"></span>
+  </div>
   <script src="js/app.js"></script>
 </body>
 </html>

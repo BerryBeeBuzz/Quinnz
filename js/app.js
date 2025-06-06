@@ -11,11 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toast && toastMessage) {
       toastMessage.textContent = message;
       toast.classList.add('visible');
-      setTimeout(() => toast.classList.remove('visible'), 2500);
+      setTimeout(() => toast.classList.remove('visible'), 3000);
     }
   }
 
-  function showPage(pageId) {
+  window.showPage = function(pageId) {
     console.log(`[NAV] called with pageId: ${pageId}`);
     try {
       console.log(`[NAV] pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       console.error('[NAV] Error:', error);
     }
-  }
+  };
 
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -477,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
-        showToast('Business Impact, Impact, and Urgency required');
+        showToast('Business Impact, Impact, and Urgency are required');
         return;
       }
       let ticketNumber = currentTicketNumber || formatTicketNumber(ticketCounter);
@@ -654,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAppTable();
   }
 
-  // Integrations (CodePen)
+  // Integrations
   const ADMIN_PASSWORD = 'admin123';
   let integrations = JSON.parse(localStorage.getItem('integrations')) || [
     { id: 'INT0001', name: 'PagerDuty', category: 'Incident Management', status: 'Active', lastSync: '2025-06-05 18:00', apiKey: 'pd_abc123' },
@@ -689,7 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.innerHTML = `
           <span>${int.name}</span>
           <span>${int.category}</span>
-          <span class="status-badge status-${int.status.toLowerCase()}"><span>${int.status}</span></span>
+          <span class="status-badge status-${int.status.toLowerCase()}">${int.status}</span>
           <span>${int.lastSync}</span>
           <span>
             <button class="cta-btn small secondary" onclick="checkAdminPassword(() => toggleIntegrationStatus('${int.id}'))">${int.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
