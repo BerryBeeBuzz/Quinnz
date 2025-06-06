@@ -2,11 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Page Navigation
   const pages = document.querySelectorAll('.page');
   const menuItems = document.querySelectorAll('.menu-item');
-  const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="window.showPage(\'incidents\')"]');
+  const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="showPage(\'incidents\')"]');
   const sidebarCreateBtn = document.querySelector('.create-btn');
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
-  window.isAdminAuthenticated = false; // Track admin login state
 
   function showToast(message) {
     if (toast && toastMessage) {
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.showPage = function(pageId) {
+  function showPage(pageId) {
     console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
       console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
@@ -41,46 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderSyncLog();
         updateSyncChart();
       }
-      if (pageId === 'monitoring') {
-        console.log('[INIT] Initializing Monitoring page');
-        renderMonitoringList();
-        updateMonitoringChart();
-      }
-      if (pageId === 'workflows') {
-        console.log('[INIT] Initializing Workflows page');
-        renderWorkflowsList();
-        updateWorkflowsChart();
-      }
-      if (pageId === 'communications') {
-        console.log('[INIT] Initializing Communications page');
-        renderCommunicationsList();
-        updateCommunicationsChart();
-      }
-      if (pageId === 'reports') {
-        console.log('[INIT] Initializing Reports page');
-        renderReportsTable();
-        updateReportsChart();
-      }
-      if (pageId === 'settings') {
-        console.log('[INIT] Initializing Settings page');
-        const loginContainer = document.getElementById('login-container');
-        const settingsContainer = document.getElementById('settings-container');
-        if (loginContainer && settingsContainer) {
-          if (!window.isAdminAuthenticated) {
-            loginContainer.classList.remove('hidden');
-            settingsContainer.classList.add('hidden');
-          } else {
-            loginContainer.classList.add('hidden');
-            settingsContainer.classList.remove('hidden');
-            updateUserTable();
-            updateAppTable();
-          }
-        }
-      }
     } catch (error) {
       console.error('[NAV] Error in showPage:', error);
     }
-  };
+  }
 
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -90,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const match = onclickAttr.match(/showPage\('([^']+)'\)/);
       if (match) {
         console.log(`[NAV] Menu item clicked: ${match[1]}`);
-        window.showPage(match[1]);
+        showPage(match[1]);
       } else {
         console.warn(`[NAV] No showPage match for menu item: ${item.textContent.trim()}`);
       }
@@ -102,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Dashboard Create New Incident button clicked');
-      window.showPage('incidents');
+      showPage('incidents');
     });
   }
 
@@ -111,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Sidebar Create Incident button clicked');
-      window.showPage('incidents');
+      showPage('incidents');
     });
   }
 
@@ -258,42 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
         },
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'monitoring-chart',
-        type: 'line',
-        data: {
-          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-          datasets: [{ label: 'System Load', data: [10, 20, 15, 25, 30], borderColor: '#4F46E5', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'workflows-chart',
-        type: 'bar',
-        data: {
-          labels: ['Active', 'Pending', 'Completed'],
-          datasets: [{ label: 'Workflows', data: [5, 3, 7], backgroundColor: '#60A5FA' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'communications-chart',
-        type: 'line',
-        data: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-          datasets: [{ label: 'Messages', data: [50, 60, 45, 70, 55], borderColor: '#22C55E', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'reports-chart',
-        type: 'bar',
-        data: {
-          labels: ['P1', 'P2', 'P3'],
-          datasets: [{ label: 'Incidents', data: [10, 15, 20], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
       }
     ];
 
@@ -313,174 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Chart initialization failed:', error);
   }
 
-  // Monitoring Functionality
-  const monitoringFilter = document.getElementById('monitoring-filter');
-  let monitoringAlerts = JSON.parse(localStorage.getItem('monitoringAlerts')) || [
-    { id: 'ALERT001', time: '2025-06-06 12:00', message: 'High CPU Usage on Server X', severity: 'Critical' },
-    { id: 'ALERT002', time: '2025-06-06 11:30', message: 'Network Latency Spike', severity: 'Warning' },
-    { id: 'ALERT003', time: '2025-06-06 11:00', message: 'Disk Space Low', severity: 'Info' }
-  ];
-
-  function renderMonitoringList() {
-    const monitoringList = document.getElementById('monitoring-alerts-list');
-    if (!monitoringList) return;
-    const filterValue = monitoringFilter ? monitoringFilter.value : 'all';
-    monitoringList.innerHTML = '';
-    monitoringAlerts
-      .filter(alert => filterValue === 'all' || alert.severity.toLowerCase() === filterValue)
-      .forEach(alert => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.innerHTML = `[${alert.time}] ${alert.message} - ${alert.severity}`;
-        monitoringList.appendChild(item);
-      });
-  }
-
-  function updateMonitoringChart() {
-    // Chart initialized in charts array
-  }
-
-  if (monitoringFilter) {
-    monitoringFilter.addEventListener('change', renderMonitoringList);
-  }
-
-  // Workflows Functionality
-  const workflowForm = document.getElementById('workflow-form');
-  const workflowsFilter = document.getElementById('workflows-filter');
-  let workflows = JSON.parse(localStorage.getItem('workflows')) || [
-    { id: 'WF001', name: 'Incident Response', status: 'Active', description: 'Handles critical incidents' },
-    { id: 'WF002', name: 'Server Maintenance', status: 'Pending', description: 'Scheduled server updates' },
-    { id: 'WF003', name: 'Backup Process', status: 'Completed', description: 'Daily backups' }
-  ];
-
-  function renderWorkflowsList() {
-    const workflowsList = document.getElementById('workflows-list');
-    if (!workflowsList) return;
-    const filterValue = workflowsFilter ? workflowsFilter.value : 'all';
-    workflowsList.innerHTML = '';
-    workflows
-      .filter(workflow => filterValue === 'all' || workflow.status.toLowerCase() === filterValue)
-      .forEach(workflow => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.innerHTML = `[${workflow.id}] ${workflow.name} - ${workflow.status}`;
-        workflowsList.appendChild(item);
-      });
-  }
-
-  function updateWorkflowsChart() {
-    // Chart initialized in charts array
-  }
-
-  window.openAddWorkflowModal = function() {
-    const modal = document.getElementById('add-workflow-modal');
-    if (modal) modal.style.display = 'flex';
-  };
-
-  window.closeAddWorkflowModal = function() {
-    const modal = document.getElementById('add-workflow-modal');
-    if (modal) modal.style.display = 'none';
-    if (workflowForm) workflowForm.reset();
-  };
-
-  if (workflowForm) {
-    workflowForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('workflow-name').value;
-      const status = document.getElementById('workflow-status').value;
-      const description = document.getElementById('workflow-description').value;
-      const newWorkflow = {
-        id: `WF${String(workflows.length + 1).padStart(3, '0')}`,
-        name,
-        status,
-        description
-      };
-      workflows.push(newWorkflow);
-      localStorage.setItem('workflows', JSON.stringify(workflows));
-      renderWorkflowsList();
-      closeAddWorkflowModal();
-      showToast(`Workflow ${name} added`);
-    });
-  }
-
-  if (workflowsFilter) {
-    workflowsFilter.addEventListener('change', renderWorkflowsList);
-  }
-
-  // Communications Functionality
-  const communicationsSearch = document.getElementById('communications-search');
-  let messages = JSON.parse(localStorage.getItem('messages')) || [
-    { id: 'MSG001', time: '2025-06-06 10:00', sender: 'Alice', content: 'Team meeting at 11 AM' },
-    { id: 'MSG002', time: '2025-06-06 09:45', sender: 'Bob', content: 'Server X is down' },
-    { id: 'MSG003', time: '2025-06-06 09:30', sender: 'Clara', content: 'Security update applied' }
-  ];
-
-  function renderCommunicationsList() {
-    const communicationsList = document.getElementById('communications-list');
-    if (!communicationsList) return;
-    const searchValue = communicationsSearch ? communicationsSearch.value.toLowerCase() : '';
-    communicationsList.innerHTML = '';
-    messages
-      .filter(msg => msg.content.toLowerCase().includes(searchValue) || msg.sender.toLowerCase().includes(searchValue))
-      .forEach(msg => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.innerHTML = `[${msg.time}] ${msg.sender}: ${msg.content}`;
-        communicationsList.appendChild(item);
-      });
-  }
-
-  function updateCommunicationsChart() {
-    // Chart initialized in charts array
-  }
-
-  if (communicationsSearch) {
-    communicationsSearch.addEventListener('input', renderCommunicationsList);
-  }
-
-  // Reports Functionality
-  const reportsFilter = document.getElement Pulp ById('reports-filter');
-  const reportsDate = document.getElementById('reports-date');
-  let reports = JSON.parse(localStorage.getItem('reports')) || [
-    { ticket: 'INC000001', priority: 'P1', date: '2025-06-05', status: 'Open' },
-    { ticket: 'INC000002', priority: 'P2', date: '2025-06-04', status: 'Resolved' },
-    { ticket: 'INC000003', priority: 'P3', date: '2025-06-03', status: 'In Progress' }
-  ];
-
-  function renderReportsTable() {
-    const reportsTableBody = document.getElementById('reports-table-body');
-    if (!reportsTableBody) return;
-    const filterValue = reportsFilter ? reportsFilter.value : 'all';
-    const dateValue = reportsDate ? reportsDate.value : '';
-    reportsTableBody.innerHTML = '';
-    reports
-      .filter(report => (filterValue === 'all' || report.priority.toLowerCase() === filterValue) && (!dateValue || report.date === dateValue))
-      .forEach(report => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${report.ticket}</td>
-          <td>${report.priority}</td>
-          <td>${report.date}</td>
-          <td>${report.status}</td>
-        `;
-        reportsTableBody.appendChild(row);
-      });
-  }
-
-  function updateReportsChart() {
-    // Chart initialized in charts array
-  }
-
-  if (reportsFilter) {
-    reportsFilter.addEventListener('change', renderReportsTable);
-  }
-
-  if (reportsDate) {
-    reportsDate.addEventListener('change', renderReportsTable);
-  }
-
   // Incidents (Ticket Form) Functionality
-  const incidentForm = document.getElementById('incident-form');
+  const form = document.getElementById('incident-form');
   const userProfileSelect = document.getElementById('user-profile');
   const userNameInput = document.getElementById('user-name');
   const locationInput = document.getElementById('location');
@@ -654,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     'Access Request': {
       assignmentGroup: 'Security Team',
-      category: 'Automation',
+      category: 'Access Issue',
       shortDescription: 'Access request delays',
       businessImpact: 'New users cannot access systems, delaying onboarding.',
       impact: 'Low',
@@ -714,8 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (incidentForm) {
-    incidentForm.addEventListener('submit', (e) => {
+  if (form) {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
         showToast('Business Impact, Impact, and Urgency are required');
@@ -742,17 +503,10 @@ document.addEventListener('DOMContentLoaded', () => {
         state: document.getElementById('state').value
       };
       console.log('Incident Created:', formData);
-      reports.push({
-        ticket: ticketNumber,
-        priority: priorityInput.value.split(' ')[0],
-        date: new Date().toISOString().slice(0, 10),
-        status: formData.state
-      });
-      localStorage.setItem('reports', JSON.stringify(reports));
       showToast(`An incident has been created and sent for review. Ticket Number: ${ticketNumber}`);
       ticketCounter++;
       localStorage.setItem('ticketCounter', ticketCounter);
-      incidentForm.reset();
+      form.reset();
       currentTicketNumber = null;
       ticketNumberInput.value = 'Pending';
       userProfileSelect.dispatchEvent(new Event('change'));
@@ -777,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'bob-smith': { userName: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@example.com', contactNumber: '312-555-0202', jobTitle: 'Technician' },
     'clara-lee': { userName: 'Clara Lee', location: 'San Francisco, CA', email: 'clara.lee@example.com', contactNumber: '415-555-0303', jobTitle: 'Analyst' },
     'david-brown': { userName: 'David Brown', location: 'Austin, TX', email: 'david.brown@example.com', contactNumber: '512-555-0404', jobTitle: 'Engineer' },
-    'Jack-Barry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
+    'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
   };
 
   let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || autoPopulateData;
@@ -823,7 +577,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-        window.isAdminAuthenticated = true;
         loginContainer.classList.add('hidden');
         settingsContainer.classList.remove('hidden');
         updateUserTable();
@@ -837,7 +590,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      window.isAdminAuthenticated = false;
       loginContainer.classList.remove('hidden');
       settingsContainer.classList.add('hidden');
       loginForm.reset();
@@ -845,102 +597,74 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function checkAdminPassword(actionCallback) {
-    if (window.isAdminAuthenticated) {
-      actionCallback();
-    } else {
-      const password = prompt('Enter admin password:');
-      if (password === ADMIN_CREDENTIALS.password) {
-        actionCallback();
-      } else {
-        showToast('Incorrect admin password');
-      }
-    }
-  }
-
   if (userForm) {
     userForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      checkAdminPassword(() => {
-        const userName = document.getElementById('user-name-input').value.trim();
-        const key = userName.toLowerCase().replace(/\s+/g, '-');
-        userProfilesSettings[key] = {
-          userName,
-          location: document.getElementById('user-location').value.trim(),
-          email: document.getElementById('user-email').value.trim(),
-          contactNumber: document.getElementById('user-contact').value.trim(),
-          jobTitle: document.getElementById('user-job-title').value.trim()
-        };
-        updateUserTable();
-        userForm.reset();
-        showToast('User added successfully');
-      });
+      const userName = document.getElementById('user-name-input').value;
+      const key = userName.toLowerCase().replace(/\s+/g, '-');
+      userProfilesSettings[key] = {
+        userName,
+        location: document.getElementById('user-location').value,
+        email: document.getElementById('user-email').value,
+        contactNumber: document.getElementById('user-contact').value,
+        jobTitle: document.getElementById('user-job-title').value
+      };
+      updateUserTable();
+      userForm.reset();
+      showToast('User added successfully');
     });
   }
 
   if (appForm) {
     appForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      checkAdminPassword(() => {
-        const appName = document.getElementById('app-name').value.trim();
-        const key = appName.toLowerCase().replace(/\s+/g, '-');
-        autoPopulateDataSettings[key] = {
-          priorityCap: document.getElementById('app-priority-cap').value,
-          urgency: document.getElementById('app-urgency').value,
-          impact: document.getElementById('app-impact').value,
-          assignmentGroup: document.getElementById('app-assignment-group').value.trim(),
-          category: document.getElementById('app-category').value.trim(),
-          shortDescription: document.getElementById('app-short-description').value.trim(),
-          businessImpact: document.getElementById('app-business-impact').value.trim()
-        };
-        updateAppTable();
-        appForm.reset();
-        showToast('Application/Service added successfully');
-      });
+      const appName = document.getElementById('app-name').value;
+      const key = appName.toLowerCase().replace(/\s+/g, '-');
+      autoPopulateDataSettings[key] = {
+        priorityCap: document.getElementById('app-priority-cap').value,
+        urgency: document.getElementById('app-urgency').value,
+        impact: document.getElementById('app-impact').value,
+        assignmentGroup: document.getElementById('app-assignment-group').value,
+        category: document.getElementById('app-category').value,
+        shortDescription: document.getElementById('app-short-description').value,
+        businessImpact: document.getElementById('app-business-impact').value
+      };
+      updateAppTable();
+      appForm.reset();
+      showToast('Application/Service added successfully');
     });
   }
 
   // Handle Remove Buttons for Settings Tables
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn')) {
-      e.preventDefault();
-      checkAdminPassword(() => {
-        const key = e.target.dataset.key;
-        const table = e.target.closest('table').id;
-        if (table === 'user-table-body') {
-          delete userProfilesSettings[key];
-          updateUserTable();
-          showToast('User removed successfully');
-        } else if (table === 'app-table-body') {
-          delete autoPopulateDataSettings[key];
-          updateAppTable();
-          showToast('Application/Service removed successfully');
-        }
-      });
+      const key = e.target.dataset.key;
+      const table = e.target.closest('table').id;
+      if (table === 'user-table-body') {
+        delete userProfilesSettings[key];
+        updateUserTable();
+        showToast('User removed successfully');
+      } else if (table === 'app-table-body') {
+        delete autoPopulateDataSettings[key];
+        updateAppTable();
+        showToast('Application/Service removed successfully');
+      }
     }
   });
 
-  // Integrations Functionality
-  const ADMIN_PASSWORD = 'admin123';
-  const integrationIcons = {
-    'PagerDuty': 'fa-bell',
-    'Nagios': 'fa fa-exclamation-circle',
-    'SolarWinds': 'fa fa-sun',
-    'Splunk': 'fa fa-chart-line',
-    'Dynatrace': 'fa fa-tachometer-alt',
-    'AWS': 'fa fa-aws',
-    'ServiceNow': 'fa fa-cogs',
-    'Datadog': 'fa fa-dog',
-    'Zabbix': 'fa fa-eye',
-    'Jira': 'fa fa-ticket-alt',
-    'Custom Webhook': 'fa fa-plug'
-  };
+  // Initialize Settings Tables
+  if (settingsContainer && !settingsContainer.classList.contains('hidden')) {
+    updateUserTable();
+    updateAppTable();
+  }
 
+  // Integrations Functionality (CodePen Integration)
+  const ADMIN_PASSWORD = 'admin123';
   let integrations = JSON.parse(localStorage.getItem('integrations')) || [
     {
       id: 'INT0001',
       name: 'PagerDuty',
-      category: 'Dataset',
+      category: 'Incident Management',
       status: 'Active',
       lastSync: '2025-06-05 18:00',
       apiKey: 'pd_abc123',
@@ -973,6 +697,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const syncLogList = document.getElementById('sync-log-list');
   let selectedIntegration = null;
 
+  function checkAdminPassword(actionCallback) {
+    const password = prompt('Enter admin password to proceed:');
+    if (password === ADMIN_PASSWORD) {
+      actionCallback();
+    } else {
+      showToast('Incorrect admin password');
+    }
+  }
+
   function renderIntegrationsList() {
     if (!integrationsList) return;
     const filterValue = statusFilter ? statusFilter.value : 'all';
@@ -983,7 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.className = `list-item ${selectedIntegration && selectedIntegration.id === integration.id ? 'active' : ''}`;
         item.innerHTML = `
-          <span><i class="fa ${integrationIcons[integration.name] || 'fa-cog'} integration-icon" aria-hidden="true"></i> ${integration.name}</span>
+          <span><img src="https://via.placeholder.com/24" class="integration-icon" alt="${integration.name} icon">${integration.name}</span>
           <span>${integration.category}</span>
           <span><span class="status-badge status-${integration.status.toLowerCase()}">${integration.status}</span></span>
           <span>${integration.lastSync}</span>
@@ -1126,49 +859,47 @@ document.addEventListener('DOMContentLoaded', () => {
   if (integrationForm) {
     integrationForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      checkAdminPassword(() => {
-        const name = document.getElementById('integration-name').value;
-        const apiKey = document.getElementById('api-key').value;
-        const endpoint = document.getElementById('endpoint').value;
-        const syncInterval = parseInt(document.getElementById('sync-interval').value);
-        const newIntegration = {
-          id: `INT${String(integrations.length + 1).padStart(4, '0')}`,
-          name,
-          category: {
-            'PagerDuty': 'Incident Management',
-            'Nagios': 'Monitoring',
-            'SolarWinds': 'Monitoring',
-            'Splunk': 'Monitoring',
-            'Dynatrace': 'Monitoring',
-            'AWS': 'Cloud',
-            'ServiceNow': 'ITSM',
-            'Datadog': 'Monitoring',
-            'Zabbix': 'Monitoring',
-            'Jira': 'Project Management',
-            'Custom Webhook': 'Custom'
-          }[name] || 'Other',
-          status: 'Active',
-          lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
-          apiKey,
-          endpoint,
-          syncInterval,
-          eventsSynced: 0
-        };
-        integrations.push(newIntegration);
-        syncLog.unshift({
-          id: newIntegration.id,
-          timestamp: newIntegration.lastSync,
-          status: 'Success',
-          message: `Added new integration: ${name}`
-        });
-        localStorage.setItem('integrations', JSON.stringify(integrations));
-        localStorage.setItem('syncLog', JSON.stringify(syncLog));
-        renderIntegrationsList();
-        renderSyncLog();
-        updateSyncChart();
-        closeAddIntegrationModal();
-        showToast(`Integration ${name} added`);
+      const name = document.getElementById('integration-name').value;
+      const apiKey = document.getElementById('api-key').value;
+      const endpoint = document.getElementById('endpoint').value;
+      const syncInterval = parseInt(document.getElementById('sync-interval').value);
+      const newIntegration = {
+        id: `INT${String(integrations.length + 1).padStart(4, '0')}`,
+        name,
+        category: {
+          'PagerDuty': 'Incident Management',
+          'Nagios': 'Monitoring',
+          'SolarWinds': 'Monitoring',
+          'Splunk': 'Monitoring',
+          'Dynatrace': 'Monitoring',
+          'AWS': 'Cloud',
+          'ServiceNow': 'ITSM',
+          'Datadog': 'Monitoring',
+          'Zabbix': 'Monitoring',
+          'Jira': 'Project Management',
+          'Custom Webhook': 'Custom'
+        }[name] || 'Other',
+        status: 'Active',
+        lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
+        apiKey,
+        endpoint,
+        syncInterval,
+        eventsSynced: 0
+      };
+      integrations.push(newIntegration);
+      syncLog.unshift({
+        id: newIntegration.id,
+        timestamp: newIntegration.lastSync,
+        status: 'Success',
+        message: `Added new integration: ${name}`
       });
+      localStorage.setItem('integrations', JSON.stringify(integrations));
+      localStorage.setItem('syncLog', JSON.stringify(syncLog));
+      renderIntegrationsList();
+      renderSyncLog();
+      updateSyncChart();
+      closeAddIntegrationModal();
+      showToast(`Integration ${name} added`);
     });
   }
 
@@ -1177,5 +908,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Ensure Dashboard is Shown on Load
-  window.showPage('dashboard');
+  showPage('dashboard');
 });
