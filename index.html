@@ -6,7 +6,7 @@
   <title>Quinnz Incident Management</title>
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
 </head>
 <body>
@@ -41,7 +41,7 @@
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
-      <div class="menu-item" data-tooltip="Integrations" onclick="alert('Integrations not implemented')">
+      <div class="menu-item" data-tooltip="Integrations" onclick="showPage('integrations')">
         <span aria-label="Integrations Icon">🔌</span>
         <span>Integrations</span>
       </div>
@@ -55,6 +55,9 @@
 
   <!-- Main Content -->
   <main class="main-content" id="main-content">
+    <div id="toast" class="toast hidden">
+      <span id="toast-message"></span>
+    </div>
     <!-- Dashboard Page -->
     <section id="dashboard" class="page">
       <div class="header">
@@ -380,8 +383,61 @@
           <button type="submit" class="cta-btn">Create Ticket</button>
         </form>
       </div>
-      <div id="toast" class="toast hidden">
-        <span id="toast-message"></span>
+    </section>
+
+    <!-- Integrations Page (CodePen Content) -->
+    <section id="integrations" class="page" style="display: none;">
+      <div class="integrations">
+        <div class="header">
+          <h1>Integrations</h1>
+          <div class="filters">
+            <select id="status-filter" aria-label="Filter by status">
+              <option value="all">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <button class="cta-btn" onclick="openAddIntegrationModal()" aria-label="Add new integration">Add Integration</button>
+          </div>
+        </div>
+        <div class="integrations-grid">
+          <div class="integrations-list">
+            <div class="list-header">
+              <span>Integration</span>
+              <span>Category</span>
+              <span>Status</span>
+              <span>Last Sync</span>
+              <span>Actions</span>
+            </div>
+            <div class="list" id="integrations-list" role="listbox" aria-label="Integrations list"></div>
+            <p class="scroll-label">Scroll for more</p>
+          </div>
+          <div class="integration-details" id="integration-details" style="display: none;">
+            <h3>Integration Details</h3>
+            <div class="details-content">
+              <p><strong>Name:</strong> <span id="detail-name"></span></p>
+              <p><strong>Category:</strong> <span id="detail-category"></span></p>
+              <p><strong>API Key:</strong> <input type="text" id="detail-api-key" readonly aria-label="API key"></p>
+              <p><strong>Endpoint:</strong> <input type="text" id="detail-endpoint" readonly aria-label="Endpoint URL"></p>
+              <p><strong>Sync Interval (min):</strong> <input type="number" id="detail-sync-interval" readonly aria-label="Sync interval"></p>
+              <button class="cta-btn" onclick="editIntegrationDetails()" aria-label="Edit integration details">Edit</button>
+              <button class="cta-btn secondary" onclick="saveIntegrationDetails()" style="display: none;" aria-label="Save integration details">Save</button>
+              <button class="cta-btn secondary" onclick="closeIntegrationDetails()" aria-label="Close details">Close</button>
+            </div>
+          </div>
+        </div>
+        <div class="sync-status">
+          <h3>Sync Status Dashboard</h3>
+          <div class="charts">
+            <div class="chart-widget">
+              <h4>Events Synced by Integration</h4>
+              <canvas id="syncChart"></canvas>
+            </div>
+          </div>
+          <div class="sync-log">
+            <h4>Recent Sync Activity</h4>
+            <div class="log-list" id="sync-log-list" role="log" aria-label="Sync activity log"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -525,10 +581,47 @@
           </table>
         </div>
       </div>
-      <div id="toast" class="toast hidden">
-        <span id="toast-message"></span>
-      </div>
     </section>
+
+    <!-- Add Integration Modal -->
+    <div class="modal" id="add-integration-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Add New Integration</h2>
+        <form id="integrationForm">
+          <div class="form-group">
+            <label for="integration-name">Integration</label>
+            <select id="integration-name" required aria-label="Select integration">
+              <option value="">Select Integration</option>
+              <option value="PagerDuty">PagerDuty</option>
+              <option value="Nagios">Nagios</option>
+              <option value="SolarWinds">SolarWinds</option>
+              <option value="Splunk">Splunk</option>
+              <option value="Dynatrace">Dynatrace</option>
+              <option value="AWS">AWS</option>
+              <option value="ServiceNow">ServiceNow</option>
+              <option value="Datadog">Datadog</option>
+              <option value="Zabbix">Zabbix</option>
+              <option value="Jira">Jira</option>
+              <option value="Custom Webhook">Custom Webhook</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="api-key">API Key</label>
+            <input type="text" id="api-key" placeholder="Enter API key" required aria-label="API key">
+          </div>
+          <div class="form-group">
+            <label for="endpoint">Endpoint URL</label>
+            <input type="text" id="endpoint" placeholder="Enter endpoint URL" required aria-label="Endpoint URL">
+          </div>
+          <div class="form-group">
+            <label for="sync-interval">Sync Interval (minutes)</label>
+            <input type="number" id="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
+          </div>
+          <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
+          <button type="button" class="cta-btn secondary" onclick="closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
+        </form>
+      </div>
+    </div>
   </main>
   <script src="js/app.js"></script>
 </body>
