@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quinnz Incident Management</title>
+  <title>Incident Management Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -13,7 +13,7 @@
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="logo">
-      <img src="https://i.imgur.com/BhdkZG0.png" alt="Quinnz Logo">
+      <img src="https://i.imgur.com/BhdkZG0.png" alt="Business Logo">
     </div>
     <div class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">☰</div>
     <div class="menu">
@@ -25,19 +25,19 @@
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
-      <div class="menu-item" data-tooltip="Monitoring" onclick="alert('Monitoring not implemented')">
+      <div class="menu-item" data-tooltip="Monitoring" onclick="showPage('monitoring')">
         <span aria-label="Monitoring Icon">📈</span>
         <span>Monitoring</span>
       </div>
-      <div class="menu-item" data-tooltip="Workflows" onclick="alert('Workflows not implemented')">
+      <div class="menu-item" data-tooltip="Workflows" onclick="showPage('workflows')">
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
-      <div class="menu-item" data-tooltip="Communications" onclick="alert('Communications not implemented')">
+      <div class="menu-item" data-tooltip="Communications" onclick="showPage('communications')">
         <span aria-label="Communications Icon">💬</span>
         <span>Communications</span>
       </div>
-      <div class="menu-item" data-tooltip="Reports" onclick="alert('Reports not implemented')">
+      <div class="menu-item" data-tooltip="Reports" onclick="showPage('reports')">
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
@@ -385,7 +385,143 @@
       </div>
     </section>
 
-    <!-- Integrations Page (CodePen Content) -->
+    <!-- Monitoring Page -->
+    <section id="monitoring" class="page" style="display: none;">
+      <div class="header">
+        <h1>Monitoring</h1>
+        <div class="filters">
+          <select id="monitoring-filter" aria-label="Filter monitoring alerts">
+            <option value="all">All Alerts</option>
+            <option value="critical">Critical</option>
+            <option value="warning">Warning</option>
+            <option value="info">Info</option>
+          </select>
+        </div>
+      </div>
+      <div class="monitoring-grid">
+        <div class="widget uniform">
+          <h3>System Alerts</h3>
+          <div class="list" id="monitoring-alerts-list"></div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>Performance Metrics</h3>
+          <canvas id="monitoring-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Workflows Page -->
+    <section id="workflows" class="page" style="display: none;">
+      <div class="header">
+        <h1>Workflows</h1>
+        <div class="filters">
+          <select id="workflows-filter" aria-label="Filter workflows">
+            <option value="all">All Workflows</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+          <button class="cta-btn" onclick="openAddWorkflowModal()" aria-label="Add new workflow">Add Workflow</button>
+        </div>
+      </div>
+      <div class="workflows-grid">
+        <div class="widget uniform">
+          <h3>Workflow List</h3>
+          <div class="list" id="workflows-list"></div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>Workflow Progress</h3>
+          <canvas id="workflows-chart"></canvas>
+        </div>
+      </div>
+      <!-- Add Workflow Modal -->
+      <div class="modal" id="add-workflow-modal" style="display: none;">
+        <div class="modal-content">
+          <h2>Add New Workflow</h2>
+          <form id="workflow-form">
+            <div class="form-group">
+              <label for="workflow-name">Workflow Name</label>
+              <input type="text" id="workflow-name" name="workflow-name" required>
+            </div>
+            <div class="form-group">
+              <label for="workflow-status">Status</label>
+              <select id="workflow-status" name="workflow-status" required>
+                <option value="Active">Active</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="workflow-description">Description</label>
+              <textarea id="workflow-description" name="workflow-description" rows="4"></textarea>
+            </div>
+            <button type="submit" class="cta-btn">Add Workflow</button>
+            <button type="button" class="cta-btn secondary" onclick="closeAddWorkflowModal()">Cancel</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Communications Page -->
+    <section id="communications" class="page" style="display: none;">
+      <div class="header">
+        <h1>Communications</h1>
+        <div class="filters">
+          <input type="text" id="communications-search" placeholder="Search messages..." aria-label="Search communications">
+        </div>
+      </div>
+      <div class="communications-grid">
+        <div class="widget uniform">
+          <h3>Recent Messages</h3>
+          <div class="list" id="communications-list"></div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>Message Activity</h3>
+          <canvas id="communications-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reports Page -->
+    <section id="reports" class="page" style="display: none;">
+      <div class="header">
+        <h1>Reports</h1>
+        <div class="filters">
+          <select id="reports-filter" aria-label="Filter reports">
+            <option value="all">All Reports</option>
+            <option value="p1">Priority 1</option>
+            <option value="p2">Priority 2</option>
+            <option value="p3">Priority 3</option>
+          </select>
+          <input type="date" id="reports-date" aria-label="Filter by date">
+        </div>
+      </div>
+      <div class="reports-grid">
+        <div class="widget uniform">
+          <h3>Incident Reports</h3>
+          <table class="reports-table">
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                <th>Priority</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="reports-table-body"></tbody>
+          </table>
+        </div>
+        <div class="widget uniform">
+          <h3>Incident Trends</h3>
+          <canvas id="reports-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Integrations Page -->
     <section id="integrations" class="page" style="display: none;">
       <div class="integrations">
         <div class="header">
