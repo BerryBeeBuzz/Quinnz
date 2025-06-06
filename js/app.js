@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Page navigation
+  // Page Navigation
   const pages = document.querySelectorAll('.page');
   const menuItems = document.querySelectorAll('.menu-item');
-  const dashboardCreateBtn = document.querySelector('.cta-btn[onclick*="showPage("]');
+  const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="showPage(\'incidents\')"]');
   const sidebarCreateBtn = document.querySelector('.create-btn');
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
@@ -15,33 +15,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  window.showPage = function(pageId) {
-    console.log(`[NAV] called with pageId: ${pageId}`);
+  function showPage(pageId) {
+    console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
-      console.log(`[NAV] pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
+      console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
       pages.forEach(page => {
         const isVisible = page.id === pageId;
         page.style.display = isVisible ? 'block' : 'none';
-        console.log(`[NAV] Page ${page.id} display: ${page.style.display}`);
+        console.log(`[NAV] Page ${page.id} set to display: ${page.style.display}`);
       });
-      console.log(`[NAV] menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
+      console.log(`[NAV] Available menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
       menuItems.forEach(item => {
         const onclickAttr = item.getAttribute('onclick') || '';
         const isActive = onclickAttr.includes(`showPage('${pageId}')`);
         item.classList.toggle('active', isActive);
-        console.log(`[NAV] Menu '${item.textContent.trim()}' active: ${isActive}`);
+        console.log(`[NAV] Menu item '${item.textContent.trim()}' active: ${isActive}`);
       });
       if (pageId === 'dashboard' && window.grid) {
-        console.log('[NAV] Refreshing grid');
+        console.log('[NAV] Refreshing Muuri grid');
         window.grid.refreshItems().layout();
       }
       if (pageId === 'integrations') {
         renderIntegrationsList();
+        renderSyncLog();
+        updateSyncChart();
       }
     } catch (error) {
-      console.error('[NAV] Error:', error);
+      console.error('[NAV] Error in showPage:', error);
     }
-  };
+  }
 
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -50,10 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const onclickAttr = item.getAttribute('onclick') || '';
       const match = onclickAttr.match(/showPage\('([^']+)'\)/);
       if (match) {
-        console.log(`[NAV] Clicked: ${match[1]}`);
+        console.log(`[NAV] Menu item clicked: ${match[1]}`);
         showPage(match[1]);
       } else {
-        console.warn(`[NAV] No match: ${item.textContent.trim()}`);
+        console.warn(`[NAV] No showPage match for menu item: ${item.textContent.trim()}`);
       }
     });
   });
@@ -62,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dashboardCreateBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('[NAV] Dashboard create clicked');
+      console.log('[NAV] Dashboard Create New Incident button clicked');
       showPage('incidents');
     });
   }
@@ -71,12 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarCreateBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('[NAV] Sidebar create clicked');
+      console.log('[NAV] Sidebar Create Incident button clicked');
       showPage('incidents');
     });
   }
 
-  // Sidebar toggle
+  // Sidebar Toggle
   const sidebar = document.querySelector('.sidebar');
   const mainContent = document.querySelector('.main-content');
   const toggleBtn = document.querySelector('#toggle-btn');
@@ -91,12 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Dashboard functionality
+  // Dashboard Functionality
   window.pageContact = function(name, team) {
     showToast(`Paging ${name} for ${team} team...`);
   };
 
-  // Initialize Muuri grid
+  // Initialize Muuri Grid
   try {
     window.grid = new Muuri('.widget-grid.muuri', {
       dragEnabled: true,
@@ -113,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
       window.grid.refreshItems().layout();
     });
   } catch (error) {
-    console.error('Muuri init failed:', error);
+    console.error('Muuri initialization failed:', error);
   }
 
   const addWidgetBtn = document.querySelector('.add-widget-btn');
@@ -128,11 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       window.grid.add(newWidget, { index: -1, layout: true });
-      showToast('Widget added');
+      showToast('New widget added');
     });
   }
 
-  // Dashboard charts
+  // Dashboard Charts
   try {
     const charts = [
       {
@@ -235,10 +237,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   } catch (error) {
-    console.error('Chart init failed:', error);
+    console.error('Chart initialization failed:', error);
   }
 
-  // Incidents (Ticket Form)
+  // Incidents (Ticket Form) Functionality
   const form = document.getElementById('incident-form');
   const userProfileSelect = document.getElementById('user-profile');
   const userNameInput = document.getElementById('user-name');
@@ -500,8 +502,8 @@ document.addEventListener('DOMContentLoaded', () => {
         workNotes: document.getElementById('work-notes').value,
         state: document.getElementById('state').value
       };
-      console.log('Incident:', formData);
-      showToast(`Incident created. Ticket: ${ticketNumber}`);
+      console.log('Incident Created:', formData);
+      showToast(`An incident has been created and sent for review. Ticket Number: ${ticketNumber}`);
       ticketCounter++;
       localStorage.setItem('ticketCounter', ticketCounter);
       form.reset();
@@ -512,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Settings
+  // Settings Functionality
   const loginContainer = document.getElementById('login-container');
   const settingsContainer = document.getElementById('settings-container');
   const loginForm = document.getElementById('login-form');
@@ -579,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsContainer.classList.remove('hidden');
         updateUserTable();
         updateAppTable();
-        showToast('Logged in');
+        showToast('Logged in successfully');
       } else {
         showToast('Invalid credentials');
       }
@@ -609,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       updateUserTable();
       userForm.reset();
-      showToast('User added');
+      showToast('User added successfully');
     });
   }
 
@@ -629,10 +631,11 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       updateAppTable();
       appForm.reset();
-      showToast('App/Service added');
+      showToast('Application/Service added successfully');
     });
   }
 
+  // Handle Remove Buttons for Settings Tables
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn')) {
       const key = e.target.dataset.key;
@@ -640,74 +643,169 @@ document.addEventListener('DOMContentLoaded', () => {
       if (table === 'user-table-body') {
         delete userProfilesSettings[key];
         updateUserTable();
-        showToast('User removed');
+        showToast('User removed successfully');
       } else if (table === 'app-table-body') {
         delete autoPopulateDataSettings[key];
         updateAppTable();
-        showToast('App/Service removed');
+        showToast('Application/Service removed successfully');
       }
     }
   });
 
+  // Initialize Settings Tables
   if (settingsContainer && !settingsContainer.classList.contains('hidden')) {
     updateUserTable();
     updateAppTable();
   }
 
-  // Integrations
+  // Integrations Functionality (CodePen Integration)
   const ADMIN_PASSWORD = 'admin123';
   let integrations = JSON.parse(localStorage.getItem('integrations')) || [
-    { id: 'INT0001', name: 'PagerDuty', category: 'Incident Management', status: 'Active', lastSync: '2025-06-05 18:00', apiKey: 'pd_abc123' },
-    { id: 'INT0002', name: 'Splunk', category: 'Monitoring', status: 'Inactive', lastSync: '2025-06-04 12:30', apiKey: '' }
+    {
+      id: 'INT0001',
+      name: 'PagerDuty',
+      category: 'Incident Management',
+      status: 'Active',
+      lastSync: '2025-06-05 18:00',
+      apiKey: 'pd_abc123',
+      endpoint: 'https://api.pagerduty.com',
+      syncInterval: 5,
+      eventsSynced: 120
+    },
+    {
+      id: 'INT0002',
+      name: 'Splunk',
+      category: 'Monitoring',
+      status: 'Inactive',
+      lastSync: '2025-06-04 12:30',
+      apiKey: '',
+      endpoint: '',
+      syncInterval: 10,
+      eventsSynced: 0
+    }
+  ];
+
+  let syncLog = JSON.parse(localStorage.getItem('syncLog')) || [
+    { id: 'INT0001', timestamp: '2025-06-05 18:00', status: 'Success', message: 'Synced 120 events from PagerDuty' },
+    { id: 'INT0002', timestamp: '2025-06-04 12:30', status: 'Failed', message: 'Splunk sync failed: Invalid API key' }
   ];
 
   const integrationForm = document.getElementById('integrationForm');
   const integrationsList = document.getElementById('integrations-list');
   const statusFilter = document.getElementById('status-filter');
+  const integrationDetails = document.getElementById('integration-details');
+  const syncLogList = document.getElementById('sync-log-list');
+  let selectedIntegration = null;
 
   function checkAdminPassword(actionCallback) {
-    const password = prompt('Enter admin password:');
+    const password = prompt('Enter admin password to proceed:');
     if (password === ADMIN_PASSWORD) {
       actionCallback();
     } else {
-      showToast('Incorrect password');
+      showToast('Incorrect admin password');
     }
   }
 
   function renderIntegrationsList() {
-    if (!integrationsList) {
-      console.warn('Integrations list not found');
-      return;
-    }
+    if (!integrationsList) return;
     const filterValue = statusFilter ? statusFilter.value : 'all';
     integrationsList.innerHTML = '';
     integrations
-      .filter(int => filterValue === 'all' || int.status === filterValue)
-      .forEach(int => {
+      .filter(integration => filterValue === 'all' || integration.status === filterValue)
+      .forEach(integration => {
         const item = document.createElement('div');
-        item.className = 'list-item';
+        item.className = `list-item ${selectedIntegration && selectedIntegration.id === integration.id ? 'active' : ''}`;
         item.innerHTML = `
-          <span>${int.name}</span>
-          <span>${int.category}</span>
-          <span class="status-badge status-${int.status.toLowerCase()}">${int.status}</span>
-          <span>${int.lastSync}</span>
+          <span><img src="https://via.placeholder.com/24" class="integration-icon" alt="${integration.name} icon">${integration.name}</span>
+          <span>${integration.category}</span>
+          <span><span class="status-badge status-${integration.status.toLowerCase()}">${integration.status}</span></span>
+          <span>${integration.lastSync}</span>
           <span>
-            <button class="cta-btn small secondary" onclick="checkAdminPassword(() => toggleIntegrationStatus('${int.id}'))">${int.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+            <button class="cta-btn small" onclick="viewIntegrationDetails('${integration.id}')">View</button>
+            <button class="cta-btn small secondary" onclick="checkAdminPassword(() => toggleIntegrationStatus('${integration.id}'))">${integration.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+            <button class="cta-btn small secondary" onclick="checkAdminPassword(() => deleteIntegration('${integration.id}'))">Delete</button>
           </span>
         `;
         integrationsList.appendChild(item);
       });
   }
 
-  window.toggleIntegrationStatus = function(id) {
-    const integration = integrations.find(int => int.id === id);
-    if (integration) {
-      integration.status = integration.status === 'Active' ? 'Inactive' : 'Active';
-      integration.lastSync = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      localStorage.setItem('integrations', JSON.stringify(integrations));
-      renderIntegrationsList();
-      showToast(`${integration.name} ${integration.status.toLowerCase()}`);
-    }
+  function renderSyncLog() {
+    if (!syncLogList) return;
+    syncLogList.innerHTML = '';
+    syncLog.slice(0, 10).forEach(log => {
+      const logItem = document.createElement('div');
+      logItem.className = 'log-item';
+      const integration = integrations.find(int => int.id === log.id);
+      logItem.innerHTML = `[${log.timestamp}] ${integration ? integration.name : 'Unknown'}: ${log.status} - ${log.message}`;
+      syncLogList.appendChild(logItem);
+    });
+  }
+
+  function updateSyncChart() {
+    const canvas = document.getElementById('syncChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: integrations.map(int => int.name),
+        datasets: [{
+          label: 'Events Synced',
+          data: integrations.map(int => int.eventsSynced || 0),
+          backgroundColor: '#4F46E5'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  window.viewIntegrationDetails = function(id) {
+    selectedIntegration = integrations.find(int => int.id === id);
+    if (!selectedIntegration || !integrationDetails) return;
+    integrationDetails.style.display = 'block';
+    document.getElementById('detail-name').textContent = selectedIntegration.name;
+    document.getElementById('detail-category').textContent = selectedIntegration.category;
+    document.getElementById('detail-api-key').value = selectedIntegration.apiKey || '';
+    document.getElementById('detail-endpoint').value = selectedIntegration.endpoint || '';
+    document.getElementById('detail-sync-interval').value = selectedIntegration.syncInterval || '';
+    document.querySelector('button[onclick="saveIntegrationDetails()"]').style.display = 'none';
+  };
+
+  window.editIntegrationDetails = function() {
+    checkAdminPassword(() => {
+      if (!selectedIntegration) return;
+      document.getElementById('detail-api-key').removeAttribute('readonly');
+      document.getElementById('detail-endpoint').removeAttribute('readonly');
+      document.getElementById('detail-sync-interval').removeAttribute('readonly');
+      document.querySelector('button[onclick="editIntegrationDetails()"]').style.display = 'none';
+      document.querySelector('button[onclick="saveIntegrationDetails()"]').style.display = 'inline-block';
+    });
+  };
+
+  window.saveIntegrationDetails = function() {
+    if (!selectedIntegration) return;
+    selectedIntegration.apiKey = document.getElementById('detail-api-key').value;
+    selectedIntegration.endpoint = document.getElementById('detail-endpoint').value;
+    selectedIntegration.syncInterval = parseInt(document.getElementById('detail-sync-interval').value);
+    document.getElementById('detail-api-key').setAttribute('readonly', true);
+    document.getElementById('detail-endpoint').setAttribute('readonly', true);
+    document.getElementById('detail-sync-interval').setAttribute('readonly', true);
+    document.querySelector('button[onclick="editIntegrationDetails()"]').style.display = 'inline-block';
+    document.querySelector('button[onclick="saveIntegrationDetails()"]').style.display = 'none';
+    localStorage.setItem('integrations', JSON.stringify(integrations));
+    showToast('Integration details saved');
+    renderIntegrationsList();
+  };
+
+  window.closeIntegrationDetails = function() {
+    if (integrationDetails) integrationDetails.style.display = 'none';
+    selectedIntegration = null;
+    renderIntegrationsList();
   };
 
   window.openAddIntegrationModal = function() {
@@ -723,24 +821,85 @@ document.addEventListener('DOMContentLoaded', () => {
     if (integrationForm) integrationForm.reset();
   };
 
+  window.toggleIntegrationStatus = function(id) {
+    const integration = integrations.find(int => int.id === id);
+    if (integration) {
+      integration.status = integration.status === 'Active' ? 'Inactive' : 'Active';
+      integration.lastSync = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      integration.eventsSynced = integration.status === 'Active' ? (integration.eventsSynced || 0) + 50 : integration.eventsSynced;
+      syncLog.unshift({
+        id: integration.id,
+        timestamp: integration.lastSync,
+        status: integration.status === 'Active' ? 'Success' : 'Info',
+        message: `${integration.name} ${integration.status === 'Active' ? 'activated' : 'deactivated'}`
+      });
+      localStorage.setItem('integrations', JSON.stringify(integrations));
+      localStorage.setItem('syncLog', JSON.stringify(syncLog));
+      renderIntegrationsList();
+      renderSyncLog();
+      updateSyncChart();
+      showToast(`${integration.name} ${integration.status === 'Active' ? 'activated' : 'deactivated'}`);
+    }
+  };
+
+  window.deleteIntegration = function(id) {
+    integrations = integrations.filter(int => int.id !== id);
+    syncLog = syncLog.filter(log => log.id !== id);
+    localStorage.setItem('integrations', JSON.stringify(integrations));
+    localStorage.setItem('syncLog', JSON.stringify(syncLog));
+    renderIntegrationsList();
+    renderSyncLog();
+    updateSyncChart();
+    if (selectedIntegration && selectedIntegration.id === id) {
+      closeIntegrationDetails();
+    }
+    showToast('Integration deleted');
+  };
+
   if (integrationForm) {
     integrationForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('integration-name').value;
       const apiKey = document.getElementById('api-key').value;
+      const endpoint = document.getElementById('endpoint').value;
+      const syncInterval = parseInt(document.getElementById('sync-interval').value);
       const newIntegration = {
         id: `INT${String(integrations.length + 1).padStart(4, '0')}`,
         name,
-        category: name === 'PagerDuty' ? 'Incident Management' : 'Monitoring',
+        category: {
+          'PagerDuty': 'Incident Management',
+          'Nagios': 'Monitoring',
+          'SolarWinds': 'Monitoring',
+          'Splunk': 'Monitoring',
+          'Dynatrace': 'Monitoring',
+          'AWS': 'Cloud',
+          'ServiceNow': 'ITSM',
+          'Datadog': 'Monitoring',
+          'Zabbix': 'Monitoring',
+          'Jira': 'Project Management',
+          'Custom Webhook': 'Custom'
+        }[name] || 'Other',
         status: 'Active',
         lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
-        apiKey
+        apiKey,
+        endpoint,
+        syncInterval,
+        eventsSynced: 0
       };
       integrations.push(newIntegration);
+      syncLog.unshift({
+        id: newIntegration.id,
+        timestamp: newIntegration.lastSync,
+        status: 'Success',
+        message: `Added new integration: ${name}`
+      });
       localStorage.setItem('integrations', JSON.stringify(integrations));
+      localStorage.setItem('syncLog', JSON.stringify(syncLog));
       renderIntegrationsList();
+      renderSyncLog();
+      updateSyncChart();
       closeAddIntegrationModal();
-      showToast(`${name} added`);
+      showToast(`Integration ${name} added`);
     });
   }
 
@@ -748,5 +907,6 @@ document.addEventListener('DOMContentLoaded', () => {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
 
+  // Ensure Dashboard is Shown on Load
   showPage('dashboard');
 });
