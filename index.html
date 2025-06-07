@@ -6,6 +6,7 @@
   <title>Quinnz Incident Management</title>
   <link rel="stylesheet" href="css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
 </head>
@@ -17,11 +18,11 @@
     </div>
     <div class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">☰</div>
     <div class="menu">
-      <div class="menu-item active" data-tooltip="Dashboard" onclick="showPage('dashboard')">
+      <div class="menu-item active" data-tooltip="Dashboard" onclick="window.showPage('dashboard')">
         <span aria-label="Dashboard Icon">🏠</span>
         <span>Dashboard</span>
       </div>
-      <div class="menu-item" data-tooltip="Incidents" onclick="showPage('incidents')">
+      <div class="menu-item" data-tooltip="Incidents" onclick="window.showPage('incidents')">
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
@@ -41,16 +42,16 @@
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
-      <div class="menu-item" data-tooltip="Integrations" onclick="showPage('integrations')">
+      <div class="menu-item" data-tooltip="Integrations" onclick="window.showPage('integrations')">
         <span aria-label="Integrations Icon">🔌</span>
         <span>Integrations</span>
       </div>
-      <div class="menu-item" data-tooltip="Settings" onclick="showPage('settings')">
+      <div class="menu-item" data-tooltip="Settings" onclick="window.showPage('settings')">
         <span aria-label="Settings Icon">⚙️</span>
         <span>Settings</span>
       </div>
     </div>
-    <button class="create-btn" onclick="showPage('incidents')" aria-label="Create Incident">+ Create Incident</button>
+    <button class="create-btn" onclick="window.showPage('incidents')" aria-label="Create Incident">+ Create Incident</button>
   </aside>
 
   <!-- Main Content -->
@@ -148,7 +149,7 @@
                   <span>Cell (555) 987-6543</span>
                   <span>Email - alice.johnson@tech.com</span>
                 </div>
-                <button class="page-btn" onclick="pageContact('Alice Johnson', 'Network')">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Alice Johnson', 'Network')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -157,7 +158,7 @@
                   <span>Cell (555) 876-5432</span>
                   <span>Email - bob.smith@tech.com</span>
                 </div>
-                <button class="page-btn" onclick="pageContact('Bob Smith', 'Server')">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Bob Smith', 'Server')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -166,7 +167,7 @@
                   <span>Cell (555) 765-4321</span>
                   <span>Email - clara.davis@tech.com</span>
                 </div>
-                <button class="page-btn" onclick="pageContact('Clara Davis', 'Cybersecurity')">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Clara Davis', 'Cybersecurity')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -175,7 +176,7 @@
                   <span>Cell (555) 654-3210</span>
                   <span>Email - david.lee@tech.com</span>
                 </div>
-                <button class="page-btn" onclick="pageContact('David Lee', 'Software Dev')">Page</button>
+                <button class="page-btn" onclick="window.pageContact('David Lee', 'Software Dev')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -184,7 +185,7 @@
                   <span>Cell (555) 543-2109</span>
                   <span>Email - emma.brown@tech.com</span>
                 </div>
-                <button class="page-btn" onclick="pageContact('Emma Brown', 'Infrastructure')">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Emma Brown', 'Infrastructure')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -193,7 +194,7 @@
                   <span>Cell (555) 432-1098</span>
                   <span>Email - frank.wilson@tech.com</span>
                 </div>
-                <button class="page-btn" onclick="pageContact('Frank Wilson', 'VoIP')">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Frank Wilson', 'VoIP')">Page</button>
               </div>
             </div>
           </div>
@@ -259,7 +260,7 @@
         </div>
       </div>
       <button class="add-widget-btn cta-btn">Add New Widget</button>
-      <button class="cta-btn" onclick="showPage('incidents')">Create New Incident</button>
+      <button class="cta-btn" onclick="window.showPage('incidents')">Create New Incident</button>
     </section>
 
     <!-- Incidents Page -->
@@ -385,7 +386,7 @@
       </div>
     </section>
 
-    <!-- Integrations Page (CodePen Content) -->
+    <!-- Integrations Page -->
     <section id="integrations" class="page" style="display: none;">
       <div class="integrations">
         <div class="header">
@@ -396,7 +397,7 @@
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
-            <button class="cta-btn" onclick="openAddIntegrationModal()" aria-label="Add new integration">Add Integration</button>
+            <button class="cta-btn" onclick="window.openAddIntegrationModal()" aria-label="Add new integration">Add Integration</button>
           </div>
         </div>
         <div class="integrations-grid">
@@ -419,9 +420,9 @@
               <p><strong>API Key:</strong> <input type="text" id="detail-api-key" readonly aria-label="API key"></p>
               <p><strong>Endpoint:</strong> <input type="text" id="detail-endpoint" readonly aria-label="Endpoint URL"></p>
               <p><strong>Sync Interval (min):</strong> <input type="number" id="detail-sync-interval" readonly aria-label="Sync interval"></p>
-              <button class="cta-btn" onclick="editIntegrationDetails()" aria-label="Edit integration details">Edit</button>
-              <button class="cta-btn secondary" onclick="saveIntegrationDetails()" style="display: none;" aria-label="Save integration details">Save</button>
-              <button class="cta-btn secondary" onclick="closeIntegrationDetails()" aria-label="Close details">Close</button>
+              <button class="cta-btn" onclick="window.editIntegrationDetails()" aria-label="Edit integration details">Edit</button>
+              <button class="cta-btn secondary" onclick="window.saveIntegrationDetails()" style="display: none;" aria-label="Save integration details">Save</button>
+              <button class="cta-btn secondary" onclick="window.closeIntegrationDetails()" aria-label="Close details">Close</button>
             </div>
           </div>
         </div>
@@ -618,7 +619,7 @@
             <input type="number" id="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
           </div>
           <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
-          <button type="button" class="cta-btn secondary" onclick="closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
+          <button type="button" class="cta-btn secondary" onclick="window.closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
         </form>
       </div>
     </div>
