@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Global chart instances
+  window.charts = {};
+
   // Page Navigation
   const pages = document.querySelectorAll('.page');
   const menuItems = document.querySelectorAll('.menu-item');
@@ -6,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarCreateBtn = document.querySelector('.create-btn');
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
-  window.isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true'; // Persist admin login state
+  window.isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
 
   function showToast(message) {
     if (toast && toastMessage) {
@@ -19,13 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   window.showPage = function(pageId) {
     console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
-      console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
       pages.forEach(page => {
-        const isVisible = page.id === pageId;
-        page.style.display = isVisible ? 'block' : 'none';
+        page.style.display = page.id === pageId ? 'block' : 'none';
         console.log(`[NAV] Page ${page.id} set to display: ${page.style.display}`);
       });
-      console.log(`[NAV] Available menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
       menuItems.forEach(item => {
         const onclickAttr = item.getAttribute('onclick') || '';
         const isActive = onclickAttr.includes(`showPage('${pageId}')`);
@@ -67,12 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const loginContainer = document.getElementById('login-container');
         const settingsContainer = document.getElementById('settings-container');
         if (loginContainer && settingsContainer) {
-          if (!window.isAdminAuthenticated) {
-            loginContainer.classList.remove('hidden');
-            settingsContainer.classList.add('hidden');
-          } else {
-            loginContainer.classList.add('hidden');
-            settingsContainer.classList.remove('hidden');
+          loginContainer.classList.toggle('hidden', window.isAdminAuthenticated);
+          settingsContainer.classList.toggle('hidden', !window.isAdminAuthenticated);
+          if (window.isAdminAuthenticated) {
             updateUserTable();
             updateAppTable();
           }
@@ -84,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   menuItems.forEach(item => {
-    item.addEventListener('click', (e) => {
+    item.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       const onclickAttr = item.getAttribute('onclick') || '';
@@ -99,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (dashboardCreateBtn) {
-    dashboardCreateBtn.addEventListener('click', (e) => {
+    dashboardCreateBtn.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Dashboard Create New Incident button clicked');
@@ -108,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (sidebarCreateBtn) {
-    sidebarCreateBtn.addEventListener('click', (e) => {
+    sidebarCreateBtn.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Sidebar Create Incident button clicked');
@@ -120,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.querySelector('.sidebar');
   const mainContent = document.querySelector('.main-content');
   const toggleBtn = document.querySelector('#toggle-btn');
-
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
@@ -134,162 +130,162 @@ document.addEventListener('DOMContentLoaded', () => {
   // Dashboard Functionality
   window.pageContact = function(name, team) {
     showToast(`Paging ${name} for ${team} team...`);
+    console.log(`[Contact] Paging ${name} for ${team}`);
   };
 
   // Initialize Muuri Grid
-try {
-  window.grid = new Muuri('.widget-grid.muuri', {
-    dragEnabled: true,
-    layout: {
-      fillGaps: false,
-      horizontal: false,
-      alignRight: false,
-      alignBottom: false,
-      rounding: false
-    }
-  });
-  window.grid.refreshItems().layout();
-  window.addEventListener('resize', () => {
+  try {
+    window.grid = new Muuri('.widget-grid.muuri', {
+      dragEnabled: true,
+      layout: {
+        fillGaps: true,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: true
+      }
+    });
     window.grid.refreshItems().layout();
-  });
-} catch (error) {
-  console.error('[Muuri] Initialization failed:', error);
-}
+    console.log('[Muuri] Initialized successfully');
+    window.addEventListener('resize', () => {
+      window.grid.refreshItems().layout();
+      console.log('[Muuri] Grid resized');
+    });
+  } catch (error) {
+    console.error('[Muuri] Initialization failed:', error);
+  }
 
-// Dashboard Charts
-try {
-  const charts = [
-    {
-      id: 'incidentChart',
-      type: 'pie',
-      data: {
-        labels: ['Open', 'In Progress', 'Resolved'],
-        datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    },
-    {
-      id: 'priorityChart',
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        datasets: [
-          { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
-          { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
-          { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'slaChart',
-      type: 'doughnut',
-      data: {
-        labels: ['On Track', 'At Risk'],
-        datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    },
-    {
-      id: 'dynatraceChart',
-      type: 'line',
-      data: {
-        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-        datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'splunkChart',
-      type: 'line',
-      data: {
-        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-        datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'changeTicketsChart',
-      type: 'bar',
-      data: {
-        labels: ['Open', 'In Review', 'Approved'],
-        datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'pagerDutyChart',
-      type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-        datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'responseTimeChart',
-      type: 'bar',
-      data: {
-        labels: ['P1', 'P2', 'P3'],
-        datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'serviceHealthChart',
-      type: 'bar',
-      data: {
-        labels: ['P1', 'P2', 'P3'],
-        datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    }
-  ];
+  const addWidgetBtn = document.querySelector('.add-widget-btn');
+  if (addWidgetBtn) {
+    addWidgetBtn.addEventListener('click', () => {
+      try {
+        const newWidget = document.createElement('div');
+        newWidget.className = 'widget muuri-item uniform';
+        newWidget.innerHTML = `
+          <div class="muuri-item-content">
+            <h3>New Widget</h3>
+            <p>Placeholder content</p>
+          </div>
+        `;
+        window.grid.add(newWidget, { index: -1, layout: true });
+        console.log('[Muuri] New widget added');
+        showToast('New widget added');
+      } catch (error) {
+        console.error('[Muuri] Failed to add widget:', error);
+      }
+    });
+  }
 
-  charts.forEach(chart => {
-    const canvas = document.getElementById(chart.id);
-    if (canvas) {
-      new Chart(canvas.getContext('2d'), {
-        type: chart.type,
-        data: chart.data,
-        options: chart.options
-      });
-      console.log(`[Chart] Initialized ${chart.id}`);
-    } else {
-      console.warn(`[Chart] Canvas #${chart.id} not found`);
-    }
-  });
-} catch (error) {
-  console.error('[Chart] Initialization failed:', error);
-}
+  // Dashboard Charts
+  try {
+    const chartsConfig = [
+      {
+        id: 'incidentChart',
+        type: 'pie',
+        data: {
+          labels: ['Open', 'In Progress', 'Resolved'],
+          datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      },
+      {
+        id: 'priorityChart',
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+          datasets: [
+            { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
+            { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
+            { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'slaChart',
+        type: 'doughnut',
+        data: {
+          labels: ['On Track', 'At Risk'],
+          datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      },
+      {
+        id: 'dynatraceChart',
+        type: 'line',
+        data: {
+          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+          datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'splunkChart',
+        type: 'line',
+        data: {
+          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+          datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'changeTicketsChart',
+        type: 'bar',
+        data: {
+          labels: ['Open', 'In Review', 'Approved'],
+          datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'pagerDutyChart',
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'responseTimeChart',
+        type: 'bar',
+        data: {
+          labels: ['P1', 'P2', 'P3'],
+          datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'serviceHealthChart',
+        type: 'bar',
+        data: {
+          labels: ['P1', 'P2', 'P3'],
+          datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      }
+    ];
 
-// Add Widget Button
-const addWidgetBtn = document.querySelector('.add-widget-btn');
-if (addWidgetBtn) {
-  addWidgetBtn.addEventListener('click', () => {
-    try {
-      const newWidget = document.createElement('div');
-      newWidget.className = 'widget muuri-item uniform';
-      newWidget.innerHTML = `
-        <div class="muuri-item-content">
-          <h3>New Widget</h3>
-          <p>Placeholder content</p>
-        </div>
-      `;
-      window.grid.add(newWidget, { index: -1, layout: true });
-      console.log('[Muuri] New widget added');
-      showToast('New widget added');
-    } catch (error) {
-      console.error('[Muuri] Failed to add widget:', error);
-    }
-  });
-}
-
-// Page Contact Function
-window.pageContact = function(name, team) {
-  showToast(`Paging ${name} for ${team} team...`);
-  console.log(`[Contact] Paging ${name} for ${team}`);
-};
+    chartsConfig.forEach(chart => {
+      const canvas = document.getElementById(chart.id);
+      if (canvas) {
+        if (window.charts[chart.id]) {
+          window.charts[chart.id].destroy();
+          console.log(`[Chart] Destroyed existing chart ${chart.id}`);
+        }
+        window.charts[chart.id] = new Chart(canvas.getContext('2d'), {
+          type: chart.type,
+          data: chart.data,
+          options: chart.options
+        });
+        console.log(`[Chart] Initialized ${chart.id}`);
+      } else {
+        console.warn(`[Chart] Canvas #${chart.id} not found`);
+      }
+    });
+  } catch (error) {
+    console.error('[Chart] Initialization failed:', error);
+  }
 
   // Incidents (Ticket Form) Functionality
   const form = document.getElementById('incident-form');
@@ -476,7 +472,7 @@ window.pageContact = function(name, team) {
     }
   };
 
-  const formatTicketNumber = (num) => `INC${String(num).padStart(6, '0')}`;
+  const formatTicketNumber = num => `INC${String(num).padStart(6, '0')}`;
 
   const updatePriority = () => {
     const selectedApp = appServiceSelect.value;
@@ -528,7 +524,7 @@ window.pageContact = function(name, team) {
   }
 
   if (form) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', e => {
       e.preventDefault();
       if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
         showToast('Business Impact, Impact, and Urgency are required');
@@ -564,8 +560,8 @@ window.pageContact = function(name, team) {
       form.reset();
       currentTicketNumber = null;
       ticketNumberInput.value = 'Pending';
-      userProfileSelect.dispatchEvent(new Event('change'));
-      appServiceSelect.dispatchEvent(new Event('change'));
+      if (userProfileSelect) userProfileSelect.dispatchEvent(new Event('change'));
+      if (appServiceSelect) appServiceSelect.dispatchEvent(new Event('change'));
     });
   }
 
@@ -617,8 +613,12 @@ window.pageContact = function(name, team) {
   function updateAlertsChart() {
     const canvas = document.getElementById('alertsChart');
     if (!canvas) return;
+    if (window.charts.alertsChart) {
+      window.charts.alertsChart.destroy();
+      console.log('[Chart] Destroyed existing alertsChart');
+    }
     const ctx = canvas.getContext('2d');
-    new Chart(ctx, {
+    window.charts.alertsChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
@@ -632,6 +632,7 @@ window.pageContact = function(name, team) {
         scales: { y: { beginAtZero: true } }
       }
     });
+    console.log('[Chart] Initialized alertsChart');
   }
 
   window.acknowledgeAlert = function(id) {
@@ -660,9 +661,11 @@ window.pageContact = function(name, team) {
     const alert = alerts.find(a => a.id === id);
     if (alert) {
       window.showPage('incidents');
-      appServiceSelect.value = alert.source.toLowerCase().replace(/\s+/g, '-') || 'helpdesk-portal';
-      shortDescriptionInput.value = alert.description.slice(0, 80);
-      appServiceSelect.dispatchEvent(new Event('change'));
+      if (appServiceSelect) {
+        appServiceSelect.value = alert.source.toLowerCase().replace(/\s+/g, '-') || 'helpdesk-portal';
+        shortDescriptionInput.value = alert.description.slice(0, 80);
+        appServiceSelect.dispatchEvent(new Event('change'));
+      }
       showToast(`Creating incident for alert ${id}`);
     }
   };
@@ -774,7 +777,7 @@ window.pageContact = function(name, team) {
 
   const workflowForm = document.getElementById('workflow-form');
   if (workflowForm) {
-    workflowForm.addEventListener('submit', (e) => {
+    workflowForm.addEventListener('submit', e => {
       e.preventDefault();
       const name = document.getElementById('workflow-name').value;
       const trigger = document.getElementById('workflow-trigger').value;
@@ -871,7 +874,7 @@ window.pageContact = function(name, team) {
 
   const notificationForm = document.getElementById('notification-form');
   if (notificationForm) {
-    notificationForm.addEventListener('submit', (e) => {
+    notificationForm.addEventListener('submit', e => {
       e.preventDefault();
       if (!window.isAdminAuthenticated) {
         const password = prompt('Enter admin password to send notification');
@@ -895,7 +898,7 @@ window.pageContact = function(name, team) {
         status: 'Sent'
       });
       localStorage.setItem('notifications', JSON.stringify(notifications));
-      console.log('Notification Sent:', { id, subject, message, recipients, priority });
+      console.log('Notification Sent:', { id, subject, recipients, status: 'Sent' });
       notificationForm.reset();
       renderNotificationHistory();
       showToast(`Notification ${id} sent`);
@@ -905,7 +908,7 @@ window.pageContact = function(name, team) {
   const chatForm = document.getElementById('chat-form');
   const chatIncidentSelect = document.getElementById('chat-incident');
   if (chatForm) {
-    chatForm.addEventListener('submit', (e) => {
+    chatForm.addEventListener('submit', e => {
       e.preventDefault();
       const incident = chatIncidentSelect.value;
       const message = document.getElementById('chat-message').value;
@@ -913,11 +916,18 @@ window.pageContact = function(name, team) {
         showToast('Please select an incident');
         return;
       }
-      if (!chatMessages[incident]) chatMessages[incident] = [];
+      if (!message) {
+        showToast('Please enter a message');
+        return;
+      }
+      if (!chatMessages[incident]) {
+        chatMessages[incident] = [];
+      }
+      const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
       chatMessages[incident].push({
-        user: userNameInput.value || 'Anonymous',
+        user: userNameInput && userNameInput.value ? userNameInput.value : 'Anonymous',
         message,
-        timestamp: new Date().toISOString().slice(0, 16).replace('T', ' ')
+        timestamp
       });
       localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
       chatForm.reset();
@@ -934,15 +944,15 @@ window.pageContact = function(name, team) {
   let reports = JSON.parse(localStorage.getItem('reports')) || [
     {
       id: 'REPORT0001',
-      type: 'Incident Summary',
-      timeRange: 'week',
+      type: 'Incident Report',
+      timeRange: 'Week',
       timestamp: '2025-06-10 08:00',
-      data: { open: 15, inProgress: 8, resolved: 22 }
+      data: { open: 15, inProgress: 25, resolved: 10 }
     }
   ];
 
   function renderReportsHistory() {
-    const reportsHistory = document.getElementById('reports-history');
+    const reportsHistory = document.getElementById('list-reports-history');
     if (!reportsHistory) return;
     reportsHistory.innerHTML = '';
     reports.forEach(report => {
@@ -954,7 +964,7 @@ window.pageContact = function(name, team) {
         <span>${report.timeRange}</span>
         <span>${report.timestamp}</span>
         <span>
-          <button class="cta-btn small" onclick="window.downloadReport('${report.id}')">Download CSV</button>
+          <button class="cta-btn small" onclick="window.downloadReport('${report.id}')">Download</button>
         </span>
       `;
       reportsHistory.appendChild(item);
@@ -962,14 +972,18 @@ window.pageContact = function(name, team) {
   }
 
   function updateReportsChart() {
-    const canvas = document.getElementById('reportsChart');
+    const canvas = document.getElementById('reports-chart');
     if (!canvas) return;
-    const reportType = document.getElementById('report-type').value;
+    const reportType = document.getElementById('filter-report-type').value;
+    if (window.charts.reportsChart) {
+      window.charts.reportsChart.destroy();
+      console.log('[Chart] Destroyed existing reportsChart');
+    }
     let data;
-    if (reportType === 'incident-summary') {
+    if (reportType === 'incident-report') {
       data = {
         labels: ['Open', 'In Progress', 'Resolved'],
-        datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'] }]
+        datasets: [{ data: [15, 25, 10], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'] }]
       };
     } else if (reportType === 'sla-compliance') {
       data = {
@@ -979,33 +993,34 @@ window.pageContact = function(name, team) {
     } else {
       data = {
         labels: ['Team A', 'Team B', 'Team C'],
-        datasets: [{ data: [10, 15, 12], backgroundColor: ['#4F46E5', '#FBBF24', '#60A5FA'] }]
+        datasets: [{ data: [10, 20, 15], backgroundColor: ['#4F46E5', '#FBBF24', '#60A5FA'] }]
       };
     }
     const ctx = canvas.getContext('2d');
-    new Chart(ctx, {
-      type: reportType === 'incident-summary' ? 'pie' : 'bar',
+    window.charts.reportsChart = new Chart(ctx, {
+      type: reportType === 'incident-report' ? 'pie' : 'bar',
       data,
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: reportType !== 'incident-summary' ? { y: { beginAtZero: true } } : {}
+        scales: reportType !== 'incident-report' ? { y: { beginAtZero: true } } : {}
       }
     });
+    console.log('[Chart] Initialized reportsChart');
   }
 
   window.generateReport = function() {
-    const reportType = document.getElementById('report-type').value;
-    const timeRange = document.getElementById('report-time').value;
+    const reportType = document.getElementById('filter-report-type').value;
+    const timeRange = document.getElementById('filter-report-time').value;
     const id = `REPORT${String(reports.length + 1).padStart(4, '0')}`;
-    const reportData = {
+    const report = {
       id,
       type: reportType.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase()),
       timeRange,
       timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      data: reportType === 'incident-summary' ? { open: 15, inProgress: 8, resolved: 22 } : { sample: 'data' }
+      data: reportType === 'incident-report' ? { open: 15, inProgress: 25, resolved: 10 } : { sample: 'data' }
     };
-    reports.push(reportData);
+    reports.push(report);
     localStorage.setItem('reports', JSON.stringify(reports));
     renderReportsHistory();
     updateReportsChart();
@@ -1032,8 +1047,8 @@ window.pageContact = function(name, team) {
     showToast(`Report ${id} downloaded`);
   };
 
-  const reportTypeSelect = document.getElementById('report-type');
-  const reportTimeSelect = document.getElementById('report-time');
+  const reportTypeSelect = document.getElementById('filter-report-type');
+  const reportTimeSelect = document.getElementById('filter-report-time');
   if (reportTypeSelect) reportTypeSelect.addEventListener('change', updateReportsChart);
   if (reportTimeSelect) reportTimeSelect.addEventListener('change', updateReportsChart);
 
@@ -1065,7 +1080,7 @@ window.pageContact = function(name, team) {
   function renderIntegrationsList() {
     const integrationsList = document.getElementById('integrations-list');
     if (!integrationsList) return;
-    const statusFilter = document.getElementById('status-filter').value;
+    const statusFilter = document.getElementById('filter-status').value;
     integrationsList.innerHTML = '';
     integrations
       .filter(integration => statusFilter === 'all' || integration.status === statusFilter)
@@ -1092,7 +1107,7 @@ window.pageContact = function(name, team) {
     const syncLogList = document.getElementById('sync-log-list');
     if (!syncLogList) return;
     syncLogList.innerHTML = '';
-    syncLog.forEach((log, index) => {
+    syncLog.forEach(log => {
       const item = document.createElement('div');
       item.className = 'list-item';
       item.innerHTML = `
@@ -1108,39 +1123,42 @@ window.pageContact = function(name, team) {
   function updateSyncChart() {
     const canvas = document.getElementById('sync-chart');
     if (!canvas) return;
+    if (window.charts.syncChart) {
+      window.charts.syncChart.destroy();
+      console.log('[Chart] Destroyed existing syncChart');
+    }
     const ctx = canvas.getContext('2d');
-    new Chart(ctx, {
+    window.charts.syncChart = new Chart(ctx, {
       type: 'bar',
-      data: [
-        { label: 'Success', count: 25, color: '#22C55E' },
-        { label: 'Failed', count: 5, color: '#EF4444' }
-      ],
+      data: {
+        labels: ['Success', 'Failed'],
+        datasets: [{ data: [25, 5], backgroundColor: ['#22C55E', '#EF4444'] }]
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true }
-        }
+        scales: { y: { beginAtZero: true } }
       }
     });
+    console.log('[Chart] Initialized syncChart');
   }
 
-  window.openAddIntegrationModal = () => {
+  window.openAddIntegrationModal = function() {
     const modal = document.getElementById('add-integration-modal');
     if (modal) modal.style.display = 'block';
   };
 
-  window.closeAddIntegrationModal = () => {
+  window.closeAddIntegrationModal = function() {
     const modal = document.getElementById('add-integration-modal');
     if (modal) {
       modal.style.display = 'none';
-      document.getElementById('integrationForm').reset();
+      document.getElementById('integration-form').reset();
     }
   };
 
-  window.toggleIntegrationStatus = (id) => {
+  window.toggleIntegrationStatus = function(id) {
     if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to toggle integration status');
+      const password = prompt('Enter admin password to toggle integration');
       if (password !== 'admin123') {
         showToast('Incorrect admin password');
         return;
@@ -1160,35 +1178,36 @@ window.pageContact = function(name, team) {
       localStorage.setItem('syncLog', JSON.stringify(syncLog));
       renderIntegrationsList();
       renderSyncLog();
-      showToast(`${integration.name} integration ${integration.status.toLowerCase()}`);
+      showToast(`${integration.name} integration ${integration.status}`);
     }
   };
 
-  window.showIntegrationDetails = (id) => {
+  window.showIntegrationDetails = function(id) {
     const integration = integrations.find(i => i.id === id);
     if (integration) {
-      document.getElementById('integration-details').style.display = 'block';
-      document.getElementById('detail-name').textContent = integration.name;
-      document.getElementById('detail-detail-category').textContent = integration.category;
-      document.getElementById('detail-api-key').value = integration.apiKey;
-      document.getElementById('detail-endpoint').value = integration.endpoint;
-      document.getElementById('detail-sync').value = integration.syncInterval;
-      document.getElementById('detail-id').value = id;
+      const details = document.getElementById('integration-details');
+      if (details) {
+        details.style.display = 'block';
+        document.getElementById('detail-name').textContent = integration.name;
+        document.getElementById('detail-category').value = integration.category;
+        document.getElementById('detail-api-key').value = integration.apiKey;
+        document.getElementById('detail-endpoint').value = integration.endpoint;
+        document.getElementById('detail-sync').value = integration.syncInterval;
+        document.getElementById('detail-id').value = id;
+      }
     }
   };
 
-  window.editIntegrationDetails = () => {
-    const editButton = document.querySelector('#integration-details button[aria-label="Edit integration details"]');
-    const saveButton = document.querySelector('#integration-details button[aria-label="Save integration details"]');
-    const inputs = document.querySelectorAll('#integration-details input:not(#detail-name)');
-    inputs.forEach(input => input.removeAttribute('readonly'));
-    editButton.style.display = 'none';
-    saveButton.style.display = 'inline-block';
+  window.editIntegrationDetails = function() {
+    const inputs = document.querySelectorAll('#integration-details input:not(#detail-id)');
+    inputs.forEach(input => input.removeAttribute('disabled'));
+    document.querySelector('#integration-details button[aria-label="Edit integration details"]').style.display = 'none';
+    document.querySelector('#integration-details button[aria-label="Save integration details"]').style.display = 'inline-block';
   };
 
-  window.saveIntegrationDetails = () => {
+  window.saveIntegrationDetails = function() {
     if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to save integration details');
+      const password = prompt('Enter admin password to save integration');
       if (password !== 'admin123') {
         showToast('Incorrect admin password');
         return;
@@ -1197,9 +1216,10 @@ window.pageContact = function(name, team) {
     const id = document.getElementById('detail-id').value;
     const integration = integrations.find(i => i.id === id);
     if (integration) {
+      integration.category = document.getElementById('detail-category').value;
       integration.apiKey = document.getElementById('detail-api-key').value;
       integration.endpoint = document.getElementById('detail-endpoint').value;
-      integration.syncInterval = parseInt(document.getElementById('detail-sync-interval').value);
+      integration.syncInterval = parseInt(document.getElementById('detail-sync').value);
       integration.lastSync = new Date().toISOString().slice(0, 16).replace('T', ' ');
       syncLog.push({
         id,
@@ -1209,8 +1229,8 @@ window.pageContact = function(name, team) {
       });
       localStorage.setItem('integrations', JSON.stringify(integrations));
       localStorage.setItem('syncLog', JSON.stringify(syncLog));
-      const inputs = document.querySelectorAll('#integration-details input:not(#detail-name)');
-      inputs.forEach(input => input.setAttribute('readonly', 'readonly'));
+      const inputs = document.querySelectorAll('#integration-details input:not(#detail-id)');
+      inputs.forEach(input => input.setAttribute('disabled', 'true'));
       document.querySelector('#integration-details button[aria-label="Edit integration details"]').style.display = 'inline-block';
       document.querySelector('#integration-details button[aria-label="Save integration details"]').style.display = 'none';
       renderIntegrationsList();
@@ -1219,20 +1239,21 @@ window.pageContact = function(name, team) {
     }
   };
 
-  window.closeIntegrationDetails = () => {
-    document.getElementById('integration-details').style.display = 'none';
-    const inputs = document.querySelectorAll('#integration-details input:not(#detail-name)');
-    inputs.forEach(input => {
-      input.setAttribute('readonly', 'readonly');
-      input.value = '';
-    });
-    document.getElementById('detail-name').textContent = '';
-    document.getElementById('detail-category').textContent = '';
-    document.querySelector('#integration-details button[aria-label="Edit integration details"]').style.display = 'inline-block';
-    document.querySelector('#integration-details button[aria-label="Save integration details"]').style.display = 'none';
+  window.closeIntegrationDetails = function() {
+    const details = document.getElementById('integration-details');
+    if (details) {
+      details.style.display = 'none';
+      const inputs = document.querySelectorAll('#integration-details input:not(#detail-id)');
+      inputs.forEach(input => {
+        input.setAttribute('disabled', 'true');
+        input.value = '';
+      });
+      document.getElementById('detail-name').textContent = '';
+      document.getElementById('detail-id').value = '';
+    }
   };
 
-  window.deleteIntegration = (id) => {
+  window.deleteIntegration = function(id) {
     if (!window.isAdminAuthenticated) {
       const password = prompt('Enter admin password to delete integration');
       if (password !== 'admin123') {
@@ -1243,17 +1264,18 @@ window.pageContact = function(name, team) {
     integrations = integrations.filter(i => i.id !== id);
     localStorage.setItem('integrations', JSON.stringify(integrations));
     renderIntegrationsList();
+    renderSyncLog();
     showToast('Integration deleted');
   };
 
-  const integrationForm = document.getElementById('integrationForm');
+  const integrationForm = document.getElementById('integration-form');
   if (integrationForm) {
-    integrationForm.addEventListener('submit', (e) => {
+    integrationForm.addEventListener('submit', e => {
       e.preventDefault();
       if (!window.isAdminAuthenticated) {
         const password = prompt('Enter admin password to add integration');
         if (password !== 'admin123') {
-          showToast('Incorrect admin password');
+          showToast('Invalid admin password');
           return;
         }
       }
@@ -1286,7 +1308,7 @@ window.pageContact = function(name, team) {
     });
   }
 
-  const statusFilter = document.getElementById('status-filter');
+  const statusFilter = document.getElementById('filter-status');
   if (statusFilter) {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
@@ -1296,10 +1318,12 @@ window.pageContact = function(name, team) {
   const logoutBtn = document.getElementById('logout-btn');
   const userForm = document.getElementById('user-form');
   const appForm = document.getElementById('app-form');
+
   let users = JSON.parse(localStorage.getItem('users')) || [
-    { id: 'USR001', name: 'Alice Johnson', location: 'New York, NY', email: 'alice.johnson@tech.com', contact: '212-555-0101', jobTitle: 'Network Engineer' },
-    { id: 'USR002', name: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@tech.com', contact: '312-555-0202', jobTitle: 'Server Admin' }
+    { id: 'USR001', name: 'Alice Johnson', email: 'alice.johnson@tech.com', contact: '212-555-0101', jobTitle: 'Network Engineer' },
+    { id: 'USR002', name: 'Bob Smith', email: 'bob.smith@tech.com', contact: '312-555-0202', jobTitle: 'Server Admin' }
   ];
+
   let applications = JSON.parse(localStorage.getItem('applications')) || [
     {
       id: 'APP001',
@@ -1309,16 +1333,54 @@ window.pageContact = function(name, team) {
       impact: 'High',
       assignmentGroup: 'Citrix Team',
       category: 'Application',
-      shortDescription: 'Virtual desktop access',
+      shortDescription: 'Virtual Desktop Access',
       businessImpact: 'Critical for remote work'
     }
   ];
 
+  function updateUserTable() {
+    const userTableBody = document.querySelector('#users-table tbody');
+    if (!userTableBody) return;
+    userTableBody.innerHTML = '';
+    users.forEach(user => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.contact}</td>
+        <td>${user.jobTitle}</td>
+        <td><button class="cta-btn cta-btn small secondary" onclick="window.removeUser('${user.id}')">Delete</button></td>
+      `;
+      userTableBody.appendChild(row);
+    });
+  }
+
+  function updateAppTable() {
+    const appTableBody = document.querySelector('#apps-table tbody');
+    if (!appTableBody) return;
+    appTableBody.innerHTML = '';
+    applications.forEach(app => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${app.id}</td>
+        <td>${app.name}</td>
+        <td>${app.priorityCap}</td>
+        <td>${app.urgency}</td>
+        <td>${app.impact}</td>
+        <td>${app.assignmentGroup}</td>
+        <td>${app.category}</td>
+        <td><button class="cta-btn cta-btn small secondary" onclick="window.removeApp('${app.id}')">Delete</button></td>
+      `;
+      appTableBody.appendChild(row);
+    });
+  };
+
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', e => {
       e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
       if (username === 'admin' && password === 'admin123') {
         window.isAdminAuthenticated = true;
         localStorage.setItem('isAdminAuthenticated', 'true');
@@ -1326,7 +1388,7 @@ window.pageContact = function(name, team) {
         document.getElementById('settings-container').classList.remove('hidden');
         updateUserTable();
         updateAppTable();
-        showToast('Logged in successfully');
+        showToast('Successfully logged in');
       } else {
         showToast('Invalid credentials');
       }
@@ -1336,51 +1398,14 @@ window.pageContact = function(name, team) {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
       window.isAdminAuthenticated = false;
-      localStorage.setItem('isAdminAuthenticated', 'false');
+      localStorage.removeItem('isAdminAuthenticated');
       document.getElementById('login-container').classList.remove('hidden');
       document.getElementById('settings-container').classList.add('hidden');
-      showToast('Logged out successfully');
+      showToast('Successfully logged out');
     });
   }
 
-  function updateUserTable() {
-    const userTableBody = document.getElementById('user-table-body');
-    if (!userTableBody) return;
-    userTableBody.innerHTML = '';
-    users.forEach(user => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${user.name}</td>
-        <td>${user.location}</td>
-        <td>${user.email}</td>
-        <td>${user.contact}</td>
-        <td>${user.jobTitle}</td>
-        <td><button class="cta-btn small secondary" onclick="window.removeUser('${user.id}')">Remove</button></td>
-      `;
-      userTableBody.appendChild(row);
-    });
-  }
-
-  function updateAppTable() {
-    const appTableBody = document.getElementById('app-table-body');
-    if (!appTableBody) return;
-    appTableBody.innerHTML = '';
-    applications.forEach(app => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${app.name}</td>
-        <td>${app.priorityCap}</td>
-        <td>${app.urgency}</td>
-        <td>${app.impact}</td>
-        <td>${app.assignmentGroup}</td>
-        <td>${app.category}</td>
-        <td><button class="cta-btn small secondary" onclick="window.removeApp('${app.id}')">Remove</button></td>
-      `;
-      appTableBody.appendChild(row);
-    });
-  }
-
-  window.removeUser = (id) => {
+  window.removeUser = function(id) {
     if (!window.isAdminAuthenticated) {
       const password = prompt('Enter admin password to remove user');
       if (password !== 'admin123') {
@@ -1388,13 +1413,13 @@ window.pageContact = function(name, team) {
         return;
       }
     }
-    users = users.filter(user => w.id !== id);
+    users = users.filter(user => user.id !== id);
     localStorage.setItem('users', JSON.stringify(users));
     updateUserTable();
-    showToast('User removed');
+    showToast('User deleted');
   };
 
-  window.removeApp = (id) => {
+  window.removeApp = function(id) {
     if (!window.isAdminAuthenticated) {
       const password = prompt('Enter admin password to remove application');
       if (password !== 'admin123') {
@@ -1402,14 +1427,14 @@ window.pageContact = function(name, team) {
         return;
       }
     }
-    applications = users.filter(app => app.id !== id);
+    applications = applications.filter(app => app.id !== id);
     localStorage.setItem('applications', JSON.stringify(applications));
+    showToast('Application deleted');
     updateAppTable();
-    showToast('Application removed');
   };
 
   if (userForm) {
-    userForm.addEventListener('submit', (e) => {
+    userForm.addEventListener('submit', e => {
       e.preventDefault();
       if (!window.isAdminAuthenticated) {
         const password = prompt('Enter admin password to add user');
@@ -1420,11 +1445,10 @@ window.pageContact = function(name, team) {
       }
       const user = {
         id: `USR${String(users.length + 1).padStart(3, '0')}`,
-        name: document.getElementById('user-name-input').value,
-        location: document.getElementById('user-location').value,
+        name: document.getElementById('user-name').value,
         email: document.getElementById('user-email').value,
         contact: document.getElementById('user-contact').value,
-        jobTitle: document.getElementById('user-job-title').value,
+        jobTitle: document.getElementById('user-job-title').value
       };
       users.push(user);
       localStorage.setItem('users', JSON.stringify(users));
@@ -1433,8 +1457,9 @@ window.pageContact = function(name, team) {
       showToast('User added successfully');
     });
   }
+
   if (appForm) {
-    appForm.addEventListener('submit', (e) => {
+    appForm.addEventListener('submit', e => {
       e.preventDefault();
       if (!window.isAdminAuthenticated) {
         const password = prompt('Enter admin password to add application');
@@ -1446,7 +1471,7 @@ window.pageContact = function(name, team) {
       const app = {
         id: `APP${String(applications.length + 1).padStart(3, '0')}`,
         name: document.getElementById('app-name').value,
-        priorityCap: document.getElementById('app-priority-cap').value,
+        priorityCap: document.getElementById('app-priority').value,
         urgency: document.getElementById('app-urgency').value,
         impact: document.getElementById('app-impact').value,
         assignmentGroup: document.getElementById('app-assignment-group').value,
