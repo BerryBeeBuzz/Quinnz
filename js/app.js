@@ -137,28 +137,137 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Initialize Muuri Grid
-  try {
-    window.grid = new Muuri('.widget-grid.muuri', {
-      dragEnabled: true,
-      layout: {
-        fillGaps: false,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: false
-      }
-    });
+try {
+  window.grid = new Muuri('.widget-grid.muuri', {
+    dragEnabled: true,
+    layout: {
+      fillGaps: false,
+      horizontal: false,
+      alignRight: false,
+      alignBottom: false,
+      rounding: false
+    }
+  });
+  window.grid.refreshItems().layout();
+  window.addEventListener('resize', () => {
     window.grid.refreshItems().layout();
-    window.addEventListener('resize', () => {
-      window.grid.refreshItems().layout();
-    });
-  } catch (error) {
-    console.error('Muuri initialization failed:', error);
-  }
+  });
+} catch (error) {
+  console.error('[Muuri] Initialization failed:', error);
+}
 
-  const addWidgetBtn = document.querySelector('.add-widget-btn');
-  if (addWidgetBtn) {
-    addWidgetBtn.addEventListener('click', () => {
+// Dashboard Charts
+try {
+  const charts = [
+    {
+      id: 'incidentChart',
+      type: 'pie',
+      data: {
+        labels: ['Open', 'In Progress', 'Resolved'],
+        datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    },
+    {
+      id: 'priorityChart',
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [
+          { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
+          { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
+          { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'slaChart',
+      type: 'doughnut',
+      data: {
+        labels: ['On Track', 'At Risk'],
+        datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    },
+    {
+      id: 'dynatraceChart',
+      type: 'line',
+      data: {
+        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+        datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'splunkChart',
+      type: 'line',
+      data: {
+        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+        datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'changeTicketsChart',
+      type: 'bar',
+      data: {
+        labels: ['Open', 'In Review', 'Approved'],
+        datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'pagerDutyChart',
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'responseTimeChart',
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3'],
+        datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'serviceHealthChart',
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3'],
+        datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    }
+  ];
+
+  charts.forEach(chart => {
+    const canvas = document.getElementById(chart.id);
+    if (canvas) {
+      new Chart(canvas.getContext('2d'), {
+        type: chart.type,
+        data: chart.data,
+        options: chart.options
+      });
+      console.log(`[Chart] Initialized ${chart.id}`);
+    } else {
+      console.warn(`[Chart] Canvas #${chart.id} not found`);
+    }
+  });
+} catch (error) {
+  console.error('[Chart] Initialization failed:', error);
+}
+
+// Add Widget Button
+const addWidgetBtn = document.querySelector('.add-widget-btn');
+if (addWidgetBtn) {
+  addWidgetBtn.addEventListener('click', () => {
+    try {
       const newWidget = document.createElement('div');
       newWidget.className = 'widget muuri-item uniform';
       newWidget.innerHTML = `
@@ -168,115 +277,19 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       window.grid.add(newWidget, { index: -1, layout: true });
+      console.log('[Muuri] New widget added');
       showToast('New widget added');
-    });
-  }
+    } catch (error) {
+      console.error('[Muuri] Failed to add widget:', error);
+    }
+  });
+}
 
-  // Dashboard Charts
-  try {
-    const charts = [
-      {
-        id: 'incidentChart',
-        type: 'pie',
-        data: {
-          labels: ['Open', 'In Progress', 'Resolved'],
-          datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-      },
-      {
-        id: 'priorityChart',
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          datasets: [
-            { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
-            { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
-            { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'slaChart',
-        type: 'doughnut',
-        data: {
-          labels: ['On Track', 'At Risk'],
-          datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-      },
-      {
-        id: 'dynatraceChart',
-        type: 'line',
-        data: {
-          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-          datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'splunkChart',
-        type: 'line',
-        data: {
-          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-          datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'changeTicketsChart',
-        type: 'bar',
-        data: {
-          labels: ['Open', 'In Review', 'Approved'],
-          datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'pagerDutyChart',
-        type: 'line',
-        data: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-          datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'responseTimeChart',
-        type: 'bar',
-        data: {
-          labels: ['P1', 'P2', 'P3'],
-          datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      },
-      {
-        id: 'serviceHealthChart',
-        type: 'bar',
-        data: {
-          labels: ['P1', 'P2', 'P3'],
-          datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-      }
-    ];
-
-    charts.forEach(chart => {
-      const canvas = document.getElementById(chart.id);
-      if (canvas) {
-        new Chart(canvas.getContext('2d'), {
-          type: chart.type,
-          data: chart.data,
-          options: chart.options
-        });
-      } else {
-        console.warn(`Canvas #${chart.id} not found`);
-      }
-    });
-  } catch (error) {
-    console.error('Chart initialization failed:', error);
-  }
+// Page Contact Function
+window.pageContact = function(name, team) {
+  showToast(`Paging ${name} for ${team} team...`);
+  console.log(`[Contact] Paging ${name} for ${team}`);
+};
 
   // Incidents (Ticket Form) Functionality
   const form = document.getElementById('incident-form');
