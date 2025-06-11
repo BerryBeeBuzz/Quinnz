@@ -26,11 +26,11 @@
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
-      <div class="menu-item" data-tooltip="Monitoring" onclick="alert('Monitoring not implemented')">
+      <div class="menu-item" data-tooltip="Monitoring" onclick="showPage('monitoring')">
         <span aria-label="Monitoring Icon">📈</span>
         <span>Monitoring</span>
       </div>
-      <div class="menu-item" data-tooltip="Workflows" onclick="alert('Workflows not implemented')">
+      <div class="menu-item" data-tooltip="Workflows" onclick="showPage('workflows')">
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
@@ -383,6 +383,60 @@
           </div>
           <button type="submit" class="cta-btn">Create Ticket</button>
         </form>
+      </div>
+    </section>
+
+       <!-- Monitoring Page (New) -->
+    <section id="monitoring" class="page" style="display: none;">
+      <div class="header">
+        <h1>Monitoring</h1>
+        <div class="filters">
+          <select id="monitoring-filter" aria-label="Filter monitoring data">
+            <option value="all">All Alerts</option>
+            <option value="critical">Critical</option>
+            <option value="warning">Warning</option>
+          </select>
+        </div>
+      </div>
+      <div class="monitoring-grid">
+        <div class="widget uniform">
+          <h3>Monitoring Alerts</h3>
+          <div class="list" id="monitoring-alerts-list">
+            <!-- Populated by JS from CodePen -->
+          </div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>System Metrics</h3>
+          <canvas id="monitoring-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Workflows Page (New) -->
+    <section id="workflows" class="page" style="display: none;">
+      <div class="header">
+        <h1>Workflows</h1>
+        <div class="filters">
+          <select id="workflows-filter" aria-label="Filter workflows">
+            <option value="all">All Workflows</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+      <div class="workflows-grid">
+        <div class="widget uniform">
+          <h3>Workflow Status</h3>
+          <div class="list" id="workflows-list">
+            <!-- Populated by JS from CodePen -->
+          </div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>Workflow Progress</h3>
+          <canvas id="workflows-chart"></canvas>
+        </div>
       </div>
     </section>
 
