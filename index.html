@@ -26,19 +26,19 @@
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
-      <div class="menu-item" data-tooltip="Alerts Management" onclick="window.showPage('alerts')">
-        <span aria-label="Alerts Icon">🚨</span>
-        <span>Alerts</span>
+      <div class="menu-item" data-tooltip="Monitoring" onclick="alert('Monitoring not implemented')">
+        <span aria-label="Monitoring Icon">📈</span>
+        <span>Monitoring</span>
       </div>
-      <div class="menu-item" data-tooltip="Workflows" onclick="window.showPage('workflows')">
+      <div class="menu-item" data-tooltip="Workflows" onclick="alert('Workflows not implemented')">
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
-      <div class="menu-item" data-tooltip="Communications" onclick="window.showPage('communications')">
+      <div class="menu-item" data-tooltip="Communications" onclick="alert('Communications not implemented')">
         <span aria-label="Communications Icon">💬</span>
         <span>Communications</span>
       </div>
-      <div class="menu-item" data-tooltip="Reports" onclick="window.showPage('reports')">
+      <div class="menu-item" data-tooltip="Reports" onclick="alert('Reports not implemented')">
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
@@ -59,209 +59,209 @@
     <div id="toast" class="toast hidden">
       <span id="toast-message"></span>
     </div>
-   <!-- Dashboard Page -->
-<section id="dashboard" class="page">
-  <div class="header">
-    <h1>Dashboard</h1>
-    <div class="filters">
-      <select aria-label="Time filter">
-        <option>Today</option>
-        <option>This Week</option>
-        <option>This Month</option>
-      </select>
-      <select aria-label="Team filter">
-        <option>All Teams</option>
-        <option>DevOps</option>
-        <option>IT</option>
-      </select>
-    </div>
-  </div>
-  <div class="widget-grid muuri">
-    <div class="widget uniform muuri-item" data-id="incident-status">
-      <div class="muuri-item-content">
-        <h3>Incident Status</h3>
-        <canvas id="incidentChart"></canvas>
-        <div class="legend">
-          <span class="legend-item open">Open: 15</span>
-          <span class="legend-item in-progress">In Progress: 8</span>
-          <span class="legend-item resolved">Resolved: 22</span>
+    <!-- Dashboard Page -->
+    <section id="dashboard" class="page">
+      <div class="header">
+        <h1>Dashboard</h1>
+        <div class="filters">
+          <select>
+            <option>Today</option>
+            <option>This Week</option>
+            <option>This Month</option>
+          </select>
+          <select>
+            <option>All Teams</option>
+            <option>DevOps</option>
+            <option>IT</option>
+          </select>
         </div>
       </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="priority-over-time">
-      <div class="muuri-item-content">
-        <h3>Incidents by Priority Over Time</h3>
-        <canvas id="priorityChart"></canvas>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="monitoring-alerts">
-      <div class="muuri-item-content">
-        <h3>Recent Monitoring Alerts</h3>
-        <div class="list">
-          <div class="list-item">High CPU Usage on Server X - 10:15 AM</div>
-          <div class="list-item">Network Latency Spike - 9:30 AM</div>
-          <div class="list-item">Disk Space Low on Server Y - 8:45 AM</div>
-          <div class="list-item">Application Crash - 7:20 AM</div>
-          <div class="list-item">Database Connection Error - 6:10 AM</div>
-          <div class="list-item">Memory Leak Detected - 5:55 AM</div>
-          <div class="list-item">Server Z Unresponsive - 5:30 AM</div>
-          <div class="list-item">API Rate Limit Exceeded - 4:45 AM</div>
-          <div class="list-item">Authentication Failure Spike - 4:00 AM</div>
-          <div class="list-item">Backup Failure on Server A - 3:15 AM</div>
-        </div>
-        <p class="scroll-label">Scroll for more</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="sla-compliance">
-      <div class="muuri-item-content">
-        <h3>SLA Compliance</h3>
-        <canvas id="slaChart"></canvas>
-        <p>92% of incidents on track</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="team-activity">
-      <div class="muuri-item-content">
-        <h3>Team Activity</h3>
-        <div class="timeline">
-          <div class="timeline-item">
-            <span class="avatar">👤</span>
-            <span>John assigned ticket #123 - 9:45 AM</span>
-          </div>
-          <div class="timeline-item">
-            <span class="avatar">👤</span>
-            <span>Sarah resolved ticket #122 - 9:30 AM</span>
-          </div>
-          <div class="timeline-item">
-            <span class="avatar">👤</span>
-            <span>Mike commented on ticket #121 - 9:15 AM</span>
+      <div class="widget-grid muuri">
+        <div class="widget uniform muuri-item" data-id="incident-status">
+          <div class="muuri-item-content">
+            <h3>Incident Status</h3>
+            <canvas id="incidentChart"></canvas>
+            <div class="legend">
+              <span class="legend-item open">Open: 15</span>
+              <span class="legend-item in-progress">In Progress: 8</span>
+              <span class="legend-item resolved">Resolved: 22</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="on-call-schedule">
-      <div class="muuri-item-content">
-        <h3>Team On-Call Schedule</h3>
-        <div class="list on-call-list">
-          <div class="list-item">
-            <div class="contact-info">
-              <span><strong>Network</strong>: Alice Johnson, Network Engineer</span>
-              <span>Office (555) 123-4567</span>
-              <span>Cell (555) 987-6543</span>
-              <span>Email - alice.johnson@tech.com</span>
-            </div>
-            <button class="page-btn" onclick="window.pageContact('Alice Johnson', 'Network')">Page</button>
+        <div class="widget uniform muuri-item" data-id="priority-over-time">
+          <div class="muuri-item-content">
+            <h3>Incidents by Priority Over Time</h3>
+            <canvas id="priorityChart"></canvas>
           </div>
-          <div class="list-item">
-            <div class="contact-info">
-              <span><strong>Server</strong>: Bob Smith, Server Admin</span>
-              <span>Office (555) 234-5678</span>
-              <span>Cell (555) 876-5432</span>
-              <span>Email - bob.smith@tech.com</span>
+        </div>
+        <div class="widget uniform muuri-item" data-id="monitoring-alerts">
+          <div class="muuri-item-content">
+            <h3>Recent Monitoring Alerts</h3>
+            <div class="list">
+              <div class="list-item">High CPU Usage on Server X - 10:15 AM</div>
+              <div class="list-item">Network Latency Spike - 9:30 AM</div>
+              <div class="list-item">Disk Space Low on Server Y - 8:45 AM</div>
+              <div class="list-item">Application Crash - 7:20 AM</div>
+              <div class="list-item">Database Connection Error - 6:10 AM</div>
+              <div class="list-item">Memory Leak Detected - 5:55 AM</div>
+              <div class="list-item">Server Z Unresponsive - 5:30 AM</div>
+              <div class="list-item">API Rate Limit Exceeded - 4:45 AM</div>
+              <div class="list-item">Authentication Failure Spike - 4:00 AM</div>
+              <div class="list-item">Backup Failure on Server A - 3:15 AM</div>
             </div>
-            <button class="page-btn" onclick="window.pageContact('Bob Smith', 'Server')">Page</button>
+            <p class="scroll-label">Scroll for more</p>
           </div>
-          <div class="list-item">
-            <div class="contact-info">
-              <span><strong>Cybersecurity</strong>: Clara Davis, Security Analyst</span>
-              <span>Office (555) 345-6789</span>
-              <span>Cell (555) 765-4321</span>
-              <span>Email - clara.davis@tech.com</span>
-            </div>
-            <button class="page-btn" onclick="window.pageContact('Clara Davis', 'Cybersecurity')">Page</button>
+        </div>
+        <div class="widget uniform muuri-item" data-id="sla-compliance">
+          <div class="muuri-item-content">
+            <h3>SLA Compliance</h3>
+            <canvas id="slaChart"></canvas>
+            <p>92% of incidents on track</p>
           </div>
-          <div class="list-item">
-            <div class="contact-info">
-              <span><strong>Software Dev</strong>: David Lee, Lead Developer</span>
-              <span>Office (555) 456-7890</span>
-              <span>Cell (555) 654-3210</span>
-              <span>Email - david.lee@tech.com</span>
+        </div>
+        <div class="widget uniform muuri-item" data-id="team-activity">
+          <div class="muuri-item-content">
+            <h3>Team Activity</h3>
+            <div class="timeline">
+              <div class="timeline-item">
+                <span class="avatar">👤</span>
+                <span>John assigned ticket #123 - 9:45 AM</span>
+              </div>
+              <div class="timeline-item">
+                <span class="avatar">👤</span>
+                <span>Sarah resolved ticket #122 - 9:30 AM</span>
+              </div>
+              <div class="timeline-item">
+                <span class="avatar">👤</span>
+                <span>Mike commented on ticket #121 - 9:15 AM</span>
+              </div>
             </div>
-            <button class="page-btn" onclick="window.pageContact('David Lee', 'Software Dev')">Page</button>
           </div>
-          <div class="list-item">
-            <div class="contact-info">
-              <span><strong>Infrastructure</strong>: Emma Brown, Infra Engineer</span>
-              <span>Office (555) 567-8901</span>
-              <span>Cell (555) 543-2109</span>
-              <span>Email - emma.brown@tech.com</span>
+        </div>
+        <div class="widget uniform muuri-item" data-id="on-call-schedule">
+          <div class="muuri-item-content">
+            <h3>Team On-Call Schedule</h3>
+            <div class="list on-call-list">
+              <div class="list-item">
+                <div class="contact-info">
+                  <span><strong>Network</strong>: Alice Johnson, Network Engineer</span>
+                  <span>Office (555) 123-4567</span>
+                  <span>Cell (555) 987-6543</span>
+                  <span>Email - alice.johnson@tech.com</span>
+                </div>
+                <button class="page-btn" onclick="window.pageContact('Alice Johnson', 'Network')">Page</button>
+              </div>
+              <div class="list-item">
+                <div class="contact-info">
+                  <span><strong>Server</strong>: Bob Smith, Server Admin</span>
+                  <span>Office (555) 234-5678</span>
+                  <span>Cell (555) 876-5432</span>
+                  <span>Email - bob.smith@tech.com</span>
+                </div>
+                <button class="page-btn" onclick="window.pageContact('Bob Smith', 'Server')">Page</button>
+              </div>
+              <div class="list-item">
+                <div class="contact-info">
+                  <span><strong>Cybersecurity</strong>: Clara Davis, Security Analyst</span>
+                  <span>Office (555) 345-6789</span>
+                  <span>Cell (555) 765-4321</span>
+                  <span>Email - clara.davis@tech.com</span>
+                </div>
+                <button class="page-btn" onclick="window.pageContact('Clara Davis', 'Cybersecurity')">Page</button>
+              </div>
+              <div class="list-item">
+                <div class="contact-info">
+                  <span><strong>Software Dev</strong>: David Lee, Lead Developer</span>
+                  <span>Office (555) 456-7890</span>
+                  <span>Cell (555) 654-3210</span>
+                  <span>Email - david.lee@tech.com</span>
+                </div>
+                <button class="page-btn" onclick="window.pageContact('David Lee', 'Software Dev')">Page</button>
+              </div>
+              <div class="list-item">
+                <div class="contact-info">
+                  <span><strong>Infrastructure</strong>: Emma Brown, Infra Engineer</span>
+                  <span>Office (555) 567-8901</span>
+                  <span>Cell (555) 543-2109</span>
+                  <span>Email - emma.brown@tech.com</span>
+                </div>
+                <button class="page-btn" onclick="window.pageContact('Emma Brown', 'Infrastructure')">Page</button>
+              </div>
+              <div class="list-item">
+                <div class="contact-info">
+                  <span><strong>VoIP</strong>: Frank Wilson, VoIP Specialist</span>
+                  <span>Office (555) 678-9012</span>
+                  <span>Cell (555) 432-1098</span>
+                  <span>Email - frank.wilson@tech.com</span>
+                </div>
+                <button class="page-btn" onclick="window.pageContact('Frank Wilson', 'VoIP')">Page</button>
+              </div>
             </div>
-            <button class="page-btn" onclick="window.pageContact('Emma Brown', 'Infrastructure')">Page</button>
           </div>
-          <div class="list-item">
-            <div class="contact-info">
-              <span><strong>VoIP</strong>: Frank Wilson, VoIP Specialist</span>
-              <span>Office (555) 678-9012</span>
-              <span>Cell (555) 432-1098</span>
-              <span>Email - frank.wilson@tech.com</span>
+        </div>
+        <div class="widget muuri-item" data-id="dynatrace-alerts">
+          <div class="muuri-item-content">
+            <h3>Dynatrace Alerts</h3>
+            <canvas id="dynatraceChart"></canvas>
+            <p>CPU Usage Over Time</p>
+          </div>
+        </div>
+        <div class="widget muuri-item" data-id="splunk-alerts">
+          <div class="muuri-item-content">
+            <h3>Splunk Alerts</h3>
+            <canvas id="splunkChart"></canvas>
+            <p>Error Rate Over Time</p>
+          </div>
+        </div>
+        <div class="widget uniform change-tickets muuri-item" data-id="change-tickets">
+          <div class="muuri-item-content">
+            <h3>Current Change Tickets</h3>
+            <canvas id="changeTicketsChart"></canvas>
+            <div class="list" id="changeTicketsList"></div>
+            <p class="scroll-label">Scroll for more</p>
+          </div>
+        </div>
+        <div class="widget uniform muuri-item" data-id="pagerduty-alerts">
+          <div class="muuri-item-content">
+            <h3>PagerDuty Alerts</h3>
+            <canvas id="pagerDutyChart"></canvas>
+            <p>Incident Frequency Over Time</p>
+          </div>
+        </div>
+        <div class="widget uniform muuri-item" data-id="response-time">
+          <div class="muuri-item-content">
+            <h3>Incident Response Time</h3>
+            <canvas id="responseTimeChart"></canvas>
+            <p>Average Response Time (Minutes)</p>
+          </div>
+        </div>
+        <div class="widget uniform service-health muuri-item" data-id="service-health">
+          <div class="muuri-item-content">
+            <h3>Service Health</h3>
+            <div class="incident-counts">
+              <div class="incident-item p1">
+                <span class="incident-icon">🔴</span>
+                <span class="incident-label">Priority 1 Incidents: </span>
+                <span class="incident-value">3</span>
+              </div>
+              <div class="incident-item p2">
+                <span class="incident-icon">🟠</span>
+                <span class="incident-label">Priority 2 Incidents: </span>
+                <span class="incident-value">5</span>
+              </div>
+              <div class="incident-item p3">
+                <span class="incident-icon">🟡</span>
+                <span class="incident-label">Priority 3 Incidents: </span>
+                <span class="incident-value">7</span>
+              </div>
             </div>
-            <button class="page-btn" onclick="window.pageContact('Frank Wilson', 'VoIP')">Page</button>
+            <canvas id="serviceHealthChart"></canvas>
           </div>
         </div>
       </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="dynatrace-alerts">
-      <div class="muuri-item-content">
-        <h3>Dynatrace Alerts</h3>
-        <canvas id="dynatraceChart"></canvas>
-        <p>CPU Usage Over Time</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="splunk-alerts">
-      <div class="muuri-item-content">
-        <h3>Splunk Alerts</h3>
-        <canvas id="splunkChart"></canvas>
-        <p>Error Rate Over Time</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="change-tickets">
-      <div class="muuri-item-content">
-        <h3>Current Change Tickets</h3>
-        <canvas id="changeTicketsChart"></canvas>
-        <div class="list" id="changeTicketsList"></div>
-        <p class="scroll-label">Scroll for more</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="pagerduty-alerts">
-      <div class="muuri-item-content">
-        <h3>PagerDuty Alerts</h3>
-        <canvas id="pagerDutyChart"></canvas>
-        <p>Incident Frequency Over Time</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="response-time">
-      <div class="muuri-item-content">
-        <h3>Incident Response Time</h3>
-        <canvas id="responseTimeChart"></canvas>
-        <p>Average Response Time (Minutes)</p>
-      </div>
-    </div>
-    <div class="widget uniform muuri-item" data-id="service-health">
-      <div class="muuri-item-content">
-        <h3>Service Health</h3>
-        <div class="incident-counts">
-          <div class="incident-item p1">
-            <span class="incident-icon">🔴</span>
-            <span class="incident-label">Priority 1 Incidents: </span>
-            <span class="incident-value">3</span>
-          </div>
-          <div class="incident-item p2">
-            <span class="incident-icon">🟠</span>
-            <span class="incident-label">Priority 2 Incidents: </span>
-            <span class="incident-value">5</span>
-          </div>
-          <div class="incident-item p3">
-            <span class="incident-icon">🟡</span>
-            <span class="incident-label">Priority 3 Incidents: </span>
-            <span class="incident-value">7</span>
-          </div>
-        </div>
-        <canvas id="serviceHealthChart"></canvas>
-      </div>
-    </div>
-  </div>
-  <button class="add-widget-btn cta-btn" aria-label="Add new widget">Add New Widget</button>
-  <button class="cta-btn" onclick="window.showPage('incidents')" aria-label="Create new incident">Create New Incident</button>
-</section>
+      <button class="add-widget-btn cta-btn">Add New Widget</button>
+      <button class="cta-btn" onclick="window.showPage('incidents')">Create New Incident</button>
+    </section>
 
     <!-- Incidents Page -->
     <section id="incidents" class="page" style="display: none;">
@@ -383,166 +383,6 @@
           </div>
           <button type="submit" class="cta-btn">Create Ticket</button>
         </form>
-      </div>
-    </section>
-
-    <!-- Alerts Management Page -->
-    <section id="alerts" class="page" style="display: none;">
-      <div class="header">
-        <h1>Alerts Management</h1>
-        <div class="filters">
-          <select id="alert-source-filter" aria-label="Filter by source">
-            <option value="all">All Sources</option>
-            <option value="PagerDuty">PagerDuty</option>
-            <option value="Splunk">Splunk</option>
-            <option value="Dynatrace">Dynatrace</option>
-          </select>
-          <select id="alert-status-filter" aria-label="Filter by status">
-            <option value="all">All Statuses</option>
-            <option value="Open">Open</option>
-            <option value="Acknowledged">Acknowledged</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-          <select id="alert-time-filter" aria-label="Filter by time range">
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </select>
-        </div>
-      </div>
-      <div class="alerts-grid">
-        <div class="alerts-list">
-          <div class="list-header">
-            <span>Source</span>
-            <span>Description</span>
-            <span>Timestamp</span>
-            <span>Status</span>
-            <span>Actions</span>
-          </div>
-          <div class="list" id="alerts-list" role="listbox" aria-label="Alerts list"></div>
-          <p class="scroll-label">Scroll for more</p>
-        </div>
-        <div class="alerts-chart">
-          <h3>Alert Trends</h3>
-          <canvas id="alertsChart"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- Workflows Page -->
-    <section id="workflows" class="page" style="display: none;">
-      <div class="header">
-        <h1>Workflows</h1>
-        <button class="cta-btn" onclick="window.openAddWorkflowModal()" aria-label="Add new workflow">Add Workflow</button>
-      </div>
-      <div class="workflows-grid">
-        <div class="workflows-list">
-          <div class="list-header">
-            <span>Name</span>
-            <span>Trigger</span>
-            <span>Actions</span>
-            <span>Status</span>
-            <span>Last Run</span>
-            <span>Actions</span>
-          </div>
-          <div class="list" id="workflows-list" role="listbox" aria-label="Workflows list"></div>
-          <p class="scroll-label">Scroll for more</p>
-        </div>
-        <div class="workflows-log">
-          <h3>Recent Workflow Executions</h3>
-          <div class="log-list" id="workflows-log" role="log" aria-label="Workflow execution log"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Communications Page -->
-    <section id="communications" class="page" style="display: none;">
-      <div class="header">
-        <h1>Communications</h1>
-      </div>
-      <div class="communications-grid">
-        <div class="notifications">
-          <h2>Send Notification</h2>
-          <form id="notification-form" class="form-container">
-            <div class="form-group">
-              <label for="notification-subject">Subject</label>
-              <input type="text" id="notification-subject" name="subject" required>
-            </div>
-            <div class="form-group">
-              <label for="notification-message">Message</label>
-              <textarea id="notification-message" name="message" rows="4" required></textarea>
-            </div>
-            <div class="form-group">
-              <label for="notification-recipients">Recipients</label>
-              <select id="notification-recipients" name="recipients" required>
-                <option value="" disabled selected>Select recipients</option>
-                <option value="all">All Users</option>
-                <option value="incident-assignees">Incident Assignees</option>
-                <option value="network-team">Network Team</option>
-                <option value="server-team">Server Team</option>
-                <option value="security-team">Security Team</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="notification-priority">Priority</label>
-              <select id="notification-priority" name="priority" required>
-                <option value="High">High</option>
-                <option value="Medium" selected>Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </div>
-            <button type="submit" class="cta-btn">Send Notification</button>
-          </form>
-          <h3>Notification History</h3>
-          <div class="list" id="notification-history" role="listbox" aria-label="Notification history"></div>
-        </div>
-        <div class="chat">
-          <h2>Incident Chat</h2>
-          <div class="form-group">
-            <label for="chat-incident">Select Incident</label>
-            <select id="chat-incident" name="incident" aria-label="Select incident for chat">
-              <option value="" disabled selected>Select an incident</option>
-            </select>
-          </div>
-          <div class="chat-messages" id="chat-messages" role="log" aria-label="Chat messages"></div>
-          <form id="chat-form" class="form-container">
-            <div class="form-group">
-              <label for="chat-message" class="sr-only">Chat Message</label>
-              <input type="text" id="chat-message" name="message" placeholder="Type a message..." required>
-            </div>
-            <button type="submit" class="cta-btn">Send</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <!-- Reports Page -->
-    <section id="reports" class="page" style="display: none;">
-      <div class="header">
-        <h1>Reports</h1>
-        <div class="filters">
-          <select id="report-type" aria-label="Select report type">
-            <option value="incident-summary">Incident Summary</option>
-            <option value="sla-compliance">SLA Compliance</option>
-            <option value="team-performance">Team Performance</option>
-          </select>
-          <select id="report-time" aria-label="Select time range">
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-          </select>
-          <button class="cta-btn" onclick="window.generateReport()" aria-label="Generate report">Generate Report</button>
-        </div>
-      </div>
-      <div class="reports-grid">
-        <div class="reports-chart">
-          <h3>Report Visualization</h3>
-          <canvas id="reportsChart"></canvas>
-        </div>
-        <div class="reports-history">
-          <h3>Historical Reports</h3>
-          <div class="list" id="reports-history" role="listbox" aria-label="Historical reports"></div>
-        </div>
       </div>
     </section>
 
@@ -780,38 +620,6 @@
           </div>
           <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
           <button type="button" class="cta-btn secondary" onclick="window.closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Add Workflow Modal -->
-    <div class="modal" id="add-workflow-modal" style="display: none;">
-      <div class="modal-content">
-        <h2>Add New Workflow</h2>
-        <form id="workflow-form">
-          <div class="form-group">
-            <label for="workflow-name">Workflow Name</label>
-            <input type="text" id="workflow-name" name="name" required>
-          </div>
-          <div class="form-group">
-            <label for="workflow-trigger">Trigger</label>
-            <select id="workflow-trigger" name="trigger" required>
-              <option value="" disabled selected>Select trigger</option>
-              <option value="P1 Incident Created">P1 Incident Created</option>
-              <option value="Alert Received">Alert Received</option>
-              <option value="Incident Resolved">Incident Resolved</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="workflow-actions">Actions</label>
-            <select id="workflow-actions" name="actions" multiple required>
-              <option value="Send Email">Send Email</option>
-              <option value="Notify PagerDuty">Notify PagerDuty</option>
-              <option value="Update Incident Status">Update Incident Status</option>
-            </select>
-          </div>
-          <button type="submit" class="cta-btn">Add Workflow</button>
-          <button type="button" class="cta-btn secondary" onclick="window.closeAddWorkflowModal()" aria-label="Cancel">Cancel</button>
         </form>
       </div>
     </div>

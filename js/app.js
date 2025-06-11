@@ -22,10 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
   window.showPage = function(pageId) {
     console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
+      console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
       pages.forEach(page => {
-        page.style.display = page.id === pageId ? 'block' : 'none';
+        const isVisible = page.id === pageId;
+        page.style.display = isVisible ? 'block' : 'none';
         console.log(`[NAV] Page ${page.id} set to display: ${page.style.display}`);
       });
+      console.log(`[NAV] Available menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
       menuItems.forEach(item => {
         const onclickAttr = item.getAttribute('onclick') || '';
         const isActive = onclickAttr.includes(`showPage('${pageId}')`);
@@ -40,27 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderIntegrationsList();
         renderSyncLog();
         updateSyncChart();
-      }
-      if (pageId === 'alerts') {
-        console.log('[INIT] Initializing Alerts page');
-        renderAlertsList();
-        updateAlertsChart();
-      }
-      if (pageId === 'workflows') {
-        console.log('[INIT] Initializing Workflows page');
-        renderWorkflowsList();
-        renderWorkflowsLog();
-      }
-      if (pageId === 'communications') {
-        console.log('[INIT] Initializing Communications page');
-        renderNotificationHistory();
-        renderChatMessages();
-        populateChatIncidentSelect();
-      }
-      if (pageId === 'reports') {
-        console.log('[INIT] Initializing Reports page');
-        renderReportsHistory();
-        updateReportsChart();
       }
       if (pageId === 'settings') {
         console.log('[INIT] Initializing Settings page');
@@ -81,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   menuItems.forEach(item => {
-    item.addEventListener('click', e => {
+    item.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       const onclickAttr = item.getAttribute('onclick') || '';
@@ -96,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (dashboardCreateBtn) {
-    dashboardCreateBtn.addEventListener('click', e => {
+    dashboardCreateBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Dashboard Create New Incident button clicked');
@@ -105,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (sidebarCreateBtn) {
-    sidebarCreateBtn.addEventListener('click', e => {
+    sidebarCreateBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       console.log('[NAV] Sidebar Create Incident button clicked');
@@ -117,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.querySelector('.sidebar');
   const mainContent = document.querySelector('.main-content');
   const toggleBtn = document.querySelector('#toggle-btn');
+
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
@@ -130,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Dashboard Functionality
   window.pageContact = function(name, team) {
     showToast(`Paging ${name} for ${team} team...`);
-    console.log(`[Contact] Paging ${name} for ${team}`);
   };
 
   // Initialize Muuri Grid
@@ -138,11 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     window.grid = new Muuri('.widget-grid.muuri', {
       dragEnabled: true,
       layout: {
-        fillGaps: true,
+        fillGaps: false,
         horizontal: false,
         alignRight: false,
         alignBottom: false,
-        rounding: true
+        rounding: false
       }
     });
     window.grid.refreshItems().layout();
@@ -472,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  const formatTicketNumber = num => `INC${String(num).padStart(6, '0')}`;
+  const formatTicketNumber = (num) => `INC${String(num).padStart(6, '0')}`;
 
   const updatePriority = () => {
     const selectedApp = appServiceSelect.value;
@@ -524,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (form) {
-    form.addEventListener('submit', e => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
         showToast('Business Impact, Impact, and Urgency are required');
@@ -565,538 +547,90 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Alerts Management Functionality
-  let alerts = JSON.parse(localStorage.getItem('alerts')) || [
-    { id: 'ALERT0001', source: 'PagerDuty', description: 'High CPU Usage', timestamp: '2025-06-10 10:15', status: 'Open' },
-    { id: 'ALERT0002', source: 'Splunk', description: 'Network Latency Spike', timestamp: '2025-06-10 09:30', status: 'Acknowledged' },
-    { id: 'ALERT0003', source: 'Dynatrace', description: 'Disk Space Low', timestamp: '2025-06-10 08:45', status: 'Open' }
-  ];
-
-  function renderAlertsList() {
-    const alertsList = document.getElementById('alerts-list');
-    if (!alertsList) return;
-    const sourceFilter = document.getElementById('alert-source-filter').value;
-    const statusFilter = document.getElementById('alert-status-filter').value;
-    const timeFilter = document.getElementById('alert-time-filter').value;
-    alertsList.innerHTML = '';
-    alerts
-      .filter(alert => {
-        const timestamp = new Date(alert.timestamp);
-        const now = new Date();
-        const isToday = timestamp.toDateString() === now.toDateString();
-        const isWeek = timestamp > new Date(now.setDate(now.getDate() - 7));
-        const isMonth = timestamp > new Date(now.setFullYear(now.getFullYear(), now.getMonth() - 1));
-        return (
-          (sourceFilter === 'all' || alert.source === sourceFilter) &&
-          (statusFilter === 'all' || alert.status === statusFilter) &&
-          (timeFilter === 'month' || (timeFilter === 'week' && isWeek) || (timeFilter === 'today' && isToday))
-        );
-      })
-      .forEach(alert => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.innerHTML = `
-          <span>${alert.source}</span>
-          <span>${alert.description}</span>
-          <span>${alert.timestamp}</span>
-          <span><span class="status-badge status-${alert.status.toLowerCase()}">${alert.status}</span></span>
-          <span>
-            <button class="cta-btn small" onclick="window.acknowledgeAlert('${alert.id}')">Acknowledge</button>
-            <button class="cta-btn small secondary" onclick="window.resolveAlert('${alert.id}')">Resolve</button>
-            <button class="cta-btn small secondary" onclick="window.linkAlertToIncident('${alert.id}')">Link to Incident</button>
-          </span>
-        `;
-        alertsList.appendChild(item);
-      });
-  }
-
-  function updateAlertsChart() {
-    const canvas = document.getElementById('alertsChart');
-    if (!canvas) return;
-    if (window.charts.alertsChart) {
-      window.charts.alertsChart.destroy();
-      console.log('[Chart] Destroyed existing alertsChart');
-    }
-    const ctx = canvas.getContext('2d');
-    window.charts.alertsChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-        datasets: [
-          { label: 'Alerts', data: [5, 10, 8, 12, 7], borderColor: '#4F46E5', fill: false }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-    console.log('[Chart] Initialized alertsChart');
-  }
-
-  window.acknowledgeAlert = function(id) {
-    const alert = alerts.find(a => a.id === id);
-    if (alert) {
-      alert.status = 'Acknowledged';
-      alert.timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      localStorage.setItem('alerts', JSON.stringify(alerts));
-      renderAlertsList();
-      showToast(`Alert ${id} acknowledged`);
-    }
-  };
-
-  window.resolveAlert = function(id) {
-    const alert = alerts.find(a => a.id === id);
-    if (alert) {
-      alert.status = 'Resolved';
-      alert.timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      localStorage.setItem('alerts', JSON.stringify(alerts));
-      renderAlertsList();
-      showToast(`Alert ${id} resolved`);
-    }
-  };
-
-  window.linkAlertToIncident = function(id) {
-    const alert = alerts.find(a => a.id === id);
-    if (alert) {
-      window.showPage('incidents');
-      if (appServiceSelect) {
-        appServiceSelect.value = alert.source.toLowerCase().replace(/\s+/g, '-') || 'helpdesk-portal';
-        shortDescriptionInput.value = alert.description.slice(0, 80);
-        appServiceSelect.dispatchEvent(new Event('change'));
-      }
-      showToast(`Creating incident for alert ${id}`);
-    }
-  };
-
-  const alertSourceFilter = document.getElementById('alert-source-filter');
-  const alertStatusFilter = document.getElementById('alert-status-filter');
-  const alertTimeFilter = document.getElementById('alert-time-filter');
-  if (alertSourceFilter) alertSourceFilter.addEventListener('change', renderAlertsList);
-  if (alertStatusFilter) alertStatusFilter.addEventListener('change', renderAlertsList);
-  if (alertTimeFilter) alertTimeFilter.addEventListener('change', renderAlertsList);
-
-  // Workflows Functionality
-  let workflows = JSON.parse(localStorage.getItem('workflows')) || [
-    {
-      id: 'WF0001',
-      name: 'P1 Incident Notification',
-      trigger: 'P1 Incident Created',
-      actions: ['Send Email', 'Notify PagerDuty'],
-      status: 'Active',
-      lastRun: '2025-06-10 10:00'
-    }
-  ];
-
-  let workflowLog = JSON.parse(localStorage.getItem('workflowLog')) || [
-    { id: 'WF0001', timestamp: '2025-06-10 10:00', status: 'Success', message: 'Notified team for P1 incident' }
-  ];
-
-  function renderWorkflowsList() {
-    const workflowsList = document.getElementById('workflows-list');
-    if (!workflowsList) return;
-    workflowsList.innerHTML = '';
-    workflows.forEach(workflow => {
-      const item = document.createElement('div');
-      item.className = 'list-item';
-      item.innerHTML = `
-        <span>${workflow.name}</span>
-        <span>${workflow.trigger}</span>
-        <span>${workflow.actions.join(', ')}</span>
-        <span><span class="status-badge status-${workflow.status.toLowerCase()}">${workflow.status}</span></span>
-        <span>${workflow.lastRun || 'Never'}</span>
-        <span>
-          <button class="cta-btn small" onclick="window.toggleWorkflowStatus('${workflow.id}')">${workflow.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
-          <button class="cta-btn small secondary" onclick="window.deleteWorkflow('${workflow.id}')">Delete</button>
-        </span>
-      `;
-      workflowsList.appendChild(item);
-    });
-  }
-
-  function renderWorkflowsLog() {
-    const workflowsLog = document.getElementById('workflows-log');
-    if (!workflowsLog) return;
-    workflowsLog.innerHTML = '';
-    workflowLog.forEach(log => {
-      const item = document.createElement('div');
-      item.className = 'list-item';
-      item.innerHTML = `
-        <span>${log.id}</span>
-        <span>${log.timestamp}</span>
-        <span>${log.status}</span>
-        <span>${log.message}</span>
-      `;
-      workflowsLog.appendChild(item);
-    });
-  }
-
-  window.openAddWorkflowModal = function() {
-    const modal = document.getElementById('add-workflow-modal');
-    if (modal) modal.style.display = 'block';
-  };
-
-  window.closeAddWorkflowModal = function() {
-    const modal = document.getElementById('add-workflow-modal');
-    if (modal) modal.style.display = 'none';
-  };
-
-  window.toggleWorkflowStatus = function(id) {
-    const workflow = workflows.find(w => w.id === id);
-    if (workflow) {
-      workflow.status = workflow.status === 'Active' ? 'Inactive' : 'Active';
-      workflow.lastRun = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      workflowLog.push({
-        id,
-        timestamp: workflow.lastRun,
-        status: 'Success',
-        message: `Workflow ${workflow.status}`
-      });
-      localStorage.setItem('workflows', JSON.stringify(workflows));
-      localStorage.setItem('workflowLog', JSON.stringify(workflowLog));
-      renderWorkflowsList();
-      renderWorkflowsLog();
-      showToast(`Workflow ${id} ${workflow.status}`);
-    }
-  };
-
-  window.deleteWorkflow = function(id) {
-    if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to delete workflow');
-      if (password !== 'admin123') {
-        showToast('Incorrect admin password');
-        return;
-      }
-    }
-    workflows = workflows.filter(w => w.id !== id);
-    localStorage.setItem('workflows', JSON.stringify(workflows));
-    renderWorkflowsList();
-    showToast(`Workflow ${id} deleted`);
-  };
-
-  const workflowForm = document.getElementById('workflow-form');
-  if (workflowForm) {
-    workflowForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const name = document.getElementById('workflow-name').value;
-      const trigger = document.getElementById('workflow-trigger').value;
-      const actions = Array.from(document.getElementById('workflow-actions').selectedOptions).map(opt => opt.value);
-      const id = `WF${String(workflows.length + 1).padStart(4, '0')}`;
-      workflows.push({
-        id,
-        name,
-        trigger,
-        actions,
-        status: 'Active',
-        lastRun: new Date().toISOString().slice(0, 16).replace('T', ' ')
-      });
-      workflowLog.push({
-        id,
-        timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-        status: 'Success',
-        message: `Workflow ${name} created`
-      });
-      localStorage.setItem('workflows', JSON.stringify(workflows));
-      localStorage.setItem('workflowLog', JSON.stringify(workflowLog));
-      workflowForm.reset();
-      window.closeAddWorkflowModal();
-      renderWorkflowsList();
-      renderWorkflowsLog();
-      showToast(`Workflow ${id} created`);
-    });
-  }
-
-  // Communications Functionality
-  let notifications = JSON.parse(localStorage.getItem('notifications')) || [
-    {
-      id: 'NOTIF0001',
-      subject: 'System Outage Alert',
-      message: 'Critical system outage detected. All teams please respond.',
-      recipients: 'all',
-      priority: 'High',
-      timestamp: '2025-06-10 09:00',
-      status: 'Sent'
-    }
-  ];
-
-  let chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || {};
-
-  function renderNotificationHistory() {
-    const notificationHistory = document.getElementById('notification-history');
-    if (!notificationHistory) return;
-    notificationHistory.innerHTML = '';
-    notifications.forEach(notif => {
-      const item = document.createElement('div');
-      item.className = 'list-item';
-      item.innerHTML = `
-        <span>${notif.timestamp}</span>
-        <span>${notif.subject}</span>
-        <span>${notif.recipients}</span>
-        <span><span class="status-badge status-${notif.status.toLowerCase()}">${notif.status}</span></span>
-      `;
-      notificationHistory.appendChild(item);
-    });
-  }
-
-  function populateChatIncidentSelect() {
-    const chatIncidentSelect = document.getElementById('chat-incident');
-    if (!chatIncidentSelect) return;
-    chatIncidentSelect.innerHTML = '<option value="" disabled selected>Select an incident</option>';
-    tickets.forEach(ticket => {
-      const option = document.createElement('option');
-      option.value = ticket.ticketNumber;
-      option.textContent = `${ticket.ticketNumber}: ${ticket.shortDescription}`;
-      chatIncidentSelect.appendChild(option);
-    });
-  }
-
-  function renderChatMessages() {
-    const chatMessagesDiv = document.getElementById('chat-messages');
-    const chatIncidentSelect = document.getElementById('chat-incident');
-    if (!chatMessagesDiv || !chatIncidentSelect) return;
-    const selectedIncident = chatIncidentSelect.value;
-    chatMessagesDiv.innerHTML = '';
-    if (selectedIncident && chatMessages[selectedIncident]) {
-      chatMessages[selectedIncident].forEach(msg => {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'chat-message';
-        messageDiv.innerHTML = `
-          <span class="chat-user">${msg.user}</span>
-          <span class="chat-timestamp">${msg.timestamp}</span>
-          <p>${msg.message}</p>
-        `;
-        chatMessagesDiv.appendChild(messageDiv);
-      });
-      chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-    }
-  }
-
-  const notificationForm = document.getElementById('notification-form');
-  if (notificationForm) {
-    notificationForm.addEventListener('submit', e => {
-      e.preventDefault();
-      if (!window.isAdminAuthenticated) {
-        const password = prompt('Enter admin password to send notification');
-        if (password !== 'admin123') {
-          showToast('Incorrect admin password');
-          return;
-        }
-      }
-      const subject = document.getElementById('notification-subject').value;
-      const message = document.getElementById('notification-message').value;
-      const recipients = document.getElementById('notification-recipients').value;
-      const priority = document.getElementById('notification-priority').value;
-      const id = `NOTIF${String(notifications.length + 1).padStart(4, '0')}`;
-      notifications.push({
-        id,
-        subject,
-        message,
-        recipients,
-        priority,
-        timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-        status: 'Sent'
-      });
-      localStorage.setItem('notifications', JSON.stringify(notifications));
-      console.log('Notification Sent:', { id, subject, recipients, status: 'Sent' });
-      notificationForm.reset();
-      renderNotificationHistory();
-      showToast(`Notification ${id} sent`);
-    });
-  }
-
-  const chatForm = document.getElementById('chat-form');
-  const chatIncidentSelect = document.getElementById('chat-incident');
-  if (chatForm) {
-    chatForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const incident = chatIncidentSelect.value;
-      const message = document.getElementById('chat-message').value;
-      if (!incident) {
-        showToast('Please select an incident');
-        return;
-      }
-      if (!message) {
-        showToast('Please enter a message');
-        return;
-      }
-      if (!chatMessages[incident]) {
-        chatMessages[incident] = [];
-      }
-      const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      chatMessages[incident].push({
-        user: userNameInput && userNameInput.value ? userNameInput.value : 'Anonymous',
-        message,
-        timestamp
-      });
-      localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
-      chatForm.reset();
-      renderChatMessages();
-      showToast('Message sent');
-    });
-  }
-
-  if (chatIncidentSelect) {
-    chatIncidentSelect.addEventListener('change', renderChatMessages);
-  }
-
-  // Reports Functionality
-  let reports = JSON.parse(localStorage.getItem('reports')) || [
-    {
-      id: 'REPORT0001',
-      type: 'Incident Report',
-      timeRange: 'Week',
-      timestamp: '2025-06-10 08:00',
-      data: { open: 15, inProgress: 25, resolved: 10 }
-    }
-  ];
-
-  function renderReportsHistory() {
-    const reportsHistory = document.getElementById('list-reports-history');
-    if (!reportsHistory) return;
-    reportsHistory.innerHTML = '';
-    reports.forEach(report => {
-      const item = document.createElement('div');
-      item.className = 'list-item';
-      item.innerHTML = `
-        <span>${report.id}</span>
-        <span>${report.type}</span>
-        <span>${report.timeRange}</span>
-        <span>${report.timestamp}</span>
-        <span>
-          <button class="cta-btn small" onclick="window.downloadReport('${report.id}')">Download</button>
-        </span>
-      `;
-      reportsHistory.appendChild(item);
-    });
-  }
-
-  function updateReportsChart() {
-    const canvas = document.getElementById('reports-chart');
-    if (!canvas) return;
-    const reportType = document.getElementById('filter-report-type').value;
-    if (window.charts.reportsChart) {
-      window.charts.reportsChart.destroy();
-      console.log('[Chart] Destroyed existing reportsChart');
-    }
-    let data;
-    if (reportType === 'incident-report') {
-      data = {
-        labels: ['Open', 'In Progress', 'Resolved'],
-        datasets: [{ data: [15, 25, 10], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'] }]
-      };
-    } else if (reportType === 'sla-compliance') {
-      data = {
-        labels: ['On Track', 'At Risk'],
-        datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'] }]
-      };
-    } else {
-      data = {
-        labels: ['Team A', 'Team B', 'Team C'],
-        datasets: [{ data: [10, 20, 15], backgroundColor: ['#4F46E5', '#FBBF24', '#60A5FA'] }]
-      };
-    }
-    const ctx = canvas.getContext('2d');
-    window.charts.reportsChart = new Chart(ctx, {
-      type: reportType === 'incident-report' ? 'pie' : 'bar',
-      data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: reportType !== 'incident-report' ? { y: { beginAtZero: true } } : {}
-      }
-    });
-    console.log('[Chart] Initialized reportsChart');
-  }
-
-  window.generateReport = function() {
-    const reportType = document.getElementById('filter-report-type').value;
-    const timeRange = document.getElementById('filter-report-time').value;
-    const id = `REPORT${String(reports.length + 1).padStart(4, '0')}`;
-    const report = {
-      id,
-      type: reportType.replace('-', ' ').replace(/\b\w/g, c => c.toUpperCase()),
-      timeRange,
-      timestamp: new Date().toISOString().slice(0, 16).replace('T', ' '),
-      data: reportType === 'incident-report' ? { open: 15, inProgress: 25, resolved: 10 } : { sample: 'data' }
-    };
-    reports.push(report);
-    localStorage.setItem('reports', JSON.stringify(reports));
-    renderReportsHistory();
-    updateReportsChart();
-    showToast(`Report ${id} generated`);
-  };
-
-  window.downloadReport = function(id) {
-    const report = reports.find(r => r.id === id);
-    if (!report) return;
-    const csvContent = [
-      `Report ID,Type,Time Range,Timestamp`,
-      `${report.id},${report.type},${report.timeRange},${report.timestamp}`,
-      '',
-      'Data',
-      Object.entries(report.data).map(([key, value]) => `${key},${value}`).join('\n')
-    ].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${report.id}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Report ${id} downloaded`);
-  };
-
-  const reportTypeSelect = document.getElementById('filter-report-type');
-  const reportTimeSelect = document.getElementById('filter-report-time');
-  if (reportTypeSelect) reportTypeSelect.addEventListener('change', updateReportsChart);
-  if (reportTimeSelect) reportTimeSelect.addEventListener('change', updateReportsChart);
-
   // Integrations Functionality
+  const ADMIN_PASSWORD = 'admin123';
   const integrationIcons = {
-    PagerDuty: 'fa-bell',
-    Nagios: 'fa-exclamation-circle',
-    SolarWinds: 'fa-solar-panel',
-    Splunk: 'fa-chart-line',
-    Dynatrace: 'fa-tachometer-alt',
-    AWS: 'fa-cloud',
-    ServiceNow: 'fa-cogs',
-    Datadog: 'fa-dog',
-    Zabbix: 'fa-shield-alt',
-    Jira: 'fa-ticket-alt',
-    'Custom Webhook': 'fa-link'
+    'PagerDuty': 'fa-bell',
+    'Nagios': 'fa-exclamation-circle',
+    'SolarWinds': 'fa-sun',
+    'Splunk': 'fa-chart-line',
+    'Dynatrace': 'fa-tachometer-alt',
+    'AWS': 'fa-aws',
+    'ServiceNow': 'fa-cogs',
+    'Datadog': 'fa-dog',
+    'Zabbix': 'fa-eye',
+    'Jira': 'fa-ticket-alt',
+    'Custom Webhook': 'fa-plug'
   };
 
   let integrations = JSON.parse(localStorage.getItem('integrations')) || [
-    { id: 'INT001', name: 'PagerDuty', category: 'Incident Management', status: 'Active', lastSync: '2025-06-10 08:00', apiKey: 'abc123', endpoint: 'https://api.pagerduty.com', syncInterval: 5 },
-    { id: 'INT002', name: 'Splunk', category: 'Monitoring', status: 'Inactive', lastSync: '2025-06-09 12:00', apiKey: 'def456', endpoint: 'https://api.splunk.com', syncInterval: 10 }
+    {
+      id: 'INT0001',
+      name: 'PagerDuty',
+      category: 'Incident Management',
+      status: 'Active',
+      lastSync: '2025-06-05 18:00',
+      apiKey: 'pd_abc123',
+      endpoint: 'https://api.pagerduty.com',
+      syncInterval: 5,
+      eventsSynced: 120
+    },
+    {
+      id: 'INT0002',
+      name: 'Splunk',
+      category: 'Monitoring',
+      status: 'Inactive',
+      lastSync: '2025-06-04 12:30',
+      apiKey: '',
+      endpoint: '',
+      syncInterval: 10,
+      eventsSynced: 0
+    }
   ];
 
   let syncLog = JSON.parse(localStorage.getItem('syncLog')) || [
-    { id: 'INT001', timestamp: '2025-06-10 08:00', status: 'Success', message: 'Synced 10 events' },
-    { id: 'INT002', timestamp: '2025-06-09 12:00', status: 'Failed', message: 'Invalid API key' }
+    { id: 'INT0001', timestamp: '2025-06-05 18:00', status: 'Success', message: 'Synced 120 events from PagerDuty' },
+    { id: 'INT0002', timestamp: '2025-06-04 12:30', status: 'Failed', message: 'Splunk sync failed: Invalid API key' }
   ];
 
+  const integrationForm = document.getElementById('integrationForm');
+  const integrationsList = document.getElementById('integrations-list');
+  const statusFilter = document.getElementById('status-filter');
+  const integrationDetails = document.getElementById('integration-details');
+  const syncLogList = document.getElementById('sync-log-list');
+  let selectedIntegration = null;
+
+  function checkAdminPassword(actionCallback) {
+    if (window.isAdminAuthenticated) {
+      actionCallback();
+    } else {
+      const password = prompt('Enter admin password:');
+      if (password === ADMIN_PASSWORD) {
+        actionCallback();
+      } else {
+        showToast('Incorrect admin password');
+      }
+    }
+  }
+
   function renderIntegrationsList() {
-    const integrationsList = document.getElementById('integrations-list');
     if (!integrationsList) return;
-    const statusFilter = document.getElementById('filter-status').value;
+    const filterValue = statusFilter ? statusFilter.value : 'all';
     integrationsList.innerHTML = '';
     integrations
-      .filter(integration => statusFilter === 'all' || integration.status === statusFilter)
+      .filter(integration => filterValue === 'all' || integration.status === filterValue)
       .forEach(integration => {
-        const iconClass = integrationIcons[integration.name] || 'fa-plug';
         const item = document.createElement('div');
-        item.className = 'list-item';
+        item.className = `list-item ${selectedIntegration && selectedIntegration.id === integration.id ? 'active' : ''}`;
         item.innerHTML = `
-          <span><i class="fa ${iconClass} integration-icon"></i>${integration.name}</span>
+          <span><i class="fa ${integrationIcons[integration.name] || 'fa-cog'} integration-icon" aria-hidden="true"></i> ${integration.name}</span>
           <span>${integration.category}</span>
           <span><span class="status-badge status-${integration.status.toLowerCase()}">${integration.status}</span></span>
           <span>${integration.lastSync}</span>
           <span>
-            <button class="cta-btn small" onclick="window.toggleIntegrationStatus('${integration.id}')">${integration.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
-            <button class="cta-btn small secondary" onclick="window.showIntegrationDetails('${integration.id}')">Details</button>
-            <button class="cta-btn small secondary" onclick="window.deleteIntegration('${integration.id}')">Delete</button>
+            <button class="cta-btn small" onclick="window.viewIntegrationDetails('${integration.id}')">View</button>
+            <button class="cta-btn small secondary" onclick="window.checkAdminPassword(() => window.toggleIntegrationStatus('${integration.id}'))">${integration.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+            <button class="cta-btn small secondary" onclick="window.checkAdminPassword(() => window.deleteIntegration('${integration.id}'))">Delete</button>
           </span>
         `;
         integrationsList.appendChild(item);
@@ -1104,24 +638,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSyncLog() {
-    const syncLogList = document.getElementById('sync-log-list');
     if (!syncLogList) return;
     syncLogList.innerHTML = '';
-    syncLog.forEach(log => {
-      const item = document.createElement('div');
-      item.className = 'list-item';
-      item.innerHTML = `
-        <span>${log.id}</span>
-        <span>${log.timestamp}</span>
-        <span>${log.status}</span>
-        <span>${log.message}</span>
-      `;
-      syncLogList.appendChild(item);
+    syncLog.slice(0, 10).forEach(log => {
+      const logItem = document.createElement('div');
+      logItem.className = 'log-item';
+      const integration = integrations.find(int => int.id === log.id);
+      logItem.innerHTML = `[${log.timestamp}] ${integration ? integration.name : 'Unknown'}: ${log.status} - ${log.message}`;
+      syncLogList.appendChild(logItem);
     });
   }
 
   function updateSyncChart() {
-    const canvas = document.getElementById('sync-chart');
+    const canvas = document.getElementById('syncChart');
     if (!canvas) return;
     if (window.charts.syncChart) {
       window.charts.syncChart.destroy();
@@ -1131,8 +660,12 @@ document.addEventListener('DOMContentLoaded', () => {
     window.charts.syncChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: ['Success', 'Failed'],
-        datasets: [{ data: [25, 5], backgroundColor: ['#22C55E', '#EF4444'] }]
+        labels: integrations.map(int => int.name),
+        datasets: [{
+          label: 'Events Synced',
+          data: integrations.map(int => int.eventsSynced || 0),
+          backgroundColor: '#4F46E5'
+        }]
       },
       options: {
         responsive: true,
@@ -1143,252 +676,223 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[Chart] Initialized syncChart');
   }
 
+  window.viewIntegrationDetails = function(id) {
+    selectedIntegration = integrations.find(int => int.id === id);
+    if (!selectedIntegration || !integrationDetails) return;
+    integrationDetails.style.display = 'block';
+    document.getElementById('detail-name').textContent = selectedIntegration.name;
+    document.getElementById('detail-category').textContent = selectedIntegration.category;
+    document.getElementById('detail-api-key').value = selectedIntegration.apiKey || '';
+    document.getElementById('detail-endpoint').value = selectedIntegration.endpoint || '';
+    document.getElementById('detail-sync-interval').value = selectedIntegration.syncInterval || '';
+    document.querySelector('button[onclick="window.saveIntegrationDetails()"]').style.display = 'none';
+  };
+
+  window.editIntegrationDetails = function() {
+    checkAdminPassword(() => {
+      if (!selectedIntegration) return;
+      document.getElementById('detail-api-key').removeAttribute('readonly');
+      document.getElementById('detail-endpoint').removeAttribute('readonly');
+      document.getElementById('detail-sync-interval').removeAttribute('readonly');
+      document.querySelector('button[onclick="window.editIntegrationDetails()"]').style.display = 'none';
+      document.querySelector('button[onclick="window.saveIntegrationDetails()"]').style.display = 'inline-block';
+    });
+  };
+
+  window.saveIntegrationDetails = function() {
+    if (!selectedIntegration) return;
+    selectedIntegration.apiKey = document.getElementById('detail-api-key').value;
+    selectedIntegration.endpoint = document.getElementById('detail-endpoint').value;
+    selectedIntegration.syncInterval = parseInt(document.getElementById('detail-sync-interval').value);
+    document.getElementById('detail-api-key').setAttribute('readonly', true);
+    document.getElementById('detail-endpoint').setAttribute('readonly', true);
+    document.getElementById('detail-sync-interval').setAttribute('readonly', true);
+    document.querySelector('button[onclick="window.editIntegrationDetails()"]').style.display = 'inline-block';
+    document.querySelector('button[onclick="window.saveIntegrationDetails()"]').style.display = 'none';
+    localStorage.setItem('integrations', JSON.stringify(integrations));
+    showToast('Integration details saved');
+    renderIntegrationsList();
+  };
+
+  window.closeIntegrationDetails = function() {
+    if (integrationDetails) integrationDetails.style.display = 'none';
+    selectedIntegration = null;
+    renderIntegrationsList();
+  };
+
   window.openAddIntegrationModal = function() {
-    const modal = document.getElementById('add-integration-modal');
-    if (modal) modal.style.display = 'block';
+    checkAdminPassword(() => {
+      const modal = document.getElementById('add-integration-modal');
+      if (modal) modal.style.display = 'flex';
+    });
   };
 
   window.closeAddIntegrationModal = function() {
     const modal = document.getElementById('add-integration-modal');
-    if (modal) {
-      modal.style.display = 'none';
-      document.getElementById('integration-form').reset();
-    }
+    if (modal) modal.style.display = 'none';
+    if (integrationForm) integrationForm.reset();
   };
 
   window.toggleIntegrationStatus = function(id) {
-    if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to toggle integration');
-      if (password !== 'admin123') {
-        showToast('Incorrect admin password');
-        return;
-      }
-    }
-    const integration = integrations.find(i => i.id === id);
+    const integration = integrations.find(int => int.id === id);
     if (integration) {
       integration.status = integration.status === 'Active' ? 'Inactive' : 'Active';
       integration.lastSync = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      syncLog.push({
-        id,
+      integration.eventsSynced = integration.status === 'Active' ? (integration.eventsSynced || 0) + 50 : integration.eventsSynced;
+      syncLog.unshift({
+        id: integration.id,
         timestamp: integration.lastSync,
-        status: integration.status === 'Active' ? 'Success' : 'Deactivated',
-        message: `Integration ${integration.name} ${integration.status.toLowerCase()}`
+        status: integration.status === 'Active' ? 'Success' : 'Info',
+        message: `${integration.name} ${integration.status === 'Active' ? 'activated' : 'deactivated'}`
       });
       localStorage.setItem('integrations', JSON.stringify(integrations));
       localStorage.setItem('syncLog', JSON.stringify(syncLog));
       renderIntegrationsList();
       renderSyncLog();
-      showToast(`${integration.name} integration ${integration.status}`);
-    }
-  };
-
-  window.showIntegrationDetails = function(id) {
-    const integration = integrations.find(i => i.id === id);
-    if (integration) {
-      const details = document.getElementById('integration-details');
-      if (details) {
-        details.style.display = 'block';
-        document.getElementById('detail-name').textContent = integration.name;
-        document.getElementById('detail-category').value = integration.category;
-        document.getElementById('detail-api-key').value = integration.apiKey;
-        document.getElementById('detail-endpoint').value = integration.endpoint;
-        document.getElementById('detail-sync').value = integration.syncInterval;
-        document.getElementById('detail-id').value = id;
-      }
-    }
-  };
-
-  window.editIntegrationDetails = function() {
-    const inputs = document.querySelectorAll('#integration-details input:not(#detail-id)');
-    inputs.forEach(input => input.removeAttribute('disabled'));
-    document.querySelector('#integration-details button[aria-label="Edit integration details"]').style.display = 'none';
-    document.querySelector('#integration-details button[aria-label="Save integration details"]').style.display = 'inline-block';
-  };
-
-  window.saveIntegrationDetails = function() {
-    if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to save integration');
-      if (password !== 'admin123') {
-        showToast('Incorrect admin password');
-        return;
-      }
-    }
-    const id = document.getElementById('detail-id').value;
-    const integration = integrations.find(i => i.id === id);
-    if (integration) {
-      integration.category = document.getElementById('detail-category').value;
-      integration.apiKey = document.getElementById('detail-api-key').value;
-      integration.endpoint = document.getElementById('detail-endpoint').value;
-      integration.syncInterval = parseInt(document.getElementById('detail-sync').value);
-      integration.lastSync = new Date().toISOString().slice(0, 16).replace('T', ' ');
-      syncLog.push({
-        id,
-        timestamp: integration.lastSync,
-        status: 'Success',
-        message: `Integration ${integration.name} updated`
-      });
-      localStorage.setItem('integrations', JSON.stringify(integrations));
-      localStorage.setItem('syncLog', JSON.stringify(syncLog));
-      const inputs = document.querySelectorAll('#integration-details input:not(#detail-id)');
-      inputs.forEach(input => input.setAttribute('disabled', 'true'));
-      document.querySelector('#integration-details button[aria-label="Edit integration details"]').style.display = 'inline-block';
-      document.querySelector('#integration-details button[aria-label="Save integration details"]').style.display = 'none';
-      renderIntegrationsList();
-      renderSyncLog();
-      showToast(`${integration.name} integration updated`);
-    }
-  };
-
-  window.closeIntegrationDetails = function() {
-    const details = document.getElementById('integration-details');
-    if (details) {
-      details.style.display = 'none';
-      const inputs = document.querySelectorAll('#integration-details input:not(#detail-id)');
-      inputs.forEach(input => {
-        input.setAttribute('disabled', 'true');
-        input.value = '';
-      });
-      document.getElementById('detail-name').textContent = '';
-      document.getElementById('detail-id').value = '';
+      updateSyncChart();
+      showToast(`${integration.name} ${integration.status === 'Active' ? 'activated' : 'deactivated'}`);
     }
   };
 
   window.deleteIntegration = function(id) {
-    if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to delete integration');
-      if (password !== 'admin123') {
-        showToast('Incorrect admin password');
-        return;
-      }
-    }
-    integrations = integrations.filter(i => i.id !== id);
+    integrations = integrations.filter(int => int.id !== id);
+    syncLog = syncLog.filter(log => log.id !== id);
     localStorage.setItem('integrations', JSON.stringify(integrations));
+    localStorage.setItem('syncLog', JSON.stringify(syncLog));
     renderIntegrationsList();
     renderSyncLog();
+    updateSyncChart();
+    if (selectedIntegration && selectedIntegration.id === id) {
+      window.closeIntegrationDetails();
+    }
     showToast('Integration deleted');
   };
 
-  const integrationForm = document.getElementById('integration-form');
   if (integrationForm) {
-    integrationForm.addEventListener('submit', e => {
+    integrationForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (!window.isAdminAuthenticated) {
-        const password = prompt('Enter admin password to add integration');
-        if (password !== 'admin123') {
-          showToast('Invalid admin password');
-          return;
-        }
-      }
-      const name = document.getElementById('integration-name').value;
-      const id = `INT${String(integrations.length + 1).padStart(3, '0')}`;
-      const integration = {
-        id,
-        name,
-        category: name === 'Custom Webhook' ? 'Webhook' : name === 'PagerDuty' || name === 'ServiceNow' || name === 'Jira' ? 'Incident Management' : 'Monitoring',
-        status: 'Active',
-        lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
-        apiKey: document.getElementById('api-key').value,
-        endpoint: document.getElementById('endpoint').value,
-        syncInterval: parseInt(document.getElementById('sync-interval').value)
-      };
-      integrations.push(integration);
-      syncLog.push({
-        id,
-        timestamp: integration.lastSync,
-        status: 'Success',
-        message: `Integration ${name} added`
+      checkAdminPassword(() => {
+        const name = document.getElementById('integration-name').value;
+        const apiKey = document.getElementById('api-key').value;
+        const endpoint = document.getElementById('endpoint').value;
+        const syncInterval = parseInt(document.getElementById('sync-interval').value);
+        const newIntegration = {
+          id: `INT${String(integrations.length + 1).padStart(4, '0')}`,
+          name,
+          category: {
+            'PagerDuty': 'Incident Management',
+            'Nagios': 'Monitoring',
+            'SolarWinds': 'Monitoring',
+            'Splunk': 'Monitoring',
+            'Dynatrace': 'Monitoring',
+            'AWS': 'Cloud',
+            'ServiceNow': 'ITSM',
+            'Datadog': 'Monitoring',
+            'Zabbix': 'Monitoring',
+            'Jira': 'Project Management',
+            'Custom Webhook': 'Custom'
+          }[name] || 'Other',
+          status: 'Active',
+          lastSync: new Date().toISOString().slice(0, 16).replace('T', ' '),
+          apiKey,
+          endpoint,
+          syncInterval,
+          eventsSynced: 0
+        };
+        integrations.push(newIntegration);
+        syncLog.unshift({
+          id: newIntegration.id,
+          timestamp: newIntegration.lastSync,
+          status: 'Success',
+          message: `Added new integration: ${name}`
+        });
+        localStorage.setItem('integrations', JSON.stringify(integrations));
+        localStorage.setItem('syncLog', JSON.stringify(syncLog));
+        renderIntegrationsList();
+        renderSyncLog();
+        updateSyncChart();
+        window.closeAddIntegrationModal();
+        showToast(`Integration ${name} added`);
       });
-      localStorage.setItem('integrations', JSON.stringify(integrations));
-      localStorage.setItem('syncLog', JSON.stringify(syncLog));
-      integrationForm.reset();
-      window.closeAddIntegrationModal();
-      renderIntegrationsList();
-      renderSyncLog();
-      showToast('Integration added');
     });
   }
 
-  const statusFilter = document.getElementById('filter-status');
   if (statusFilter) {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
 
   // Settings Functionality
+  const loginContainer = document.getElementById('login-container');
+  const settingsContainer = document.getElementById('settings-container');
   const loginForm = document.getElementById('login-form');
-  const logoutBtn = document.getElementById('logout-btn');
   const userForm = document.getElementById('user-form');
   const appForm = document.getElementById('app-form');
+  const userTableBody = document.getElementById('user-table-body');
+  const appTableBody = document.getElementById('app-table-body');
+  const logoutBtn = document.getElementById('logout-btn');
 
-  let users = JSON.parse(localStorage.getItem('users')) || [
-    { id: 'USR001', name: 'Alice Johnson', email: 'alice.johnson@tech.com', contact: '212-555-0101', jobTitle: 'Network Engineer' },
-    { id: 'USR002', name: 'Bob Smith', email: 'bob.smith@tech.com', contact: '312-555-0202', jobTitle: 'Server Admin' }
-  ];
+  const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
 
-  let applications = JSON.parse(localStorage.getItem('applications')) || [
-    {
-      id: 'APP001',
-      name: 'Citrix Storefront',
-      priorityCap: 'P1 High',
-      urgency: 'High',
-      impact: 'High',
-      assignmentGroup: 'Citrix Team',
-      category: 'Application',
-      shortDescription: 'Virtual Desktop Access',
-      businessImpact: 'Critical for remote work'
-    }
-  ];
+  let userProfilesSettings = JSON.parse(localStorage.getItem('userProfiles')) || {
+    'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', email: 'alice.johnson@example.com', contactNumber: '212-555-0101', jobTitle: 'Manager' },
+    'bob-smith': { userName: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@example.com', contactNumber: '312-555-0202', jobTitle: 'Technician' },
+    'clara-lee': { userName: 'Clara Lee', location: 'San Francisco, CA', email: 'clara.lee@example.com', contactNumber: '415-555-0303', jobTitle: 'Analyst' },
+    'david-brown': { userName: 'David Brown', location: 'Austin, TX', email: 'david.brown@example.com', contactNumber: '512-555-0404', jobTitle: 'Engineer' },
+    'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
+  };
 
-  function updateUserTable() {
-    const userTableBody = document.querySelector('#users-table tbody');
+  let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || autoPopulateData;
+
+  const updateUserTable = () => {
     if (!userTableBody) return;
     userTableBody.innerHTML = '';
-    users.forEach(user => {
+    Object.entries(userProfilesSettings).forEach(([key, user]) => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${user.id}</td>
-        <td>${user.name}</td>
+        <td>${user.userName}</td>
+        <td>${user.location}</td>
         <td>${user.email}</td>
-        <td>${user.contact}</td>
+        <td>${user.contactNumber}</td>
         <td>${user.jobTitle}</td>
-        <td><button class="cta-btn cta-btn small secondary" onclick="window.removeUser('${user.id}')">Delete</button></td>
+        <td><button class="remove-btn" data-key="${key}">Remove</button></td>
       `;
       userTableBody.appendChild(row);
     });
-  }
+    localStorage.setItem('userProfiles', JSON.stringify(userProfilesSettings));
+  };
 
-  function updateAppTable() {
-    const appTableBody = document.querySelector('#apps-table tbody');
+  const updateAppTable = () => {
     if (!appTableBody) return;
     appTableBody.innerHTML = '';
-    applications.forEach(app => {
+    Object.entries(autoPopulateDataSettings).forEach(([key, app]) => {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${app.id}</td>
-        <td>${app.name}</td>
+        <td>${key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
         <td>${app.priorityCap}</td>
         <td>${app.urgency}</td>
         <td>${app.impact}</td>
         <td>${app.assignmentGroup}</td>
         <td>${app.category}</td>
-        <td><button class="cta-btn cta-btn small secondary" onclick="window.removeApp('${app.id}')">Delete</button></td>
+        <td><button class="remove-btn" data-key="${key}">Remove</button></td>
       `;
       appTableBody.appendChild(row);
     });
+    localStorage.setItem('autoPopulateData', JSON.stringify(autoPopulateDataSettings));
   };
 
   if (loginForm) {
-    loginForm.addEventListener('submit', e => {
+    loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
-      if (username === 'admin' && password === 'admin123') {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
         window.isAdminAuthenticated = true;
         localStorage.setItem('isAdminAuthenticated', 'true');
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('settings-container').classList.remove('hidden');
+        loginContainer.classList.add('hidden');
+        settingsContainer.classList.remove('hidden');
         updateUserTable();
         updateAppTable();
-        showToast('Successfully logged in');
+        showToast('Logged in successfully');
       } else {
         showToast('Invalid credentials');
       }
@@ -1399,94 +903,75 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', () => {
       window.isAdminAuthenticated = false;
       localStorage.removeItem('isAdminAuthenticated');
-      document.getElementById('login-container').classList.remove('hidden');
-      document.getElementById('settings-container').classList.add('hidden');
-      showToast('Successfully logged out');
+      loginContainer.classList.remove('hidden');
+      settingsContainer.classList.add('hidden');
+      loginForm.reset();
+      showToast('Logged out');
     });
   }
 
-  window.removeUser = function(id) {
-    if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to remove user');
-      if (password !== 'admin123') {
-        showToast('Incorrect admin password');
-        return;
-      }
-    }
-    users = users.filter(user => user.id !== id);
-    localStorage.setItem('users', JSON.stringify(users));
-    updateUserTable();
-    showToast('User deleted');
-  };
-
-  window.removeApp = function(id) {
-    if (!window.isAdminAuthenticated) {
-      const password = prompt('Enter admin password to remove application');
-      if (password !== 'admin123') {
-        showToast('Incorrect admin password');
-        return;
-      }
-    }
-    applications = applications.filter(app => app.id !== id);
-    localStorage.setItem('applications', JSON.stringify(applications));
-    showToast('Application deleted');
-    updateAppTable();
-  };
-
   if (userForm) {
-    userForm.addEventListener('submit', e => {
+    userForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (!window.isAdminAuthenticated) {
-        const password = prompt('Enter admin password to add user');
-        if (password !== 'admin123') {
-          showToast('Incorrect admin password');
-          return;
-        }
-      }
-      const user = {
-        id: `USR${String(users.length + 1).padStart(3, '0')}`,
-        name: document.getElementById('user-name').value,
-        email: document.getElementById('user-email').value,
-        contact: document.getElementById('user-contact').value,
-        jobTitle: document.getElementById('user-job-title').value
-      };
-      users.push(user);
-      localStorage.setItem('users', JSON.stringify(users));
-      userForm.reset();
-      updateUserTable();
-      showToast('User added successfully');
+      checkAdminPassword(() => {
+        const userName = document.getElementById('user-name-input').value.trim();
+        const key = userName.toLowerCase().replace(/\s+/g, '-');
+        userProfilesSettings[key] = {
+          userName,
+          location: document.getElementById('user-location').value.trim(),
+          email: document.getElementById('user-email').value.trim(),
+          contactNumber: document.getElementById('user-contact').value.trim(),
+          jobTitle: document.getElementById('user-job-title').value.trim()
+        };
+        updateUserTable();
+        userForm.reset();
+        showToast('User added successfully');
+      });
     });
   }
 
   if (appForm) {
-    appForm.addEventListener('submit', e => {
+    appForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (!window.isAdminAuthenticated) {
-        const password = prompt('Enter admin password to add application');
-        if (password !== 'admin123') {
-          showToast('Incorrect admin password');
-          return;
-        }
-      }
-      const app = {
-        id: `APP${String(applications.length + 1).padStart(3, '0')}`,
-        name: document.getElementById('app-name').value,
-        priorityCap: document.getElementById('app-priority').value,
-        urgency: document.getElementById('app-urgency').value,
-        impact: document.getElementById('app-impact').value,
-        assignmentGroup: document.getElementById('app-assignment-group').value,
-        category: document.getElementById('app-category').value,
-        shortDescription: document.getElementById('app-short-description').value,
-        businessImpact: document.getElementById('app-business-impact').value
-      };
-      applications.push(app);
-      localStorage.setItem('applications', JSON.stringify(applications));
-      appForm.reset();
-      updateAppTable();
-      showToast('Application added successfully');
+      checkAdminPassword(() => {
+        const appName = document.getElementById('app-name').value.trim();
+        const key = appName.toLowerCase().replace(/\s+/g, '-');
+        autoPopulateDataSettings[key] = {
+          priorityCap: document.getElementById('app-priority-cap').value,
+          urgency: document.getElementById('app-urgency').value,
+          impact: document.getElementById('app-impact').value,
+          assignmentGroup: document.getElementById('app-assignment-group').value.trim(),
+          category: document.getElementById('app-category').value.trim(),
+          shortDescription: document.getElementById('app-short-description').value.trim(),
+          businessImpact: document.getElementById('app-business-impact').value.trim()
+        };
+        updateAppTable();
+        appForm.reset();
+        showToast('Application/Service added successfully');
+      });
     });
   }
 
-  // Initial Page Load
+  // Handle Remove Buttons for Settings Tables
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-btn')) {
+      e.preventDefault();
+      checkAdminPassword(() => {
+        const key = e.target.dataset.key;
+        const table = e.target.closest('table').id;
+        if (table === 'user-table-body') {
+          delete userProfilesSettings[key];
+          updateUserTable();
+          showToast('User removed successfully');
+        } else if (table === 'app-table-body') {
+          delete autoPopulateDataSettings[key];
+          updateAppTable();
+          showToast('Application/Service removed successfully');
+        }
+      });
+    }
+  });
+
+  // Ensure Dashboard is Shown on Load
   window.showPage('dashboard');
 });
