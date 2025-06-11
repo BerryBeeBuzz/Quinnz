@@ -34,11 +34,11 @@
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
-      <div class="menu-item" data-tooltip="Communications" onclick="alert('Communications not implemented')">
+      <div class="menu-item" data-tooltip="Communications" onclick="showPage('Communications')">
         <span aria-label="Communications Icon">💬</span>
         <span>Communications</span>
       </div>
-      <div class="menu-item" data-tooltip="Reports" onclick="alert('Reports not implemented')">
+      <div class="menu-item" data-tooltip="Reports" onclick="showPage('Reports')">
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
@@ -436,6 +436,60 @@
         <div class="widget uniform">
           <h3>Workflow Progress</h3>
           <canvas id="workflows-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+       <!-- Communications (New) -->
+    <section id="Communications" class="page" style="display: none;">
+      <div class="header">
+        <h1>Workflows</h1>
+        <div class="filters">
+          <select id="Communications" aria-label="Filter Communications">
+            <option value="all">All Workflows</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+      <div class="Communications">
+        <div class="widget uniform">
+          <h3>Workflow Status</h3>
+          <div class="list" id="Communications">
+            <!-- Populated by JS from CodePen -->
+          </div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>Workflow Progress</h3>
+          <canvas id="Communications"></canvas>
+        </div>
+      </div>
+    </section>
+
+       <!-- Reports Page (New) -->
+    <section id="Reports" class="page" style="display: none;">
+      <div class="header">
+        <h1>Workflows</h1>
+        <div class="filters">
+          <select id="reports-filter" aria-label="Filter reports">
+            <option value="all">All reports</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+      <div class="reports-grid">
+        <div class="widget uniform">
+          <h3>Workflow Status</h3>
+          <div class="list" id="reports-list">
+            <!-- Populated by JS from CodePen -->
+          </div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="widget uniform">
+          <h3>Workflow Progress</h3>
+          <canvas id="reports-chart"></canvas>
         </div>
       </div>
     </section>
