@@ -26,19 +26,19 @@
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
-      <div class="menu-item" data-tooltip="Monitoring" onclick="alert('Monitoring not implemented')">
-        <span aria-label="Monitoring Icon">📈</span>
-        <span>Monitoring</span>
+      <div class="menu-item" data-tooltip="Alerts Management" onclick="window.showPage('alerts')">
+        <span aria-label="Alerts Icon">🚨</span>
+        <span>Alerts</span>
       </div>
-      <div class="menu-item" data-tooltip="Workflows" onclick="alert('Workflows not implemented')">
+      <div class="menu-item" data-tooltip="Workflows" onclick="window.showPage('workflows')">
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
-      <div class="menu-item" data-tooltip="Communications" onclick="alert('Communications not implemented')">
+      <div class="menu-item" data-tooltip="Communications" onclick="window.showPage('communications')">
         <span aria-label="Communications Icon">💬</span>
         <span>Communications</span>
       </div>
-      <div class="menu-item" data-tooltip="Reports" onclick="alert('Reports not implemented')">
+      <div class="menu-item" data-tooltip="Reports" onclick="window.showPage('reports')">
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
@@ -386,6 +386,166 @@
       </div>
     </section>
 
+    <!-- Alerts Management Page -->
+    <section id="alerts" class="page" style="display: none;">
+      <div class="header">
+        <h1>Alerts Management</h1>
+        <div class="filters">
+          <select id="alert-source-filter" aria-label="Filter by source">
+            <option value="all">All Sources</option>
+            <option value="PagerDuty">PagerDuty</option>
+            <option value="Splunk">Splunk</option>
+            <option value="Dynatrace">Dynatrace</option>
+          </select>
+          <select id="alert-status-filter" aria-label="Filter by status">
+            <option value="all">All Statuses</option>
+            <option value="Open">Open</option>
+            <option value="Acknowledged">Acknowledged</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+          <select id="alert-time-filter" aria-label="Filter by time range">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+      </div>
+      <div class="alerts-grid">
+        <div class="alerts-list">
+          <div class="list-header">
+            <span>Source</span>
+            <span>Description</span>
+            <span>Timestamp</span>
+            <span>Status</span>
+            <span>Actions</span>
+          </div>
+          <div class="list" id="alerts-list" role="listbox" aria-label="Alerts list"></div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="alerts-chart">
+          <h3>Alert Trends</h3>
+          <canvas id="alertsChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Workflows Page -->
+    <section id="workflows" class="page" style="display: none;">
+      <div class="header">
+        <h1>Workflows</h1>
+        <button class="cta-btn" onclick="window.openAddWorkflowModal()" aria-label="Add new workflow">Add Workflow</button>
+      </div>
+      <div class="workflows-grid">
+        <div class="workflows-list">
+          <div class="list-header">
+            <span>Name</span>
+            <span>Trigger</span>
+            <span>Actions</span>
+            <span>Status</span>
+            <span>Last Run</span>
+            <span>Actions</span>
+          </div>
+          <div class="list" id="workflows-list" role="listbox" aria-label="Workflows list"></div>
+          <p class="scroll-label">Scroll for more</p>
+        </div>
+        <div class="workflows-log">
+          <h3>Recent Workflow Executions</h3>
+          <div class="log-list" id="workflows-log" role="log" aria-label="Workflow execution log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Communications Page -->
+    <section id="communications" class="page" style="display: none;">
+      <div class="header">
+        <h1>Communications</h1>
+      </div>
+      <div class="communications-grid">
+        <div class="notifications">
+          <h2>Send Notification</h2>
+          <form id="notification-form" class="form-container">
+            <div class="form-group">
+              <label for="notification-subject">Subject</label>
+              <input type="text" id="notification-subject" name="subject" required>
+            </div>
+            <div class="form-group">
+              <label for="notification-message">Message</label>
+              <textarea id="notification-message" name="message" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="notification-recipients">Recipients</label>
+              <select id="notification-recipients" name="recipients" required>
+                <option value="" disabled selected>Select recipients</option>
+                <option value="all">All Users</option>
+                <option value="incident-assignees">Incident Assignees</option>
+                <option value="network-team">Network Team</option>
+                <option value="server-team">Server Team</option>
+                <option value="security-team">Security Team</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="notification-priority">Priority</label>
+              <select id="notification-priority" name="priority" required>
+                <option value="High">High</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <button type="submit" class="cta-btn">Send Notification</button>
+          </form>
+          <h3>Notification History</h3>
+          <div class="list" id="notification-history" role="listbox" aria-label="Notification history"></div>
+        </div>
+        <div class="chat">
+          <h2>Incident Chat</h2>
+          <div class="form-group">
+            <label for="chat-incident">Select Incident</label>
+            <select id="chat-incident" name="incident" aria-label="Select incident for chat">
+              <option value="" disabled selected>Select an incident</option>
+            </select>
+          </div>
+          <div class="chat-messages" id="chat-messages" role="log" aria-label="Chat messages"></div>
+          <form id="chat-form" class="form-container">
+            <div class="form-group">
+              <label for="chat-message" class="sr-only">Chat Message</label>
+              <input type="text" id="chat-message" name="message" placeholder="Type a message..." required>
+            </div>
+            <button type="submit" class="cta-btn">Send</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reports Page -->
+    <section id="reports" class="page" style="display: none;">
+      <div class="header">
+        <h1>Reports</h1>
+        <div class="filters">
+          <select id="report-type" aria-label="Select report type">
+            <option value="incident-summary">Incident Summary</option>
+            <option value="sla-compliance">SLA Compliance</option>
+            <option value="team-performance">Team Performance</option>
+          </select>
+          <select id="report-time" aria-label="Select time range">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+          <button class="cta-btn" onclick="window.generateReport()" aria-label="Generate report">Generate Report</button>
+        </div>
+      </div>
+      <div class="reports-grid">
+        <div class="reports-chart">
+          <h3>Report Visualization</h3>
+          <canvas id="reportsChart"></canvas>
+        </div>
+        <div class="reports-history">
+          <h3>Historical Reports</h3>
+          <div class="list" id="reports-history" role="listbox" aria-label="Historical reports"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Integrations Page -->
     <section id="integrations" class="page" style="display: none;">
       <div class="integrations">
@@ -620,6 +780,38 @@
           </div>
           <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
           <button type="button" class="cta-btn secondary" onclick="window.closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add Workflow Modal -->
+    <div class="modal" id="add-workflow-modal" style="display: none;">
+      <div class="modal-content">
+        <h2>Add New Workflow</h2>
+        <form id="workflow-form">
+          <div class="form-group">
+            <label for="workflow-name">Workflow Name</label>
+            <input type="text" id="workflow-name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="workflow-trigger">Trigger</label>
+            <select id="workflow-trigger" name="trigger" required>
+              <option value="" disabled selected>Select trigger</option>
+              <option value="P1 Incident Created">P1 Incident Created</option>
+              <option value="Alert Received">Alert Received</option>
+              <option value="Incident Resolved">Incident Resolved</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="workflow-actions">Actions</label>
+            <select id="workflow-actions" name="actions" multiple required>
+              <option value="Send Email">Send Email</option>
+              <option value="Notify PagerDuty">Notify PagerDuty</option>
+              <option value="Update Incident Status">Update Incident Status</option>
+            </select>
+          </div>
+          <button type="submit" class="cta-btn">Add Workflow</button>
+          <button type="button" class="cta-btn secondary" onclick="window.closeAddWorkflowModal()" aria-label="Cancel">Cancel</button>
         </form>
       </div>
     </div>
