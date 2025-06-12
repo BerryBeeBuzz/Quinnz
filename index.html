@@ -449,102 +449,36 @@
   </div>
 </section>
 
-   <!-- Communications Page -->
-    <section id="communications" class="page" style="display: none;">
-      <div class="header">
-        <h1>Communications</h1>
-        <div class="filters">
-          <select id="chat-channel" aria-label="Select chat channel">
-            <option value="general">General</option>
-            <option value="incident-p1">Incident P1</option>
-            <option value="incident-p2">Incident P2</option>
-          </select>
+<!-- Communications Page -->
+<section id="communications" class="page" style="display: none;">
+  <div class="header">
+    <h1>Communications</h1>
+    <div class="filters">
+      <select id="communications-filter" aria-label="Filter communications">
+        <option value="all">All Communications</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+      </select>
+    </div>
+  </div>
+  <div class="communications-grid muuri">
+    <div class="widget uniform muuri-item" data-id="communication-status">
+      <div class="muuri-item-content">
+        <h3>Communication Status</h3>
+        <div class="list" id="communications-list">
+          <!-- Populated by JS -->
         </div>
+        <p class="scroll-label">Scroll for more</p>
       </div>
-      <div class="communications-grid">
-        <div class="chat-container">
-          <h3>Team Chat</h3>
-          <div class="chat-messages" id="chat-messages"></div>
-          <div class="chat-input">
-            <input type="text" id="chat-input" placeholder="Type a message..." aria-label="Chat input">
-            <button class="cta-btn small" id="send-message">Send</button>
-          </div>
-        </div>
-        <div class="email-template-container">
-          <h3>Email Templates</h3>
-          <div class="form-container">
-            <form id="email-template-form">
-              <div class="form-group">
-                <label for="template-incident-number">Incident Number</label>
-                <input type="text" id="template-incident-number" required>
-              </div>
-              <div class="form-group">
-                <label for="template-status">Incident Status</label>
-                <select id="template-status" required>
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="template-manager">Incident Manager</label>
-                <input type="text" id="template-manager" required>
-              </div>
-              <div class="form-group">
-                <label for="template-priority">Incident Priority</label>
-                <select id="template-priority" required>
-                  <option value="P1">P1 High</option>
-                  <option value="P2">P2 Medium</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="template-start-time">Start Time</label>
-                <input type="datetime-local" id="template-start-time" required>
-              </div>
-              <div class="form-group">
-                <label for="template-end-time">Estimated End Time</label>
-                <input type="datetime-local" id="template-end-time">
-              </div>
-              <div class="form-group">
-                <label for="template-bridge">Bridge Details</label>
-                <input type="text" id="template-bridge" placeholder="e.g., Zoom link or phone number">
-              </div>
-              <div class="form-group">
-                <label for="template-details">Incident Details</label>
-                <textarea id="template-details" required></textarea>
-              </div>
-              <div class="form-group">
-                <label for="template-impact">Business Impact</label>
-                <textarea id="template-impact" required></textarea>
-              </div>
-              <div class="form-group">
-                <label for="template-recipients">Recipients</label>
-                <select id="template-recipients" multiple required>
-                  <option value="internal">Internal Team</option>
-                  <option value="external">External Stakeholders</option>
-                </select>
-              </div>
-              <button type="submit" class="cta-btn">Save Template</button>
-              <button type="button" class="cta-btn secondary" id="preview-template">Preview</button>
-            </form>
-          </div>
-          <div class="template-list">
-            <h4>Saved Templates</h4>
-            <table class="settings-table" id="template-table">
-              <thead>
-                <tr>
-                  <th>Incident Number</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="template-table-body"></tbody>
-            </table>
-          </div>
-        </div>
+    </div>
+    <div class="widget uniform muuri-item" data-id="communication-metrics">
+      <div class="muuri-item-content">
+        <h3>Communication Metrics</h3>
+        <canvas id="communications-chart"></canvas>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
 <!-- Reports Page -->
 <section id="reports" class="page" style="display: none;">
