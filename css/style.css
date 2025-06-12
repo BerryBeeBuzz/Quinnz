@@ -43,7 +43,7 @@ body {
 
 .toggle-btn {
   position: absolute;
-  top: 50px;
+  top: 20px;
   right: 10px;
   color: #FFFFFF;
   cursor: pointer;
@@ -155,13 +155,18 @@ body {
   margin-left: 230px;
   min-height: 100vh;
   transition: margin-left 0.3s ease;
+  padding: 20px;
+  max-width: calc(100% - 230px);
 }
 
 .main-content.collapsed {
   margin-left: 60px;
+  max-width: calc(100% - 60px);
 }
 
 .page {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
 }
 
@@ -170,11 +175,10 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  text-align: center;
 }
 
 .header h1 {
-  font-size: 20px;
+  font-size: 24px;
   color: #1E3A8A;
   font-weight: bold;
 }
@@ -195,14 +199,18 @@ body {
   color: #4B5563;
 }
 
-.widget-grid.muuri {
+.widget-grid.muuri,
+.monitoring-grid.muuri,
+.workflows-grid.muuri,
+.reports-grid.muuri {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
-  position: relative;
+  padding: 10px;
   max-width: 100%;
   justify-content: center;
+  position: relative;
 }
 
 .widget.muuri-item {
@@ -213,7 +221,8 @@ body {
   height: 320px;
   width: 300px;
   transition: transform 0.2s ease;
-  margin: 7.5px;
+  position: relative;
+  z-index: 1;
 }
 
 .widget.muuri-item:hover {
@@ -223,6 +232,8 @@ body {
 .muuri-item-content {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .widget h3 {
@@ -235,7 +246,6 @@ body {
 canvas {
   width: 100% !important;
   height: 200px !important;
-  display: block !important;
 }
 
 .widget.uniform canvas {
@@ -245,12 +255,14 @@ canvas {
 .widget.uniform .list,
 .widget.uniform .timeline {
   height: 230px;
+  overflow-y: auto;
 }
 
 .widget.uniform .legend {
   margin-top: 10px;
   display: flex;
   justify-content: center;
+  gap: 15px;
 }
 
 .widget.uniform p {
@@ -318,21 +330,24 @@ canvas {
 }
 
 .widget.uniform .on-call-list .contact-info span:nth-child(2)::before {
-  content: 'Phone';
+  content: 'Phone: ';
   margin-right: 5px;
   color: #4F46E5;
+  display: inline-block;
 }
 
 .widget.uniform .on-call-list .contact-info span:nth-child(3)::before {
-  content: 'Mobile';
+  content: 'Mobile: ';
   margin-right: 5px;
   color: #4F46E5;
+  display: inline-block;
 }
 
 .widget.uniform .on-call-list .contact-info span:nth-child(4)::before {
-  content: 'Email';
+  content: 'Email: ';
   margin-right: 5px;
   color: #4F46E5;
+  display: inline-block;
 }
 
 .widget.uniform .on-call-list .page-btn {
@@ -471,6 +486,24 @@ canvas {
   color: #FBBF24;
 }
 
+.monitoring-grid .list-item::before {
+  content: '⚠️';
+  margin-right: 10px;
+  color: #EF4444;
+}
+
+.workflows-grid .list-item::before {
+  content: '🔄';
+  margin-right: 10px;
+  color: #FBBF24;
+}
+
+.reports-grid .list-item::before {
+  content: '📊';
+  margin-right: 10px;
+  color: #4F46E5;
+}
+
 .timeline {
   position: relative;
 }
@@ -539,8 +572,18 @@ canvas {
   background: #4338CA;
 }
 
-.muuri-item {
-  position: absolute;
+.cta-btn.secondary {
+  background: #6B7280;
+}
+
+.cta-btn.secondary:hover {
+  background: #4B5563;
+}
+
+.cta-btn.small {
+  width: 80px;
+  height: 32px;
+  font-size: 12px;
 }
 
 .muuri-item-dragging {
@@ -595,7 +638,6 @@ canvas {
   border-radius: 8px;
   font-size: 14px;
   color: #4B5563;
-  height: 32px;
 }
 
 .form-group input[readonly] {
@@ -608,8 +650,12 @@ canvas {
   resize: vertical;
 }
 
+.form-group select[multiple] {
+  height: 100px;
+}
+
 .form-description {
-  margin-top: 20px;
+  grid-column: 1 / -1;
 }
 
 .login-container {
@@ -698,105 +744,14 @@ canvas {
   opacity: 1;
 }
 
-.dark-mode .main-content {
-  background: #1F2937;
-  color: #F9FAFB;
-}
-
-.dark-mode .widget.muuri-item,
-.dark-mode .form-container,
-.dark-mode .integrations-list,
-.dark-mode .integration-details,
-.dark-mode .sync-status,
-.dark-mode .modal-content,
-.dark-mode .sync-log,
-.dark-mode .monitoring-grid .widget,
-.dark-mode .workflows-grid .widget,
-.dark-mode .communications-grid .widget,
-.dark-mode .reports-grid .widget {
-  background: #374151;
-  color: #F9FAFB;
-}
-
-.dark-mode .form-group input,
-.dark-mode .form-group select,
-.dark-mode .form-group textarea {
-  background: #4B5563;
-  color: #F9FAFB;
-  border-color: #6B7280;
-}
-
-.dark-mode .list-item,
-.dark-mode .reports-table th,
-.dark-mode .reports-table td {
-  background: #4B5563;
-}
-
-.high-contrast .main-content {
-  background: #000000;
-  color: #FFFFFF;
-}
-
-.high-contrast .widget.muuri-item,
-.high-contrast .form-container,
-.high-contrast .integrations-list,
-.high-contrast .integration-details,
-.high-contrast .sync-status,
-.high-contrast .modal-content,
-.high-contrast .sync-log,
-.high-contrast .monitoring-grid .widget,
-.high-contrast .workflows-grid .widget,
-.high-contrast .communications-grid .widget,
-.high-contrast .reports-grid .widget {
-  background: #000000;
-  color: #FFFFFF;
-  border: 1px solid #FFFFFF;
-}
-
-.high-contrast .cta-btn {
-  background: #FFFF00;
-  color: #000000;
-}
-
-.high-contrast .form-group input,
-.high-contrast .form-group select,
-.high-contrast .form-group textarea {
-  background: #000000;
-  color: #FFFFFF;
-  border: 1px solid #FFFFFF;
-}
-
-.high-contrast .status-badge.status-active {
-  background: #00FF00;
-}
-
-.high-contrast .status-badge.status-inactive {
-  background: #FF0000;
-}
-
-.high-contrast .list-item,
-.high-contrast .reports-table th,
-.high-contrast .reports-table td {
-  background: #000000;
-  border: 1px solid #FFFFFF;
-}
-
-.integrations-grid,
-.monitoring-grid,
-.workflows-grid,
-.communications-grid,
-.reports-grid {
+.integrations-grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
   gap: 20px;
   margin-bottom: 20px;
 }
 
-.integrations-list,
-.monitoring-grid .widget,
-.workflows-grid .widget,
-.communications-grid .widget,
-.reports-grid .widget {
+.integrations-list {
   background: #FFFFFF;
   border-radius: 10px;
   padding: 20px;
@@ -818,18 +773,12 @@ canvas {
   border-bottom: 1px solid #E5E7EB;
 }
 
-.integrations .list,
-.monitoring-grid .list,
-.workflows-grid .list,
-.communications-grid .list {
+.integrations .list {
   max-height: 500px;
   overflow-y: auto;
 }
 
-.integrations .list-item,
-.monitoring-grid .list-item,
-.workflows-grid .list-item,
-.communications-grid .list-item {
+.integrations .list-item {
   font-size: 14px;
   color: #4B5563;
   cursor: pointer;
@@ -847,33 +796,21 @@ canvas {
   background: #E0E7FF;
 }
 
-.integrations .list::-webkit-scrollbar,
-.monitoring-grid .list::-webkit-scrollbar,
-.workflows-grid .list::-webkit-scrollbar,
-.communications-grid .list::-webkit-scrollbar {
+.integrations .list::-webkit-scrollbar {
   width: 6px;
 }
 
-.integrations .list::-webkit-scrollbar-track,
-.monitoring-grid .list::-webkit-scrollbar-track,
-.workflows-grid .list::-webkit-scrollbar-track,
-.communications-grid .list::-webkit-scrollbar-track {
+.integrations .list::-webkit-scrollbar-track {
   background: #E5E7EB;
   border-radius: 3px;
 }
 
-.integrations .list::-webkit-scrollbar-thumb,
-.monitoring-grid .list::-webkit-scrollbar-thumb,
-.workflows-grid .list::-webkit-scrollbar-thumb,
-.communications-grid .list::-webkit-scrollbar-thumb {
+.integrations .list::-webkit-scrollbar-thumb {
   background: #4F46E5;
   border-radius: 3px;
 }
 
-.integrations .scroll-label,
-.monitoring-grid .scroll-label,
-.workflows-grid .scroll-label,
-.communications-grid .scroll-label {
+.integrations .scroll-label {
   font-size: 12px;
   color: #4B5563;
   text-align: center;
@@ -886,7 +823,6 @@ canvas {
   font-size: 12px;
   color: #FFFFFF;
   white-space: nowrap;
-  position: relative;
 }
 
 .integrations .status-active {
@@ -918,12 +854,6 @@ canvas {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.integrations .integration-details h3 {
-  font-size: 18px;
-  color: #1E3A8A;
-  margin-bottom: 10px;
-}
-
 .integrations .details-content p {
   font-size: 14px;
   color: #4B5563;
@@ -945,10 +875,6 @@ canvas {
   border: 1px solid #1E3A8A;
   border-radius: 5px;
   font-size: 14px;
-}
-
-.integrations .details-content button {
-  margin-right: 10px;
 }
 
 .integrations .sync-status {
@@ -974,17 +900,7 @@ canvas {
   padding: 10px;
 }
 
-.integrations .card .card-title {
-  font-size: 14px;
-  color: #1E3A8A;
-  margin-bottom: 10px;
-}
-
-.integrations canvas,
-.monitoring-grid canvas,
-.workflows-grid canvas,
-.communications-grid canvas,
-.reports-grid canvas {
+.integrations canvas {
   width: 100% !important;
   height: 200px !important;
 }
@@ -1054,8 +970,7 @@ canvas {
 }
 
 .modal .form-group input,
-.modal .form-group select,
-.modal .form-group textarea {
+.modal .form-group select {
   width: 100%;
   padding: 8px;
   border: 1px solid #1E3A8A;
@@ -1064,46 +979,227 @@ canvas {
   color: #4B5563;
 }
 
-.cta-btn.secondary {
-  background: #6B7280;
+.communications-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.cta-btn.secondary:hover {
+.chat-container {
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.chat-message {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  max-width: 80%;
+  font-size: 14px;
+}
+
+.chat-message.sent {
+  background: #4F46E5;
+  color: #FFFFFF;
+  margin-left: auto;
+}
+
+.chat-message.received {
+  background: #E5E7EB;
+  color: #1E3A8A;
+}
+
+.chat-message .message-meta {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.email-template-container {
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.email-template-container .form-container {
+  padding: 15px;
+}
+
+.template-list {
+  padding: 15px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+.template-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.template-table th,
+.template-table td {
+  border: 1px solid #D1D5DB;
+  padding: 8px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.template-table th {
+  background: #E5E7EB;
+  font-weight: 600;
+}
+
+.dark-mode .main-content {
+  background: #1F2937;
+  color: #F9FAFB;
+}
+
+.dark-mode .widget.muuri-item,
+.dark-mode .form-container,
+.dark-mode .integrations-list,
+.dark-mode .integration-details,
+.dark-mode .sync-status,
+.dark-mode .modal-content,
+.dark-mode .sync-log,
+.dark-mode .chat-container,
+.dark-mode .email-template-container {
+  background: #374151;
+  color: #F9FAFB;
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea {
+  background: #4B5563;
+  color: #F9FAFB;
+  border-color: #6B7280;
+}
+
+.dark-mode .list-item,
+.dark-mode .reports-table th,
+.dark-mode .reports-table td,
+.dark-mode .template-table th,
+.dark-mode .template-table td {
   background: #4B5563;
 }
 
-.cta-btn.small {
-  width: 80px;
-  height: 32px;
-  font-size: 12px;
+.dark-mode .chat-messages {
+  background: #4B5563;
+}
+
+.dark-mode .chat-message.sent {
+  background: #7C3AED;
+}
+
+.dark-mode .chat-message.received {
+  background: #6B7280;
+}
+
+.high-contrast .main-content {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.high-contrast .widget.muuri-item,
+.high-contrast .form-container,
+.high-contrast .integrations-list,
+.high-contrast .integration-details,
+.high-contrast .sync-status,
+.high-contrast .modal-content,
+.high-contrast .sync-log,
+.high-contrast .chat-container,
+.high-contrast .email-template-container {
+  background: #000000;
+  color: #FFFFFF;
+  border: 1px solid #FFFFFF;
+}
+
+.high-contrast .cta-btn {
+  background: #FFFF00;
+  color: #000000;
+}
+
+.high-contrast .form-group input,
+.high-contrast .form-group select,
+.high-contrast .form-group textarea {
+  background: #000000;
+  color: #FFFFFF;
+  border: 1px solid #FFFFFF;
+}
+
+.high-contrast .status-badge.status-active {
+  background: #00FF00;
+}
+
+.high-contrast .status-badge.status-inactive {
+  background: #FF0000;
+}
+
+.high-contrast .list-item,
+.high-contrast .reports-table th,
+.high-contrast .reports-table td,
+.high-contrast .template-table th,
+.high-contrast .template-table td {
+  background: #000000;
+  border: 1px solid #FFFFFF;
 }
 
 @media (max-width: 1250px) {
-  .widget-grid.muuri {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
+  .widget-grid.muuri,
+  .monitoring-grid.muuri,
+  .workflows-grid.muuri,
+  .reports-grid.muuri {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     max-width: calc(3 * 300px + 2 * 15px);
   }
 }
 
 @media (max-width: 960px) {
-  .widget-grid.muuri {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 300px));
+  .widget-grid.muuri,
+  .monitoring-grid.muuri,
+  .workflows-grid.muuri,
+  .reports-grid.muuri {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     max-width: calc(2 * 300px + 1 * 15px);
   }
   .integrations-grid,
-  .monitoring-grid,
-  .workflows-grid,
-  .communications-grid,
-  .reports-grid {
+  .communications-grid {
     grid-template-columns: 1fr;
   }
-  .integration-details {
+  .email-template-container {
     margin-top: 20px;
-  }
-  .integrations .list-header,
-  .integrations .list-item {
-    grid-template-columns: 1.5fr 1.2fr 1fr 1.2fr 1.5fr;
-    grid-gap: 8px;
   }
 }
 
@@ -1113,8 +1209,12 @@ canvas {
   }
   .main-content {
     margin-left: 60px;
+    max-width: calc(100% - 60px);
   }
-  .widget-grid.muuri {
+  .widget-grid.muuri,
+  .monitoring-grid.muuri,
+  .workflows-grid.muuri,
+  .reports-grid.muuri {
     grid-template-columns: 300px;
     max-width: 300px;
   }
@@ -1142,19 +1242,5 @@ canvas {
   }
   .cta-btn {
     width: 100%;
-  }
-  .form-group label {
-    font-size: 13px;
-  }
-  .integrations .header {
-    flex-direction: column;
-    gap: 10px;
-  }
-  .integrations .filters {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .integrations .filters select {
-    width: 49%;
   }
 }
