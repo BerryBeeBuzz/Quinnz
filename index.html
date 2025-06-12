@@ -386,113 +386,130 @@
       </div>
     </section>
 
-       <!-- Monitoring Page (New) -->
-    <section id="monitoring" class="page" style="display: none;">
-      <div class="header">
-        <h1>Monitoring</h1>
-        <div class="filters">
-          <select id="monitoring-filter" aria-label="Filter monitoring data">
-            <option value="all">All Alerts</option>
-            <option value="critical">Critical</option>
-            <option value="warning">Warning</option>
-          </select>
+      <!-- Replace the existing Monitoring, Workflows, Communications, and Reports sections -->
+<!-- Monitoring Page -->
+<section id="monitoring" class="page" style="display: none;">
+  <div class="header">
+    <h1>Monitoring</h1>
+    <div class="filters">
+      <select id="monitoring-filter" aria-label="Filter monitoring data">
+        <option value="all">All Alerts</option>
+        <option value="critical">Critical</option>
+        <option value="warning">Warning</option>
+      </select>
+    </div>
+  </div>
+  <div class="monitoring-grid muuri">
+    <div class="widget uniform muuri-item" data-id="monitoring-alerts">
+      <div class="muuri-item-content">
+        <h3>Monitoring Alerts</h3>
+        <div class="list" id="monitoring-alerts-list">
+          <!-- Populated by JS -->
         </div>
+        <p class="scroll-label">Scroll for more</p>
       </div>
-      <div class="monitoring-grid">
-        <div class="widget uniform">
-          <h3>Monitoring Alerts</h3>
-          <div class="list" id="monitoring-alerts-list">
-            <!-- Populated by JS from CodePen -->
-          </div>
-          <p class="scroll-label">Scroll for more</p>
-        </div>
-        <div class="widget uniform">
-          <h3>System Metrics</h3>
-          <canvas id="monitoring-chart"></canvas>
-        </div>
+    </div>
+    <div class="widget uniform muuri-item" data-id="system-metrics">
+      <div class="muuri-item-content">
+        <h3>System Metrics</h3>
+        <canvas id="monitoring-chart"></canvas>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-    <!-- Workflows Page (New) -->
-    <section id="workflows" class="page" style="display: none;">
-      <div class="header">
-        <h1>Workflows</h1>
-        <div class="filters">
-          <select id="workflows-filter" aria-label="Filter workflows">
-            <option value="all">All Workflows</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-          </select>
+<!-- Workflows Page -->
+<section id="workflows" class="page" style="display: none;">
+  <div class="header">
+    <h1>Workflows</h1>
+    <div class="filters">
+      <select id="workflows-filter" aria-label="Filter workflows">
+        <option value="all">All Workflows</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+      </select>
+    </div>
+  </div>
+  <div class="workflows-grid muuri">
+    <div class="widget uniform muuri-item" data-id="workflow-status">
+      <div class="muuri-item-content">
+        <h3>Workflow Status</h3>
+        <div class="list" id="workflows-list">
+          <!-- Populated by JS -->
         </div>
+        <p class="scroll-label">Scroll for more</p>
       </div>
-      <div class="workflows-grid">
-        <div class="widget uniform">
-          <h3>Workflow Status</h3>
-          <div class="list" id="workflows-list">
-            <!-- Populated by JS from CodePen -->
-          </div>
-          <p class="scroll-label">Scroll for more</p>
-        </div>
-        <div class="widget uniform">
-          <h3>Workflow Progress</h3>
-          <canvas id="workflows-chart"></canvas>
-        </div>
+    </div>
+    <div class="widget uniform muuri-item" data-id="workflow-progress">
+      <div class="muuri-item-content">
+        <h3>Workflow Progress</h3>
+        <canvas id="workflows-chart"></canvas>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-       <!-- Communications (New) -->
-    <section id="Communications" class="page" style="display: none;">
-      <div class="header">
-        <h1>Workflows</h1>
-        <div class="filters">
-          <select id="Communications" aria-label="Filter Communications">
-            <option value="all">All Workflows</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-          </select>
+<!-- Communications Page -->
+<section id="communications" class="page" style="display: none;">
+  <div class="header">
+    <h1>Communications</h1>
+    <div class="filters">
+      <select id="communications-filter" aria-label="Filter communications">
+        <option value="all">All Communications</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+      </select>
+    </div>
+  </div>
+  <div class="communications-grid muuri">
+    <div class="widget uniform muuri-item" data-id="communication-status">
+      <div class="muuri-item-content">
+        <h3>Communication Status</h3>
+        <div class="list" id="communications-list">
+          <!-- Populated by JS -->
         </div>
+        <p class="scroll-label">Scroll for more</p>
       </div>
-      <div class="Communications">
-        <div class="widget uniform">
-          <h3>Workflow Status</h3>
-          <div class="list" id="Communications">
-            <!-- Populated by JS from CodePen -->
-          </div>
-          <p class="scroll-label">Scroll for more</p>
-        </div>
-        <div class="widget uniform">
-          <h3>Workflow Progress</h3>
-          <canvas id="Communications"></canvas>
-        </div>
+    </div>
+    <div class="widget uniform muuri-item" data-id="communication-metrics">
+      <div class="muuri-item-content">
+        <h3>Communication Metrics</h3>
+        <canvas id="communications-chart"></canvas>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-       <!-- Reports Page (New) -->
-    <section id="Reports" class="page" style="display: none;">
-      <div class="header">
-        <h1>Workflows</h1>
-        <div class="filters">
-          <select id="reports-filter" aria-label="Filter reports">
-            <option value="all">All reports</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-          </select>
+<!-- Reports Page -->
+<section id="reports" class="page" style="display: none;">
+  <div class="header">
+    <h1>Reports</h1>
+    <div class="filters">
+      <select id="reports-filter" aria-label="Filter reports">
+        <option value="all">All Reports</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+      </select>
+    </div>
+  </div>
+  <div class="reports-grid muuri">
+    <div class="widget uniform muuri-item" data-id="report-status">
+      <div class="muuri-item-content">
+        <h3>Report Status</h3>
+        <div class="list" id="reports-list">
+          <!-- Populated by JS -->
         </div>
+        <p class="scroll-label">Scroll for more</p>
       </div>
-      <div class="reports-grid">
-        <div class="widget uniform">
-          <h3>Workflow Status</h3>
-          <div class="list" id="reports-list">
-            <!-- Populated by JS from CodePen -->
-          </div>
-          <p class="scroll-label">Scroll for more</p>
-        </div>
-        <div class="widget uniform">
-          <h3>Workflow Progress</h3>
-          <canvas id="reports-chart"></canvas>
-        </div>
+    </div>
+    <div class="widget uniform muuri-item" data-id="report-metrics">
+      <div class="muuri-item-content">
+        <h3>Report Metrics</h3>
+        <canvas id="reports-chart"></canvas>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
     <!-- Integrations Page -->
     <section id="integrations" class="page" style="display: none;">

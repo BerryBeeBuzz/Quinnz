@@ -35,9 +35,30 @@ document.addEventListener('DOMContentLoaded', () => {
         item.classList.toggle('active', isActive);
         console.log(`[NAV] Menu item '${item.textContent.trim()}' active: ${isActive}`);
       });
+      // Initialize page-specific grids and content
       if (pageId === 'dashboard' && window.grid) {
-        console.log('[NAV] Refreshing Muuri grid');
+        console.log('[NAV] Refreshing Dashboard Muuri grid');
         window.grid.refreshItems().layout();
+      }
+      if (pageId === 'monitoring' && window.monitoringGrid) {
+        console.log('[NAV] Refreshing Monitoring Muuri grid');
+        window.monitoringGrid.refreshItems().layout();
+        populateMonitoringList();
+      }
+      if (pageId === 'workflows' && window.workflowsGrid) {
+        console.log('[NAV] Refreshing Workflows Muuri grid');
+        window.workflowsGrid.refreshItems().layout();
+        populateWorkflowsList();
+      }
+      if (pageId === 'communications' && window.communicationsGrid) {
+        console.log('[NAV] Refreshing Communications Muuri grid');
+        window.communicationsGrid.refreshItems().layout();
+        populateCommunicationsList();
+      }
+      if (pageId === 'reports' && window.reportsGrid) {
+        console.log('[NAV] Refreshing Reports Muuri grid');
+        window.reportsGrid.refreshItems().layout();
+        populateReportsList();
       }
       if (pageId === 'integrations') {
         renderIntegrationsList();
@@ -62,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Menu item click handlers
   menuItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
@@ -77,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Create Incident buttons
   if (dashboardCreateBtn) {
     dashboardCreateBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -104,9 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
       mainContent.classList.toggle('collapsed');
-      if (window.grid) {
-        window.grid.refreshItems().layout();
-      }
+      if (window.grid) window.grid.refreshItems().layout();
+      if (window.monitoringGrid) window.monitoringGrid.refreshItems().layout();
+      if (window.workflowsGrid) window.workflowsGrid.refreshItems().layout();
+      if (window.communicationsGrid) window.communicationsGrid.refreshItems().layout();
+      if (window.reportsGrid) window.reportsGrid.refreshItems().layout();
+      console.log('[Muuri] Grids refreshed on sidebar toggle');
     });
   }
 
@@ -115,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Paging ${name} for ${team} team...`);
   };
 
-  // Initialize Muuri Grid
+  // Initialize Muuri Grids
   try {
     window.grid = new Muuri('.widget-grid.muuri', {
       dragEnabled: true,
@@ -128,15 +154,73 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     window.grid.refreshItems().layout();
-    console.log('[Muuri] Initialized successfully');
+    console.log('[Muuri] Initialized Dashboard grid');
+
+    window.monitoringGrid = new Muuri('.monitoring-grid.muuri', {
+      dragEnabled: true,
+      layout: {
+        fillGaps: false,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: false
+      }
+    });
+    window.monitoringGrid.refreshItems().layout();
+    console.log('[Muuri] Initialized Monitoring grid');
+
+    window.workflowsGrid = new Muuri('.workflows-grid.muuri', {
+      dragEnabled: true,
+      layout: {
+        fillGaps: false,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: false
+      }
+    });
+    window.workflowsGrid.refreshItems().layout();
+    console.log('[Muuri] Initialized Workflows grid');
+
+    window.communicationsGrid = new Muuri('.communications-grid.muuri', {
+      dragEnabled: true,
+      layout: {
+        fillGaps: false,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: false
+      }
+    });
+    window.communicationsGrid.refreshItems().layout();
+    console.log('[Muuri] Initialized Communications grid');
+
+    window.reportsGrid = new Muuri('.reports-grid.muuri', {
+      dragEnabled: true,
+      layout: {
+        fillGaps: false,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: false
+      }
+    });
+    window.reportsGrid.refreshItems().layout();
+    console.log('[Muuri] Initialized Reports grid');
+
     window.addEventListener('resize', () => {
-      window.grid.refreshItems().layout();
-      console.log('[Muuri] Grid resized');
+      if (window.grid) window.grid.refreshItems().layout();
+      if (window.monitoringGrid) window.monitoringGrid.refreshItems().layout();
+      if (window.workflowsGrid) window.workflowsGrid.refreshItems().layout();
+      if (window.communicationsGrid) window.communicationsGrid.refreshItems().layout();
+      if (window.reportsGrid) window.reportsGrid.refreshItems().layout();
+      console.log('[Muuri] Grids resized');
     });
   } catch (error) {
-    console.error('[Muuri] Initialization failed:', error);
+    console.error('[Muuri] Grid initialization failed:', error);
   }
 
+  // Add Widget Button
   const addWidgetBtn = document.querySelector('.add-widget-btn');
   if (addWidgetBtn) {
     addWidgetBtn.addEventListener('click', () => {
@@ -245,6 +329,43 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
         },
         options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      // New Charts for Monitoring, Workflows, Communications, Reports
+      {
+        id: 'monitoring-chart',
+        type: 'line',
+        data: {
+          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+          datasets: [{ label: 'System Load', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'workflows-chart',
+        type: 'bar',
+        data: {
+          labels: ['Active', 'Pending', 'Completed'],
+          datasets: [{ label: 'Workflows', data: [10, 5, 15], backgroundColor: '#60A5FA' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'communications-chart',
+        type: 'pie',
+        data: {
+          labels: ['Sent', 'Pending'],
+          datasets: [{ data: [50, 20], backgroundColor: ['#22C55E', '#FBBF24'], borderWidth: 1 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      },
+      {
+        id: 'reports-chart',
+        type: 'doughnut',
+        data: {
+          labels: ['Generated', 'In Progress'],
+          datasets: [{ data: [30, 10], backgroundColor: ['#4F46E5', '#EF4444'], borderWidth: 1 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
       }
     ];
 
@@ -267,6 +388,124 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   } catch (error) {
     console.error('[Chart] Initialization failed:', error);
+  }
+
+  // Populate Lists for New Pages (Placeholder Data)
+  function populateMonitoringList(filter = 'all') {
+    const list = document.getElementById('monitoring-alerts-list');
+    if (!list) return;
+    const alerts = [
+      { text: 'High CPU Usage - 10:15 AM', type: 'critical' },
+      { text: 'Network Latency - 9:30 AM', type: 'warning' },
+      { text: 'Disk Space Low - 8:45 AM', type: 'warning' }
+      // Replace with CodePen data
+    ];
+    list.innerHTML = '';
+    alerts
+      .filter(alert => filter === 'all' || alert.type === filter)
+      .forEach(alert => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.textContent = alert.text;
+        list.appendChild(item);
+      });
+  }
+
+  function populateWorkflowsList(filter = 'all') {
+    const list = document.getElementById('workflows-list');
+    if (!list) return;
+    const workflows = [
+      { text: 'Incident Review - In Progress', status: 'active' },
+      { text: 'Server Upgrade - Pending', status: 'pending' },
+      { text: 'Backup Workflow - Active', status: 'active' }
+      // Replace with CodePen data
+    ];
+    list.innerHTML = '';
+    workflows
+      .filter(workflow => filter === 'all' || workflow.status === filter)
+      .forEach(workflow => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.textContent = workflow.text;
+        list.appendChild(item);
+      });
+  }
+
+  function populateCommunicationsList(filter = 'all') {
+    const list = document.getElementById('communications-list');
+    if (!list) return;
+    const communications = [
+      { text: 'Team Update - Sent', status: 'active' },
+      { text: 'Incident Alert - Pending', status: 'pending' },
+      { text: 'Maintenance Notice - Active', status: 'active' }
+      // Replace with CodePen data
+    ];
+    list.innerHTML = '';
+    communications
+      .filter(comm => filter === 'all' || comm.status === filter)
+      .forEach(comm => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.textContent = comm.text;
+        list.appendChild(item);
+      });
+  }
+
+  function populateReportsList(filter = 'all') {
+    const list = document.getElementById('reports-list');
+    if (!list) return;
+    const reports = [
+      { text: 'Monthly Incident Report - Generated', status: 'active' },
+      { text: 'SLA Compliance - Pending', status: 'pending' },
+      { text: 'Team Performance - Active', status: 'active' }
+      // Replace with CodePen data
+    ];
+    list.innerHTML = '';
+    reports
+      .filter(report => filter === 'all' || report.status === filter)
+      .forEach(report => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.textContent = report.text;
+        list.appendChild(item);
+      });
+  }
+
+  // Filter Handlers for New Pages
+  const monitoringFilter = document.getElementById('monitoring-filter');
+  if (monitoringFilter) {
+    monitoringFilter.addEventListener('change', () => {
+      populateMonitoringList(monitoringFilter.value);
+      console.log(`[FILTER] Monitoring filter changed to: ${monitoringFilter.value}`);
+    });
+    populateMonitoringList(); // Initial population
+  }
+
+  const workflowsFilter = document.getElementById('workflows-filter');
+  if (workflowsFilter) {
+    workflowsFilter.addEventListener('change', () => {
+      populateWorkflowsList(workflowsFilter.value);
+      console.log(`[FILTER] Workflows filter changed to: ${workflowsFilter.value}`);
+    });
+    populateWorkflowsList(); // Initial population
+  }
+
+  const communicationsFilter = document.getElementById('communications-filter');
+  if (communicationsFilter) {
+    communicationsFilter.addEventListener('change', () => {
+      populateCommunicationsList(communicationsFilter.value);
+      console.log(`[FILTER] Communications filter changed to: ${communicationsFilter.value}`);
+    });
+    populateCommunicationsList(); // Initial population
+  }
+
+  const reportsFilter = document.getElementById('reports-filter');
+  if (reportsFilter) {
+    reportsFilter.addEventListener('change', () => {
+      populateReportsList(reportsFilter.value);
+      console.log(`[FILTER] Reports filter changed to: ${reportsFilter.value}`);
+    });
+    populateReportsList(); // Initial population
   }
 
   // Incidents (Ticket Form) Functionality
@@ -785,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'SolarWinds': 'Monitoring',
             'Splunk': 'Monitoring',
             'Dynatrace': 'Monitoring',
-            'AWS': 'Cloud',
+            'AWS': Anglesey,
             'ServiceNow': 'ITSM',
             'Datadog': 'Monitoring',
             'Zabbix': 'Monitoring',
@@ -919,13 +1158,17 @@ document.addEventListener('DOMContentLoaded', () => {
         userProfilesSettings[key] = {
           userName,
           location: document.getElementById('user-location').value.trim(),
+          email: true,
+          userName: document.getElementById('user-name-input').value.trim(),
+          contactNumber: true,
           email: document.getElementById('user-email').value.trim(),
-          contactNumber: document.getElementById('user-contact').value.trim(),
+          ticketCounter: true,
           jobTitle: document.getElementById('user-job-title').value.trim()
         };
         updateUserTable();
         userForm.reset();
         showToast('User added successfully');
+        showToast('Success');
       });
     });
   }
@@ -936,21 +1179,21 @@ document.addEventListener('DOMContentLoaded', () => {
       checkAdminPassword(() => {
         const appName = document.getElementById('app-name').value.trim();
         const key = appName.toLowerCase().replace(/\s+/g, '-');
-        autoPopulateDataSettings[key] = {
-          priorityCap: document.getElementById('app-priority-cap').value,
-          urgency: document.getElementById('app-urgency').value,
-          impact: document.getElementById('app-impact').value,
-          assignmentGroup: document.getElementById('app-assignment-group').value.trim(),
-          category: document.getElementById('app-category').value.trim(),
-          shortDescription: document.getElementById('app-short-description').value.trim(),
-          businessImpact: document.getElementById('app-business-impact').value.trim()
-        };
-        updateAppTable();
-        appForm.reset();
-        showToast('Application/Service added successfully');
-      });
+      autoPopulateDataSettings[key] = {
+        priorityCap: document.getElementById('app-priority-cap').value,
+        urgency: document.getElementById('app-urgency').value,
+        impact: document.getElementById('app-impact').value,
+        assignmentGroup: document.getElementById('app-assignment-group').value,
+        category: document.getElementById('app-category').value,
+        shortDescription: document.getElementById('app-short-description').value,
+        businessImpact: document.getElementById('app-business-impact').value
+      };
+      updateAppTable();
+      appForm.reset();
+      showToast('Success');
     });
-  }
+  });
+}
 
   // Handle Remove Buttons for Settings Tables
   document.addEventListener('click', (e) => {
@@ -958,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       checkAdminPassword(() => {
         const key = e.target.dataset.key;
-        const table = e.target.closest('table').id;
+        const table = e.target.closest('tbody').id;
         if (table === 'user-table-body') {
           delete userProfilesSettings[key];
           updateUserTable();
@@ -966,7 +1209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (table === 'app-table-body') {
           delete autoPopulateDataSettings[key];
           updateAppTable();
-          showToast('Application/Service removed successfully');
+          showToast('Success');
         }
       });
     }
