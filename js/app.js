@@ -1,76 +1,40 @@
-// Main initialization
 document.addEventListener('DOMContentLoaded', () => {
-  // Global state
-  window.charts = {};
-  window.isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
-
-  // DOM elements
+  // Page Navigation
   const pages = document.querySelectorAll('.page');
   const menuItems = document.querySelectorAll('.menu-item');
   const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="window.showPage(\'incidents\')"]');
   const sidebarCreateBtn = document.querySelector('.create-btn');
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
+  window.isAdminAuthenticated = false; // Track admin login state
 
-  // Utility Functions
   function showToast(message) {
     if (toast && toastMessage) {
       toastMessage.textContent = message;
       toast.classList.add('visible');
       setTimeout(() => toast.classList.remove('visible'), 3000);
-    } else {
-      console.warn('[Toast] Toast elements not found');
     }
   }
 
-  function safeParse(key, defaultValue) {
-    try {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : defaultValue;
-    } catch (error) {
-      console.error(`[localStorage] Failed to parse ${key}:`, error);
-      return defaultValue;
-    }
-  }
-
-  // Navigation
   window.showPage = function(pageId) {
     console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
-      if (!pages.length) throw new Error('No pages found in DOM');
+      console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
       pages.forEach(page => {
         const isVisible = page.id === pageId;
         page.style.display = isVisible ? 'block' : 'none';
         console.log(`[NAV] Page ${page.id} set to display: ${page.style.display}`);
       });
+      console.log(`[NAV] Available menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
       menuItems.forEach(item => {
         const onclickAttr = item.getAttribute('onclick') || '';
         const isActive = onclickAttr.includes(`showPage('${pageId}')`);
         item.classList.toggle('active', isActive);
         console.log(`[NAV] Menu item '${item.textContent.trim()}' active: ${isActive}`);
       });
-      // Page-specific initialization
       if (pageId === 'dashboard' && window.grid) {
+        console.log('[NAV] Refreshing Muuri grid');
         window.grid.refreshItems().layout();
-        console.log('[NAV] Refreshed Dashboard grid');
-      }
-      if (pageId === 'monitoring' && window.monitoringGrid) {
-        window.monitoringGrid.refreshItems().layout();
-        populateMonitoringList();
-      }
-      if (pageId === 'workflows' && window.workflowsGrid) {
-        window.workflowsGrid.refreshItems().layout();
-        populateWorkflowsList();
-      }
-      if (pageId === 'communications' && window.communicationsGrid) {
-        window.communicationsGrid.refreshItems().layout();
-        populateCommunicationsList();
-        populateChatMessages();
-        updateTemplateTable();
-      }
-      if (pageId === 'reports' && window.reportsGrid) {
-        window.reportsGrid.refreshItems().layout();
-        populateReportsList();
       }
       if (pageId === 'integrations') {
         renderIntegrationsList();
@@ -78,44 +42,41 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSyncChart();
       }
       if (pageId === 'settings') {
+        console.log('[INIT] Initializing Settings page');
         const loginContainer = document.getElementById('login-container');
         const settingsContainer = document.getElementById('settings-container');
         if (loginContainer && settingsContainer) {
-          loginContainer.classList.toggle('hidden', window.isAdminAuthenticated);
-          settingsContainer.classList.toggle('hidden', !window.isAdminAuthenticated);
-          if (window.isAdminAuthenticated) {
+          if (!window.isAdminAuthenticated) {
+            loginContainer.classList.remove('hidden');
+            settingsContainer.classList.add('hidden');
+          } else {
+            loginContainer.classList.add('hidden');
+            settingsContainer.classList.remove('hidden');
             updateUserTable();
             updateAppTable();
           }
-        } else {
-          console.warn('[Settings] Login or settings container not found');
         }
       }
     } catch (error) {
-      console.error(`[NAV] Error in showPage for ${pageId}:`, error);
+      console.error('[NAV] Error in showPage:', error);
     }
   };
 
-  // Menu item click handlers
   menuItems.forEach(item => {
-    item.removeEventListener('click', handleMenuClick); // Prevent duplicate listeners
-    item.addEventListener('click', handleMenuClick);
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const onclickAttr = item.getAttribute('onclick') || '';
+      const match = onclickAttr.match(/showPage\('([^']+)'\)/);
+      if (match) {
+        console.log(`[NAV] Menu item clicked: ${match[1]}`);
+        window.showPage(match[1]);
+      } else {
+        console.warn(`[NAV] No showPage match for menu item: ${item.textContent.trim()}`);
+      }
+    });
   });
 
-  function handleMenuClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const onclickAttr = e.currentTarget.getAttribute('onclick') || '';
-    const match = onclickAttr.match(/showPage\('([^']+)'\)/);
-    if (match) {
-      console.log(`[NAV] Menu item clicked: ${match[1]}`);
-      window.showPage(match[1]);
-    } else {
-      console.warn(`[NAV] No showPage match for menu item: ${e.currentTarget.textContent.trim()}`);
-    }
-  }
-
-  // Create Incident buttons
   if (dashboardCreateBtn) {
     dashboardCreateBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -143,10 +104,9 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
       mainContent.classList.toggle('collapsed');
-      ['grid', 'monitoringGrid', 'workflowsGrid', 'communicationsGrid', 'reportsGrid'].forEach(grid => {
-        if (window[grid]) window[grid].refreshItems().layout();
-      });
-      console.log('[Muuri] Grids refreshed on sidebar toggle');
+      if (window.grid) {
+        window.grid.refreshItems().layout();
+      }
     });
   }
 
@@ -155,335 +115,149 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Paging ${name} for ${team} team...`);
   };
 
-  // Initialize Muuri Grids
+  // Initialize Muuri Grid
   try {
-    if (typeof Muuri === 'undefined') throw new Error('Muuri library not loaded');
-    const grids = [
-      { selector: '.widget-grid.muuri', name: 'Dashboard', variable: 'grid' },
-      { selector: '.monitoring-grid.muuri', name: 'Monitoring', variable: 'monitoringGrid' },
-      { selector: '.workflows-grid.muuri', name: 'Workflows', variable: 'workflowsGrid' },
-      { selector: '.communications-grid.muuri', name: 'Communications', variable: 'communicationsGrid' },
-      { selector: '.reports-grid.muuri', name: 'Reports', variable: 'reportsGrid' }
-    ];
-    grids.forEach(({ selector, name, variable }) => {
-      const gridElement = document.querySelector(selector);
-      if (gridElement) {
-        window[variable] = new Muuri(selector, {
-          dragEnabled: true,
-          layout: { fillGaps: false, horizontal: false, alignRight: false, alignBottom: false, rounding: false }
-        });
-        window[variable].refreshItems().layout();
-        console.log(`[Muuri] Initialized ${name} grid`);
-      } else {
-        console.warn(`[Muuri] ${name} grid container not found`);
+    window.grid = new Muuri('.widget-grid.muuri', {
+      dragEnabled: true,
+      layout: {
+        fillGaps: false,
+        horizontal: false,
+        alignRight: false,
+        alignBottom: false,
+        rounding: false
       }
     });
-
-    let resizeTimeout;
+    window.grid.refreshItems().layout();
     window.addEventListener('resize', () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        grids.forEach(({ variable }) => {
-          if (window[variable]) window[variable].refreshItems().layout();
-        });
-        console.log('[Muuri] Grids resized');
-      }, 100);
+      window.grid.refreshItems().layout();
     });
   } catch (error) {
-    console.error('[Muuri] Grid initialization failed:', error);
+    console.error('Muuri initialization failed:', error);
   }
 
-  // Add Widget Button
   const addWidgetBtn = document.querySelector('.add-widget-btn');
   if (addWidgetBtn) {
     addWidgetBtn.addEventListener('click', () => {
-      try {
-        if (!window.grid) throw new Error('Dashboard grid not initialized');
-        const newWidget = document.createElement('div');
-        newWidget.className = 'widget muuri-item uniform';
-        newWidget.innerHTML = `
-          <div class="muuri-item-content">
-            <h3>New Widget</h3>
-            <p>Placeholder content</p>
-          </div>
-        `;
-        window.grid.add(newWidget, { index: -1, layout: true });
-        console.log('[Muuri] New widget added');
-        showToast('New widget added');
-      } catch (error) {
-        console.error('[Muuri] Failed to add widget:', error);
-      }
+      const newWidget = document.createElement('div');
+      newWidget.className = 'widget muuri-item uniform';
+      newWidget.innerHTML = `
+        <div class="muuri-item-content">
+          <h3>New Widget</h3>
+          <p>Placeholder content</p>
+        </div>
+      `;
+      window.grid.add(newWidget, { index: -1, layout: true });
+      showToast('New widget added');
     });
   }
 
   // Dashboard Charts
-  const chartsConfig = [
-    {
-      id: 'incidentChart',
-      type: 'pie',
-      data: {
-        labels: ['Open', 'In Progress', 'Resolved'],
-        datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    },
-    {
-      id: 'priorityChart',
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-        datasets: [
-          { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
-          { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
-          { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'slaChart',
-      type: 'doughnut',
-      data: {
-        labels: ['On Track', 'At Risk'],
-        datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    },
-    {
-      id: 'dynatraceChart',
-      type: 'line',
-      data: {
-        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-        datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'splunkChart',
-      type: 'line',
-      data: {
-        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-        datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'changeTicketsChart',
-      type: 'bar',
-      data: {
-        labels: ['Open', 'In Review', 'Approved'],
-        datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'pagerDutyChart',
-      type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-        datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'responseTimeChart',
-      type: 'bar',
-      data: {
-        labels: ['P1', 'P2', 'P3'],
-        datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'serviceHealthChart',
-      type: 'bar',
-      data: {
-        labels: ['P1', 'P2', 'P3'],
-        datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'monitoring-chart',
-      type: 'line',
-      data: {
-        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-        datasets: [{ label: 'System Load', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'workflows-chart',
-      type: 'bar',
-      data: {
-        labels: ['Active', 'Pending', 'Completed'],
-        datasets: [{ label: 'Workflows', data: [10, 5, 15], backgroundColor: '#60A5FA' }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    },
-    {
-      id: 'communications-chart',
-      type: 'pie',
-      data: {
-        labels: ['Sent', 'Pending'],
-        datasets: [{ data: [50, 20], backgroundColor: ['#22C55E', '#FBBF24'], borderWidth: 1 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    },
-    {
-      id: 'reports-chart',
-      type: 'doughnut',
-      data: {
-        labels: ['Generated', 'In Progress'],
-        datasets: [{ data: [30, 10], backgroundColor: ['#4F46E5', '#EF4444'], borderWidth: 1 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    }
-  ];
-
   try {
-    if (typeof Chart === 'undefined') throw new Error('Chart.js library not loaded');
-    chartsConfig.forEach(chart => {
+    const charts = [
+      {
+        id: 'incidentChart',
+        type: 'pie',
+        data: {
+          labels: ['Open', 'In Progress', 'Resolved'],
+          datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      },
+      {
+        id: 'priorityChart',
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+          datasets: [
+            { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
+            { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
+            { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'slaChart',
+        type: 'doughnut',
+        data: {
+          labels: ['On Track', 'At Risk'],
+          datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      },
+      {
+        id: 'dynatraceChart',
+        type: 'line',
+        data: {
+          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+          datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'splunkChart',
+        type: 'line',
+        data: {
+          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+          datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'changeTicketsChart',
+        type: 'bar',
+        data: {
+          labels: ['Open', 'In Review', 'Approved'],
+          datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'pagerDutyChart',
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'responseTimeChart',
+        type: 'bar',
+        data: {
+          labels: ['P1', 'P2', 'P3'],
+          datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      },
+      {
+        id: 'serviceHealthChart',
+        type: 'bar',
+        data: {
+          labels: ['P1', 'P2', 'P3'],
+          datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      }
+    ];
+
+    charts.forEach(chart => {
       const canvas = document.getElementById(chart.id);
       if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          if (window.charts[chart.id]) {
-            window.charts[chart.id].destroy();
-            console.log(`[Chart] Destroyed existing chart ${chart.id}`);
-          }
-          window.charts[chart.id] = new Chart(ctx, {
-            type: chart.type,
-            data: chart.data,
-            options: chart.options
-          });
-          console.log(`[Chart] Initialized ${chart.id}`);
-        } else {
-          console.warn(`[Chart] Canvas context for #${chart.id} not available`);
-        }
+        new Chart(canvas.getContext('2d'), {
+          type: chart.type,
+          data: chart.data,
+          options: chart.options
+        });
       } else {
-        console.warn(`[Chart] Canvas #${chart.id} not found`);
+        console.warn(`Canvas #${chart.id} not found`);
       }
     });
   } catch (error) {
-    console.error('[Chart] Initialization failed:', error);
+    console.error('Chart initialization failed:', error);
   }
 
-  // List Population Functions
-  function populateMonitoringList(filter = 'all') {
-    const list = document.getElementById('monitoring-alerts-list');
-    if (!list) return;
-    const alerts = [
-      { text: 'High CPU Usage - 10:15 AM', type: 'critical' },
-      { text: 'Network Latency - 9:30 AM', type: 'warning' },
-      { text: 'Disk Space Low - 8:45 AM', type: 'warning' }
-    ];
-    list.innerHTML = '';
-    alerts
-      .filter(alert => filter === 'all' || alert.type === filter)
-      .forEach(alert => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.textContent = alert.text;
-        list.appendChild(item);
-      });
-  }
-
-  function populateWorkflowsList(filter = 'all') {
-    const list = document.getElementById('workflows-list');
-    if (!list) return;
-    const workflows = [
-      { text: 'Incident Review - In Progress', status: 'active' },
-      { text: 'Server Upgrade - Pending', status: 'pending' },
-      { text: 'Backup Workflow - Active', status: 'active' }
-    ];
-    list.innerHTML = '';
-    workflows
-      .filter(workflow => filter === 'all' || workflow.status === filter)
-      .forEach(workflow => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.textContent = workflow.text;
-        list.appendChild(item);
-      });
-  }
-
-  function populateCommunicationsList(filter = 'all') {
-    const list = document.getElementById('communications-list');
-    if (!list) return;
-    const communications = [
-      { text: 'Team Update - Sent', status: 'active' },
-      { text: 'Incident Alert - Pending', status: 'pending' },
-      { text: 'Maintenance Notice - Active', status: 'active' }
-    ];
-    list.innerHTML = '';
-    communications
-      .filter(comm => filter === 'all' || comm.status === filter)
-      .forEach(comm => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.textContent = comm.text;
-        list.appendChild(item);
-      });
-  }
-
-  function populateReportsList(filter = 'all') {
-    const list = document.getElementById('reports-list');
-    if (!list) return;
-    const reports = [
-      { text: 'Monthly Incident Report - Generated', status: 'active' },
-      { text: 'SLA Compliance - Pending', status: 'pending' },
-      { text: 'Team Performance - Active', status: 'active' }
-    ];
-    list.innerHTML = '';
-    reports
-      .filter(report => filter === 'all' || report.status === filter)
-      .forEach(report => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.textContent = report.text;
-        list.appendChild(item);
-      });
-  }
-
-  // Filter Handlers
-  const monitoringFilter = document.getElementById('monitoring-filter');
-  if (monitoringFilter) {
-    monitoringFilter.addEventListener('change', () => {
-      populateMonitoringList(monitoringFilter.value);
-      console.log(`[FILTER] Monitoring filter changed to: ${monitoringFilter.value}`);
-    });
-    populateMonitoringList();
-  }
-
-  const workflowsFilter = document.getElementById('workflows-filter');
-  if (workflowsFilter) {
-    workflowsFilter.addEventListener('change', () => {
-      populateWorkflowsList(workflowsFilter.value);
-      console.log(`[FILTER] Workflows filter changed to: ${workflowsFilter.value}`);
-    });
-    populateWorkflowsList();
-  }
-
-  const communicationsFilter = document.getElementById('communications-filter');
-  if (communicationsFilter) {
-    communicationsFilter.addEventListener('change', () => {
-      populateCommunicationsList(communicationsFilter.value);
-      console.log(`[FILTER] Communications filter changed to: ${communicationsFilter.value}`);
-    });
-    populateCommunicationsList();
-  }
-
-  const reportsFilter = document.getElementById('reports-filter');
-  if (reportsFilter) {
-    reportsFilter.addEventListener('change', () => {
-      populateReportsList(reportsFilter.value);
-      console.log(`[FILTER] Reports filter changed to: ${reportsFilter.value}`);
-    });
-    populateReportsList();
-  }
-
-  // Incident Form Handling
+  // Incidents (Ticket Form) Functionality
   const form = document.getElementById('incident-form');
   const userProfileSelect = document.getElementById('user-profile');
   const userNameInput = document.getElementById('user-name');
@@ -499,9 +273,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const businessImpactTextarea = document.getElementById('business-impact');
   const ticketNumberInput = document.getElementById('ticket-number');
 
-  let ticketCounter = parseInt(safeParse('ticketCounter', 0));
+  let ticketCounter = parseInt(localStorage.getItem('ticketCounter')) || 0;
   let currentTicketNumber = null;
-  let tickets = safeParse('tickets', []);
 
   const userProfiles = {
     'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', contactNumber: '212-555-0101' },
@@ -670,10 +443,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const formatTicketNumber = (num) => `INC${String(num).padStart(6, '0')}`;
 
-  function updatePriority() {
-    const selectedApp = appServiceSelect?.value || '';
-    const selectedImpact = impactSelect?.value || '';
-    const selectedUrgency = urgencySelect?.value || '';
+  const updatePriority = () => {
+    const selectedApp = appServiceSelect.value;
+    const selectedImpact = impactSelect.value;
+    const selectedUrgency = urgencySelect.value;
     const data = autoPopulateData[selectedApp] || {};
     const priorityCap = data.priorityCap || 'P4 Low';
     const key = `${selectedImpact}-${selectedUrgency}`;
@@ -681,8 +454,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorityRank[priority] < priorityRank[priorityCap]) {
       priority = priorityCap;
     }
-    if (priorityInput) priorityInput.value = priority;
-  }
+    priorityInput.value = priority;
+  };
 
   if (appServiceSelect) {
     appServiceSelect.addEventListener('change', () => {
@@ -722,18 +495,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const requiredFields = [
-        { element: userProfileSelect, name: 'User Profile' },
-        { element: appServiceSelect, name: 'Application/Service' },
-        { element: businessImpactTextarea, name: 'Business Impact' },
-        { element: impactSelect, name: 'Impact' },
-        { element: urgencySelect, name: 'Urgency' }
-      ];
-      for (const { element, name } of requiredFields) {
-        if (!element?.value) {
-          showToast(`${name} is required`);
-          return;
-        }
+      if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
+        showToast('Business Impact, Impact, and Urgency are required');
+        return;
       }
       let ticketNumber = currentTicketNumber || formatTicketNumber(ticketCounter);
       ticketNumberInput.value = ticketNumber;
@@ -750,14 +514,11 @@ document.addEventListener('DOMContentLoaded', () => {
         assignmentGroup: assignmentGroupInput.value,
         category: categoryInput.value,
         shortDescription: shortDescriptionInput.value,
-        additionalComments: document.getElementById('additional-comments')?.value || '',
+        additionalComments: document.getElementById('additional-comments').value,
         businessImpact: businessImpactTextarea.value,
-        workNotes: document.getElementById('work-notes')?.value || '',
-        state: document.getElementById('state')?.value || '',
-        createdAt: new Date().toISOString()
+        workNotes: document.getElementById('work-notes').value,
+        state: document.getElementById('state').value
       };
-      tickets.push(formData);
-      localStorage.setItem('tickets', JSON.stringify(tickets));
       console.log('Incident Created:', formData);
       showToast(`An incident has been created and sent for review. Ticket Number: ${ticketNumber}`);
       ticketCounter++;
@@ -765,12 +526,172 @@ document.addEventListener('DOMContentLoaded', () => {
       form.reset();
       currentTicketNumber = null;
       ticketNumberInput.value = 'Pending';
-      if (userProfileSelect) userProfileSelect.dispatchEvent(new Event('change'));
-      if (appServiceSelect) appServiceSelect.dispatchEvent(new Event('change'));
+      userProfileSelect.dispatchEvent(new Event('change'));
+      appServiceSelect.dispatchEvent(new Event('change'));
     });
   }
 
-  // Integrations Handling
+  // Settings Functionality
+  const loginContainer = document.getElementById('login-container');
+  const settingsContainer = document.getElementById('settings-container');
+  const loginForm = document.getElementById('login-form');
+  const userForm = document.getElementById('user-form');
+  const appForm = document.getElementById('app-form');
+  const userTableBody = document.getElementById('user-table-body');
+  const appTableBody = document.getElementById('app-table-body');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
+
+  let userProfilesSettings = JSON.parse(localStorage.getItem('userProfiles')) || {
+    'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', email: 'alice.johnson@example.com', contactNumber: '212-555-0101', jobTitle: 'Manager' },
+    'bob-smith': { userName: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@example.com', contactNumber: '312-555-0202', jobTitle: 'Technician' },
+    'clara-lee': { userName: 'Clara Lee', location: 'San Francisco, CA', email: 'clara.lee@example.com', contactNumber: '415-555-0303', jobTitle: 'Analyst' },
+    'david-brown': { userName: 'David Brown', location: 'Austin, TX', email: 'david.brown@example.com', contactNumber: '512-555-0404', jobTitle: 'Engineer' },
+    'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
+  };
+
+  let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || autoPopulateData;
+
+  const updateUserTable = () => {
+    userTableBody.innerHTML = '';
+    Object.entries(userProfilesSettings).forEach(([key, user]) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${user.userName}</td>
+        <td>${user.location}</td>
+        <td>${user.email}</td>
+        <td>${user.contactNumber}</td>
+        <td>${user.jobTitle}</td>
+        <td><button class="remove-btn" data-key="${key}">Remove</button></td>
+      `;
+      userTableBody.appendChild(row);
+    });
+    localStorage.setItem('userProfiles', JSON.stringify(userProfilesSettings));
+  };
+
+  const updateAppTable = () => {
+    appTableBody.innerHTML = '';
+    Object.entries(autoPopulateDataSettings).forEach(([key, app]) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+        <td>${app.priorityCap}</td>
+        <td>${app.urgency}</td>
+        <td>${app.impact}</td>
+        <td>${app.assignmentGroup}</td>
+        <td>${app.category}</td>
+        <td><button class="remove-btn" data-key="${key}">Remove</button></td>
+      `;
+      appTableBody.appendChild(row);
+    });
+    localStorage.setItem('autoPopulateData', JSON.stringify(autoPopulateDataSettings));
+  };
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        window.isAdminAuthenticated = true;
+        loginContainer.classList.add('hidden');
+        settingsContainer.classList.remove('hidden');
+        updateUserTable();
+        updateAppTable();
+        showToast('Logged in successfully');
+      } else {
+        showToast('Invalid credentials');
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      window.isAdminAuthenticated = false;
+      loginContainer.classList.remove('hidden');
+      settingsContainer.classList.add('hidden');
+      loginForm.reset();
+      showToast('Logged out');
+    });
+  }
+
+  function checkAdminPassword(actionCallback) {
+    if (window.isAdminAuthenticated) {
+      actionCallback();
+    } else {
+      const password = prompt('Enter admin password:');
+      if (password === ADMIN_CREDENTIALS.password) {
+        actionCallback();
+      } else {
+        showToast('Incorrect admin password');
+      }
+    }
+  }
+
+  if (userForm) {
+    userForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      checkAdminPassword(() => {
+        const userName = document.getElementById('user-name-input').value.trim();
+        const key = userName.toLowerCase().replace(/\s+/g, '-');
+        userProfilesSettings[key] = {
+          userName,
+          location: document.getElementById('user-location').value.trim(),
+          email: document.getElementById('user-email').value.trim(),
+          contactNumber: document.getElementById('user-contact').value.trim(),
+          jobTitle: document.getElementById('user-job-title').value.trim()
+        };
+        updateUserTable();
+        userForm.reset();
+        showToast('User added successfully');
+      });
+    });
+  }
+
+  if (appForm) {
+    appForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      checkAdminPassword(() => {
+        const appName = document.getElementById('app-name').value.trim();
+        const key = appName.toLowerCase().replace(/\s+/g, '-');
+        autoPopulateDataSettings[key] = {
+          priorityCap: document.getElementById('app-priority-cap').value,
+          urgency: document.getElementById('app-urgency').value,
+          impact: document.getElementById('app-impact').value,
+          assignmentGroup: document.getElementById('app-assignment-group').value.trim(),
+          category: document.getElementById('app-category').value.trim(),
+          shortDescription: document.getElementById('app-short-description').value.trim(),
+          businessImpact: document.getElementById('app-business-impact').value.trim()
+        };
+        updateAppTable();
+        appForm.reset();
+        showToast('Application/Service added successfully');
+      });
+    });
+  }
+
+  // Handle Remove Buttons for Settings Tables
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-btn')) {
+      e.preventDefault();
+      checkAdminPassword(() => {
+        const key = e.target.dataset.key;
+        const table = e.target.closest('table').id;
+        if (table === 'user-table-body') {
+          delete userProfilesSettings[key];
+          updateUserTable();
+          showToast('User removed successfully');
+        } else if (table === 'app-table-body') {
+          delete autoPopulateDataSettings[key];
+          updateAppTable();
+          showToast('Application/Service removed successfully');
+        }
+      });
+    }
+  });
+
+  // Integrations Functionality
   const ADMIN_PASSWORD = 'admin123';
   const integrationIcons = {
     'PagerDuty': 'fa-bell',
@@ -786,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'Custom Webhook': 'fa-plug'
   };
 
-  let integrations = safeParse('integrations', [
+  let integrations = JSON.parse(localStorage.getItem('integrations')) || [
     {
       id: 'INT0001',
       name: 'PagerDuty',
@@ -809,12 +730,12 @@ document.addEventListener('DOMContentLoaded', () => {
       syncInterval: 10,
       eventsSynced: 0
     }
-  ]);
+  ];
 
-  let syncLog = safeParse('syncLog', [
+  let syncLog = JSON.parse(localStorage.getItem('syncLog')) || [
     { id: 'INT0001', timestamp: '2025-06-05 18:00', status: 'Success', message: 'Synced 120 events from PagerDuty' },
     { id: 'INT0002', timestamp: '2025-06-04 12:30', status: 'Failed', message: 'Splunk sync failed: Invalid API key' }
-  ]);
+  ];
 
   const integrationForm = document.getElementById('integrationForm');
   const integrationsList = document.getElementById('integrations-list');
@@ -875,30 +796,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateSyncChart() {
     const canvas = document.getElementById('syncChart');
     if (!canvas) return;
-    if (window.charts.syncChart) {
-      window.charts.syncChart.destroy();
-      console.log('[Chart] Destroyed existing syncChart');
-    }
     const ctx = canvas.getContext('2d');
-    if (ctx) {
-      window.charts.syncChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: integrations.map(int => int.name),
-          datasets: [{
-            label: 'Events Synced',
-            data: integrations.map(int => int.eventsSynced || 0),
-            backgroundColor: '#4F46E5'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-      console.log('[Chart] Initialized syncChart');
-    }
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: integrations.map(int => int.name),
+        datasets: [{
+          label: 'Events Synced',
+          data: integrations.map(int => int.eventsSynced || 0),
+          backgroundColor: '#4F46E5'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
   }
 
   window.viewIntegrationDetails = function(id) {
@@ -1046,319 +960,6 @@ document.addEventListener('DOMContentLoaded', () => {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
 
-  // Settings Handling
-  const loginContainer = document.getElementById('login-container');
-  const settingsContainer = document.getElementById('settings-container');
-  const loginForm = document.getElementById('login-form');
-  const userForm = document.getElementById('user-form');
-  const appForm = document.getElementById('app-form');
-  const userTableBody = document.getElementById('user-table-body');
-  const appTableBody = document.getElementById('app-table-body');
-  const logoutBtn = document.getElementById('logout-btn');
-
-  const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
-
-  let userProfilesSettings = safeParse('userProfiles', {
-    'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', email: 'alice.johnson@example.com', contactNumber: '212-555-0101', jobTitle: 'Manager' },
-    'bob-smith': { userName: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@example.com', contactNumber: '312-555-0202', jobTitle: 'Technician' },
-    'clara-lee': { userName: 'Clara Lee', location: 'San Francisco, CA', email: 'clara.lee@example.com', contactNumber: '415-555-0303', jobTitle: 'Analyst' },
-    'david-brown': { userName: 'David Brown', location: 'Austin, TX', email: 'david.brown@example.com', contactNumber: '512-555-0404', jobTitle: 'Engineer' },
-    'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
-  });
-
-  let autoPopulateDataSettings = safeParse('autoPopulateData', autoPopulateData);
-
-  function updateUserTable() {
-    if (!userTableBody) return;
-    userTableBody.innerHTML = '';
-    Object.entries(userProfilesSettings).forEach(([key, user]) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${user.userName}</td>
-        <td>${user.location}</td>
-        <td>${user.email}</td>
-        <td>${user.contactNumber}</td>
-        <td>${user.jobTitle}</td>
-        <td><button class="remove-btn" data-key="${key}">Remove</button></td>
-      `;
-      userTableBody.appendChild(row);
-    });
-    localStorage.setItem('userProfiles', JSON.stringify(userProfilesSettings));
-  }
-
-  function updateAppTable() {
-    if (!appTableBody) return;
-    appTableBody.innerHTML = '';
-    Object.entries(autoPopulateDataSettings).forEach(([key, app]) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${key.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
-        <td>${app.priorityCap}</td>
-        <td>${app.urgency}</td>
-        <td>${app.impact}</td>
-        <td>${app.assignmentGroup}</td>
-        <td>${app.category}</td>
-        <td><button class="remove-btn" data-key="${key}">Remove</button></td>
-      `;
-      appTableBody.appendChild(row);
-    });
-    localStorage.setItem('autoPopulateData', JSON.stringify(autoPopulateDataSettings));
-  }
-
-  if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-        window.isAdminAuthenticated = true;
-        localStorage.setItem('isAdminAuthenticated', 'true');
-        loginContainer.classList.add('hidden');
-        settingsContainer.classList.remove('hidden');
-        updateUserTable();
-        updateAppTable();
-        showToast('Logged in successfully');
-      } else {
-        showToast('Invalid credentials');
-      }
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      window.isAdminAuthenticated = false;
-      localStorage.removeItem('isAdminAuthenticated');
-      loginContainer.classList.remove('hidden');
-      settingsContainer.classList.add('hidden');
-      loginForm.reset();
-      showToast('Logged out');
-    });
-  }
-
-  if (userForm) {
-    userForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      checkAdminPassword(() => {
-        const userName = document.getElementById('user-name-input').value.trim();
-        const key = userName.toLowerCase().replace(/\s+/g, '-');
-        userProfilesSettings[key] = {
-          userName,
-          location: document.getElementById('user-location').value.trim(),
-          email: document.getElementById('user-email').value.trim(),
-          contactNumber: document.getElementById('user-contact-number').value.trim(),
-          jobTitle: document.getElementById('user-job-title').value.trim()
-        };
-        updateUserTable();
-        userForm.reset();
-        showToast('User added successfully');
-      });
-    });
-  }
-
-  if (appForm) {
-    appForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      checkAdminPassword(() => {
-        const appName = document.getElementById('app-name').value.trim();
-        const key = appName.toLowerCase().replace(/\s+/g, '-');
-        autoPopulateDataSettings[key] = {
-          priorityCap: document.getElementById('app-priority-cap').value,
-          urgency: document.getElementById('app-urgency').value,
-          impact: document.getElementById('app-impact').value,
-          assignmentGroup: document.getElementById('app-assignment-group').value,
-          category: document.getElementById('app-category').value,
-          shortDescription: document.getElementById('app-short-description').value,
-          businessImpact: document.getElementById('app-business-impact').value
-        };
-        updateAppTable();
-        appForm.reset();
-        showToast('Application added successfully');
-      });
-    });
-  }
-
-  // Handle Remove Buttons
-  document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('remove-btn')) {
-      e.preventDefault();
-      checkAdminPassword(() => {
-        const key = e.target.dataset.key;
-        const table = e.target.closest('tbody').id;
-        if (table === 'user-table-body') {
-          delete userProfilesSettings[key];
-          updateUserTable();
-          showToast('User removed successfully');
-        } else if (table === 'app-table-body') {
-          delete autoPopulateDataSettings[key];
-          updateAppTable();
-          showToast('Application removed successfully');
-        }
-      });
-    }
-  });
-
-  // Communications Handling
-  let messages = safeParse('chatMessages', { general: [], 'incident-p1': [], 'incident-p2': [] });
-  let templates = safeParse('emailTemplates', []);
-
-  function populateChatMessages() {
-    const chatMessages = document.getElementById('chat-messages');
-    const channel = document.getElementById('chat-channel')?.value || 'general';
-    const currentUser = 'Alice Johnson'; // Replace with auth system
-    if (chatMessages) {
-      chatMessages.innerHTML = messages[channel].map(msg => `
-        <div class="chat-message ${msg.user === currentUser ? 'sent' : 'received'}">
-          <div class="message-meta">${msg.user} - ${msg.time}</div>
-          ${msg.text}
-        </div>
-      `).join('');
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-  }
-
-  function updateTemplateTable() {
-    const tbody = document.getElementById('template-table-body');
-    if (tbody) {
-      tbody.innerHTML = templates.map(template => `
-        <tr>
-          <td>${template.incidentNumber}</td>
-          <td>${template.priority}</td>
-          <td>${template.status}</td>
-          <td>
-            <button class="cta-btn small" onclick="window.viewTemplate(${template.id})">View</button>
-            <button class="cta-btn small" onclick="window.sendTemplate(${template.id})">Send</button>
-            <button class="remove-btn small" onclick="window.removeTemplate(${template.id})">Remove</button>
-          </td>
-        </tr>
-      `).join('');
-    }
-  }
-
-  const sendMessageBtn = document.getElementById('send-message');
-  if (sendMessageBtn) {
-    sendMessageBtn.addEventListener('click', () => {
-      const input = document.getElementById('chat-input');
-      const channel = document.getElementById('chat-channel').value;
-      const currentUser = 'Alice Johnson';
-      if (input.value.trim()) {
-        const message = {
-          user: currentUser,
-          text: input.value,
-          time: new Date().toLocaleTimeString()
-        };
-        messages[channel].push(message);
-        localStorage.setItem('chatMessages', JSON.stringify(messages));
-        input.value = '';
-        populateChatMessages();
-      }
-    });
-  }
-
-  const chatInput = document.getElementById('chat-input');
-  if (chatInput) {
-    chatInput.addEventListener('keypress', e => {
-      if (e.key === 'Enter') document.getElementById('send-message')?.click();
-    });
-  }
-
-  const chatChannel = document.getElementById('chat-channel');
-  if (chatChannel) {
-    chatChannel.addEventListener('change', populateChatMessages);
-  }
-
-  const emailTemplateForm = document.getElementById('email-template-form');
-  if (emailTemplateForm) {
-    emailTemplateForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const template = {
-        id: Date.now(),
-        incidentNumber: document.getElementById('template-incident-number').value,
-        status: document.getElementById('template-status').value,
-        manager: document.getElementById('template-manager').value,
-        priority: document.getElementById('template-priority').value,
-        startTime: document.getElementById('template-start-time').value,
-        endTime: document.getElementById('template-end-time').value,
-        bridge: document.getElementById('template-bridge').value,
-        details: document.getElementById('template-details').value,
-        impact: document.getElementById('template-impact').value,
-        recipients: Array.from(document.getElementById('template-recipients').selectedOptions).map(o => o.value)
-      };
-      templates.push(template);
-      localStorage.setItem('emailTemplates', JSON.stringify(templates));
-      showToast('Template saved successfully');
-      emailTemplateForm.reset();
-      updateTemplateTable();
-    });
-  }
-
-  const previewTemplateBtn = document.getElementById('preview-template');
-  if (previewTemplateBtn) {
-    previewTemplateBtn.addEventListener('click', () => {
-      const template = {
-        incidentNumber: document.getElementById('template-incident-number').value,
-        status: document.getElementById('template-status').value,
-        manager: document.getElementById('template-manager').value,
-        priority: document.getElementById('template-priority').value,
-        startTime: document.getElementById('template-start-time').value,
-        endTime: document.getElementById('template-end-time').value,
-        bridge: document.getElementById('template-bridge').value,
-        details: document.getElementById('template-details').value,
-        impact: document.getElementById('template-impact').value,
-        recipients: Array.from(document.getElementById('template-recipients').selectedOptions).map(o => o.value)
-      };
-      const preview = `
-        <strong>Incident Number:</strong> ${template.incidentNumber}<br>
-        <strong>Status:</strong> ${template.status}<br>
-        <strong>Manager:</strong> ${template.manager}<br>
-        <strong>Priority:</strong> ${template.priority}<br>
-        <strong>Start Time:</strong> ${template.startTime}<br>
-        <strong>Estimated End Time:</strong> ${template.endTime || 'N/A'}<br>
-        <strong>Bridge Details:</strong> ${template.bridge || 'N/A'}<br>
-        <strong>Incident Details:</strong> ${template.details}<br>
-        <strong>Business Impact:</strong> ${template.impact}<br>
-        <strong>Recipients:</strong> ${template.recipients.join(', ')}
-      `;
-      alert(preview); // Replace with modal for better UX
-    });
-  }
-
-  window.viewTemplate = function(id) {
-    const template = templates.find(t => t.id === id);
-    if (template) {
-      const preview = `
-        <strong>Incident Number:</strong> ${template.incidentNumber}<br>
-        <strong>Status:</strong> ${template.status}<br>
-        <strong>Manager:</strong> ${template.manager}<br>
-        <strong>Priority:</strong> ${template.priority}<br>
-        <strong>Start Time:</strong> ${template.startTime}<br>
-        <strong>Estimated End Time:</strong> ${template.endTime || 'N/A'}<br>
-        <strong>Bridge Details:</strong> ${template.bridge || 'N/A'}<br>
-        <strong>Incident Details:</strong> ${template.details}<br>
-        <strong>Business Impact:</strong> ${template.impact}<br>
-        <strong>Recipients:</strong> ${template.recipients.join(', ')}
-      `;
-      alert(preview); // Replace with modal
-    }
-  };
-
-  window.sendTemplate = function(id) {
-    const template = templates.find(t => t.id === id);
-    if (template) {
-      showToast(`Email sent to ${template.recipients.join(', ')} for Incident ${template.incidentNumber}`);
-    }
-  };
-
-  window.removeTemplate = function(id) {
-    const index = templates.findIndex(t => t.id === id);
-    if (index !== -1) {
-      templates.splice(index, 1);
-      localStorage.setItem('emailTemplates', JSON.stringify(templates));
-      showToast('Template removed successfully');
-      updateTemplateTable();
-    }
-  };
-
-  // Initialize based on URL hash
-  const initialPage = window.location.hash === '#communications' ? 'communications' : 'dashboard';
-  window.showPage(initialPage);
+  // Ensure Dashboard is Shown on Load
+  window.showPage('dashboard');
 });
