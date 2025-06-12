@@ -1,62 +1,74 @@
+// Main initialization
 document.addEventListener('DOMContentLoaded', () => {
-  // Global chart instances
+  // Global state
   window.charts = {};
+  window.isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
 
-  // Page Navigation
+  // DOM elements
   const pages = document.querySelectorAll('.page');
   const menuItems = document.querySelectorAll('.menu-item');
   const dashboardCreateBtn = document.querySelector('.cta-btn[onclick="window.showPage(\'incidents\')"]');
   const sidebarCreateBtn = document.querySelector('.create-btn');
   const toast = document.getElementById('toast');
   const toastMessage = document.getElementById('toast-message');
-  window.isAdminAuthenticated = localStorage.getItem('isAdminAuthenticated') === 'true';
 
+  // Utility Functions
   function showToast(message) {
     if (toast && toastMessage) {
       toastMessage.textContent = message;
       toast.classList.add('visible');
       setTimeout(() => toast.classList.remove('visible'), 3000);
+    } else {
+      console.warn('[Toast] Toast elements not found');
     }
   }
 
+  function safeParse(key, defaultValue) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : defaultValue;
+    } catch (error) {
+      console.error(`[localStorage] Failed to parse ${key}:`, error);
+      return defaultValue;
+    }
+  }
+
+  // Navigation
   window.showPage = function(pageId) {
     console.log(`[NAV] showPage called with pageId: ${pageId}`);
     try {
-      console.log(`[NAV] Available pages: ${Array.from(pages).map(p => p.id).join(', ')}`);
+      if (!pages.length) throw new Error('No pages found in DOM');
       pages.forEach(page => {
         const isVisible = page.id === pageId;
         page.style.display = isVisible ? 'block' : 'none';
         console.log(`[NAV] Page ${page.id} set to display: ${page.style.display}`);
       });
-      console.log(`[NAV] Available menu items: ${Array.from(menuItems).map(m => m.textContent.trim()).join(', ')}`);
       menuItems.forEach(item => {
         const onclickAttr = item.getAttribute('onclick') || '';
         const isActive = onclickAttr.includes(`showPage('${pageId}')`);
         item.classList.toggle('active', isActive);
         console.log(`[NAV] Menu item '${item.textContent.trim()}' active: ${isActive}`);
       });
-      // Initialize page-specific grids and content
+      // Page-specific initialization
       if (pageId === 'dashboard' && window.grid) {
-        console.log('[NAV] Refreshing Dashboard Muuri grid');
         window.grid.refreshItems().layout();
+        console.log('[NAV] Refreshed Dashboard grid');
       }
       if (pageId === 'monitoring' && window.monitoringGrid) {
-        console.log('[NAV] Refreshing Monitoring Muuri grid');
         window.monitoringGrid.refreshItems().layout();
         populateMonitoringList();
       }
       if (pageId === 'workflows' && window.workflowsGrid) {
-        console.log('[NAV] Refreshing Workflows Muuri grid');
         window.workflowsGrid.refreshItems().layout();
         populateWorkflowsList();
       }
       if (pageId === 'communications' && window.communicationsGrid) {
-        console.log('[NAV] Refreshing Communications Muuri grid');
         window.communicationsGrid.refreshItems().layout();
         populateCommunicationsList();
+        populateChatMessages();
+        updateTemplateTable();
       }
       if (pageId === 'reports' && window.reportsGrid) {
-        console.log('[NAV] Refreshing Reports Muuri grid');
         window.reportsGrid.refreshItems().layout();
         populateReportsList();
       }
@@ -66,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSyncChart();
       }
       if (pageId === 'settings') {
-        console.log('[INIT] Initializing Settings page');
         const loginContainer = document.getElementById('login-container');
         const settingsContainer = document.getElementById('settings-container');
         if (loginContainer && settingsContainer) {
@@ -76,28 +87,33 @@ document.addEventListener('DOMContentLoaded', () => {
             updateUserTable();
             updateAppTable();
           }
+        } else {
+          console.warn('[Settings] Login or settings container not found');
         }
       }
     } catch (error) {
-      console.error('[NAV] Error in showPage:', error);
+      console.error(`[NAV] Error in showPage for ${pageId}:`, error);
     }
   };
 
   // Menu item click handlers
   menuItems.forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const onclickAttr = item.getAttribute('onclick') || '';
-      const match = onclickAttr.match(/showPage\('([^']+)'\)/);
-      if (match) {
-        console.log(`[NAV] Menu item clicked: ${match[1]}`);
-        window.showPage(match[1]);
-      } else {
-        console.warn(`[NAV] No showPage match for menu item: ${item.textContent.trim()}`);
-      }
-    });
+    item.removeEventListener('click', handleMenuClick); // Prevent duplicate listeners
+    item.addEventListener('click', handleMenuClick);
   });
+
+  function handleMenuClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const onclickAttr = e.currentTarget.getAttribute('onclick') || '';
+    const match = onclickAttr.match(/showPage\('([^']+)'\)/);
+    if (match) {
+      console.log(`[NAV] Menu item clicked: ${match[1]}`);
+      window.showPage(match[1]);
+    } else {
+      console.warn(`[NAV] No showPage match for menu item: ${e.currentTarget.textContent.trim()}`);
+    }
+  }
 
   // Create Incident buttons
   if (dashboardCreateBtn) {
@@ -127,11 +143,9 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('collapsed');
       mainContent.classList.toggle('collapsed');
-      if (window.grid) window.grid.refreshItems().layout();
-      if (window.monitoringGrid) window.monitoringGrid.refreshItems().layout();
-      if (window.workflowsGrid) window.workflowsGrid.refreshItems().layout();
-      if (window.communicationsGrid) window.communicationsGrid.refreshItems().layout();
-      if (window.reportsGrid) window.reportsGrid.refreshItems().layout();
+      ['grid', 'monitoringGrid', 'workflowsGrid', 'communicationsGrid', 'reportsGrid'].forEach(grid => {
+        if (window[grid]) window[grid].refreshItems().layout();
+      });
       console.log('[Muuri] Grids refreshed on sidebar toggle');
     });
   }
@@ -143,78 +157,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize Muuri Grids
   try {
-    window.grid = new Muuri('.widget-grid.muuri', {
-      dragEnabled: true,
-      layout: {
-        fillGaps: false,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: false
+    if (typeof Muuri === 'undefined') throw new Error('Muuri library not loaded');
+    const grids = [
+      { selector: '.widget-grid.muuri', name: 'Dashboard', variable: 'grid' },
+      { selector: '.monitoring-grid.muuri', name: 'Monitoring', variable: 'monitoringGrid' },
+      { selector: '.workflows-grid.muuri', name: 'Workflows', variable: 'workflowsGrid' },
+      { selector: '.communications-grid.muuri', name: 'Communications', variable: 'communicationsGrid' },
+      { selector: '.reports-grid.muuri', name: 'Reports', variable: 'reportsGrid' }
+    ];
+    grids.forEach(({ selector, name, variable }) => {
+      const gridElement = document.querySelector(selector);
+      if (gridElement) {
+        window[variable] = new Muuri(selector, {
+          dragEnabled: true,
+          layout: { fillGaps: false, horizontal: false, alignRight: false, alignBottom: false, rounding: false }
+        });
+        window[variable].refreshItems().layout();
+        console.log(`[Muuri] Initialized ${name} grid`);
+      } else {
+        console.warn(`[Muuri] ${name} grid container not found`);
       }
     });
-    window.grid.refreshItems().layout();
-    console.log('[Muuri] Initialized Dashboard grid');
 
-    window.monitoringGrid = new Muuri('.monitoring-grid.muuri', {
-      dragEnabled: true,
-      layout: {
-        fillGaps: false,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: false
-      }
-    });
-    window.monitoringGrid.refreshItems().layout();
-    console.log('[Muuri] Initialized Monitoring grid');
-
-    window.workflowsGrid = new Muuri('.workflows-grid.muuri', {
-      dragEnabled: true,
-      layout: {
-        fillGaps: false,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: false
-      }
-    });
-    window.workflowsGrid.refreshItems().layout();
-    console.log('[Muuri] Initialized Workflows grid');
-
-    window.communicationsGrid = new Muuri('.communications-grid.muuri', {
-      dragEnabled: true,
-      layout: {
-        fillGaps: false,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: false
-      }
-    });
-    window.communicationsGrid.refreshItems().layout();
-    console.log('[Muuri] Initialized Communications grid');
-
-    window.reportsGrid = new Muuri('.reports-grid.muuri', {
-      dragEnabled: true,
-      layout: {
-        fillGaps: false,
-        horizontal: false,
-        alignRight: false,
-        alignBottom: false,
-        rounding: false
-      }
-    });
-    window.reportsGrid.refreshItems().layout();
-    console.log('[Muuri] Initialized Reports grid');
-
+    let resizeTimeout;
     window.addEventListener('resize', () => {
-      if (window.grid) window.grid.refreshItems().layout();
-      if (window.monitoringGrid) window.monitoringGrid.refreshItems().layout();
-      if (window.workflowsGrid) window.workflowsGrid.refreshItems().layout();
-      if (window.communicationsGrid) window.communicationsGrid.refreshItems().layout();
-      if (window.reportsGrid) window.reportsGrid.refreshItems().layout();
-      console.log('[Muuri] Grids resized');
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        grids.forEach(({ variable }) => {
+          if (window[variable]) window[variable].refreshItems().layout();
+        });
+        console.log('[Muuri] Grids resized');
+      }, 100);
     });
   } catch (error) {
     console.error('[Muuri] Grid initialization failed:', error);
@@ -225,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (addWidgetBtn) {
     addWidgetBtn.addEventListener('click', () => {
       try {
+        if (!window.grid) throw new Error('Dashboard grid not initialized');
         const newWidget = document.createElement('div');
         newWidget.className = 'widget muuri-item uniform';
         newWidget.innerHTML = `
@@ -243,145 +217,150 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Dashboard Charts
-  try {
-    const chartsConfig = [
-      {
-        id: 'incidentChart',
-        type: 'pie',
-        data: {
-          labels: ['Open', 'In Progress', 'Resolved'],
-          datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  const chartsConfig = [
+    {
+      id: 'incidentChart',
+      type: 'pie',
+      data: {
+        labels: ['Open', 'In Progress', 'Resolved'],
+        datasets: [{ data: [15, 8, 22], backgroundColor: ['#60A5FA', '#FBBF24', '#22C55E'], borderWidth: 1 }]
       },
-      {
-        id: 'priorityChart',
-        type: 'line',
-        data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
-          datasets: [
-            { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
-            { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
-            { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
-          ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    },
+    {
+      id: 'priorityChart',
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [
+          { label: 'P1 High', data: [5, 3, 4, 2, 1], borderColor: '#EF4444', fill: true },
+          { label: 'P2 Medium', data: [10, 8, 7, 9, 6], borderColor: '#FBBF24', fill: true },
+          { label: 'P3 Low', data: [15, 12, 14, 11, 13], borderColor: '#60A5FA', fill: true }
+        ]
       },
-      {
-        id: 'slaChart',
-        type: 'doughnut',
-        data: {
-          labels: ['On Track', 'At Risk'],
-          datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'slaChart',
+      type: 'doughnut',
+      data: {
+        labels: ['On Track', 'At Risk'],
+        datasets: [{ data: [92, 8], backgroundColor: ['#22C55E', '#EF4444'], borderWidth: 1 }]
       },
-      {
-        id: 'dynatraceChart',
-        type: 'line',
-        data: {
-          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-          datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    },
+    {
+      id: 'dynatraceChart',
+      type: 'line',
+      data: {
+        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+        datasets: [{ label: 'CPU Usage (%)', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
       },
-      {
-        id: 'splunkChart',
-        type: 'line',
-        data: {
-          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-          datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'splunkChart',
+      type: 'line',
+      data: {
+        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+        datasets: [{ label: 'Error Rate', data: [5, 10, 8, 12, 7], borderColor: '#EF4444', fill: false }]
       },
-      {
-        id: 'changeTicketsChart',
-        type: 'bar',
-        data: {
-          labels: ['Open', 'In Review', 'Approved'],
-          datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'changeTicketsChart',
+      type: 'bar',
+      data: {
+        labels: ['Open', 'In Review', 'Approved'],
+        datasets: [{ label: 'Change Tickets', data: [10, 5, 3], backgroundColor: '#4F46E5' }]
       },
-      {
-        id: 'pagerDutyChart',
-        type: 'line',
-        data: {
-          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-          datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'pagerDutyChart',
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        datasets: [{ label: 'Incidents', data: [3, 5, 2, 4, 1], borderColor: '#FBBF24', fill: false }]
       },
-      {
-        id: 'responseTimeChart',
-        type: 'bar',
-        data: {
-          labels: ['P1', 'P2', 'P3'],
-          datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'responseTimeChart',
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3'],
+        datasets: [{ label: 'Response Time (min)', data: [10, 20, 30], backgroundColor: '#60A5FA' }]
       },
-      {
-        id: 'serviceHealthChart',
-        type: 'bar',
-        data: {
-          labels: ['P1', 'P2', 'P3'],
-          datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'serviceHealthChart',
+      type: 'bar',
+      data: {
+        labels: ['P1', 'P2', 'P3'],
+        datasets: [{ label: 'Incidents', data: [3, 5, 7], backgroundColor: ['#EF4444', '#FBBF24', '#60A5FA'] }]
       },
-      // New Charts for Monitoring, Workflows, Communications, Reports
-      {
-        id: 'monitoring-chart',
-        type: 'line',
-        data: {
-          labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
-          datasets: [{ label: 'System Load', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'monitoring-chart',
+      type: 'line',
+      data: {
+        labels: ['12 AM', '3 AM', '6 AM', '9 AM', '12 PM'],
+        datasets: [{ label: 'System Load', data: [20, 30, 25, 40, 35], borderColor: '#4F46E5', fill: false }]
       },
-      {
-        id: 'workflows-chart',
-        type: 'bar',
-        data: {
-          labels: ['Active', 'Pending', 'Completed'],
-          datasets: [{ label: 'Workflows', data: [10, 5, 15], backgroundColor: '#60A5FA' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'workflows-chart',
+      type: 'bar',
+      data: {
+        labels: ['Active', 'Pending', 'Completed'],
+        datasets: [{ label: 'Workflows', data: [10, 5, 15], backgroundColor: '#60A5FA' }]
       },
-      {
-        id: 'communications-chart',
-        type: 'pie',
-        data: {
-          labels: ['Sent', 'Pending'],
-          datasets: [{ data: [50, 20], backgroundColor: ['#22C55E', '#FBBF24'], borderWidth: 1 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    },
+    {
+      id: 'communications-chart',
+      type: 'pie',
+      data: {
+        labels: ['Sent', 'Pending'],
+        datasets: [{ data: [50, 20], backgroundColor: ['#22C55E', '#FBBF24'], borderWidth: 1 }]
       },
-      {
-        id: 'reports-chart',
-        type: 'doughnut',
-        data: {
-          labels: ['Generated', 'In Progress'],
-          datasets: [{ data: [30, 10], backgroundColor: ['#4F46E5', '#EF4444'], borderWidth: 1 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-      }
-    ];
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    },
+    {
+      id: 'reports-chart',
+      type: 'doughnut',
+      data: {
+        labels: ['Generated', 'In Progress'],
+        datasets: [{ data: [30, 10], backgroundColor: ['#4F46E5', '#EF4444'], borderWidth: 1 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    }
+  ];
 
+  try {
+    if (typeof Chart === 'undefined') throw new Error('Chart.js library not loaded');
     chartsConfig.forEach(chart => {
       const canvas = document.getElementById(chart.id);
       if (canvas) {
-        if (window.charts[chart.id]) {
-          window.charts[chart.id].destroy();
-          console.log(`[Chart] Destroyed existing chart ${chart.id}`);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          if (window.charts[chart.id]) {
+            window.charts[chart.id].destroy();
+            console.log(`[Chart] Destroyed existing chart ${chart.id}`);
+          }
+          window.charts[chart.id] = new Chart(ctx, {
+            type: chart.type,
+            data: chart.data,
+            options: chart.options
+          });
+          console.log(`[Chart] Initialized ${chart.id}`);
+        } else {
+          console.warn(`[Chart] Canvas context for #${chart.id} not available`);
         }
-        window.charts[chart.id] = new Chart(canvas.getContext('2d'), {
-          type: chart.type,
-          data: chart.data,
-          options: chart.options
-        });
-        console.log(`[Chart] Initialized ${chart.id}`);
       } else {
         console.warn(`[Chart] Canvas #${chart.id} not found`);
       }
@@ -390,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('[Chart] Initialization failed:', error);
   }
 
-  // Populate Lists for New Pages (Placeholder Data)
+  // List Population Functions
   function populateMonitoringList(filter = 'all') {
     const list = document.getElementById('monitoring-alerts-list');
     if (!list) return;
@@ -398,7 +377,6 @@ document.addEventListener('DOMContentLoaded', () => {
       { text: 'High CPU Usage - 10:15 AM', type: 'critical' },
       { text: 'Network Latency - 9:30 AM', type: 'warning' },
       { text: 'Disk Space Low - 8:45 AM', type: 'warning' }
-      // Replace with CodePen data
     ];
     list.innerHTML = '';
     alerts
@@ -418,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
       { text: 'Incident Review - In Progress', status: 'active' },
       { text: 'Server Upgrade - Pending', status: 'pending' },
       { text: 'Backup Workflow - Active', status: 'active' }
-      // Replace with CodePen data
     ];
     list.innerHTML = '';
     workflows
@@ -438,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
       { text: 'Team Update - Sent', status: 'active' },
       { text: 'Incident Alert - Pending', status: 'pending' },
       { text: 'Maintenance Notice - Active', status: 'active' }
-      // Replace with CodePen data
     ];
     list.innerHTML = '';
     communications
@@ -458,7 +434,6 @@ document.addEventListener('DOMContentLoaded', () => {
       { text: 'Monthly Incident Report - Generated', status: 'active' },
       { text: 'SLA Compliance - Pending', status: 'pending' },
       { text: 'Team Performance - Active', status: 'active' }
-      // Replace with CodePen data
     ];
     list.innerHTML = '';
     reports
@@ -471,14 +446,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // Filter Handlers for New Pages
+  // Filter Handlers
   const monitoringFilter = document.getElementById('monitoring-filter');
   if (monitoringFilter) {
     monitoringFilter.addEventListener('change', () => {
       populateMonitoringList(monitoringFilter.value);
       console.log(`[FILTER] Monitoring filter changed to: ${monitoringFilter.value}`);
     });
-    populateMonitoringList(); // Initial population
+    populateMonitoringList();
   }
 
   const workflowsFilter = document.getElementById('workflows-filter');
@@ -487,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
       populateWorkflowsList(workflowsFilter.value);
       console.log(`[FILTER] Workflows filter changed to: ${workflowsFilter.value}`);
     });
-    populateWorkflowsList(); // Initial population
+    populateWorkflowsList();
   }
 
   const communicationsFilter = document.getElementById('communications-filter');
@@ -496,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
       populateCommunicationsList(communicationsFilter.value);
       console.log(`[FILTER] Communications filter changed to: ${communicationsFilter.value}`);
     });
-    populateCommunicationsList(); // Initial population
+    populateCommunicationsList();
   }
 
   const reportsFilter = document.getElementById('reports-filter');
@@ -505,10 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
       populateReportsList(reportsFilter.value);
       console.log(`[FILTER] Reports filter changed to: ${reportsFilter.value}`);
     });
-    populateReportsList(); // Initial population
+    populateReportsList();
   }
 
-  // Incidents (Ticket Form) Functionality
+  // Incident Form Handling
   const form = document.getElementById('incident-form');
   const userProfileSelect = document.getElementById('user-profile');
   const userNameInput = document.getElementById('user-name');
@@ -524,9 +499,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const businessImpactTextarea = document.getElementById('business-impact');
   const ticketNumberInput = document.getElementById('ticket-number');
 
-  let ticketCounter = parseInt(localStorage.getItem('ticketCounter')) || 0;
+  let ticketCounter = parseInt(safeParse('ticketCounter', 0));
   let currentTicketNumber = null;
-  let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+  let tickets = safeParse('tickets', []);
 
   const userProfiles = {
     'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', contactNumber: '212-555-0101' },
@@ -695,10 +670,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const formatTicketNumber = (num) => `INC${String(num).padStart(6, '0')}`;
 
-  const updatePriority = () => {
-    const selectedApp = appServiceSelect.value;
-    const selectedImpact = impactSelect.value;
-    const selectedUrgency = urgencySelect.value;
+  function updatePriority() {
+    const selectedApp = appServiceSelect?.value || '';
+    const selectedImpact = impactSelect?.value || '';
+    const selectedUrgency = urgencySelect?.value || '';
     const data = autoPopulateData[selectedApp] || {};
     const priorityCap = data.priorityCap || 'P4 Low';
     const key = `${selectedImpact}-${selectedUrgency}`;
@@ -706,8 +681,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (priorityRank[priority] < priorityRank[priorityCap]) {
       priority = priorityCap;
     }
-    priorityInput.value = priority;
-  };
+    if (priorityInput) priorityInput.value = priority;
+  }
 
   if (appServiceSelect) {
     appServiceSelect.addEventListener('change', () => {
@@ -747,9 +722,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (!businessImpactTextarea.value || !impactSelect.value || !urgencySelect.value) {
-        showToast('Business Impact, Impact, and Urgency are required');
-        return;
+      const requiredFields = [
+        { element: userProfileSelect, name: 'User Profile' },
+        { element: appServiceSelect, name: 'Application/Service' },
+        { element: businessImpactTextarea, name: 'Business Impact' },
+        { element: impactSelect, name: 'Impact' },
+        { element: urgencySelect, name: 'Urgency' }
+      ];
+      for (const { element, name } of requiredFields) {
+        if (!element?.value) {
+          showToast(`${name} is required`);
+          return;
+        }
       }
       let ticketNumber = currentTicketNumber || formatTicketNumber(ticketCounter);
       ticketNumberInput.value = ticketNumber;
@@ -766,10 +750,10 @@ document.addEventListener('DOMContentLoaded', () => {
         assignmentGroup: assignmentGroupInput.value,
         category: categoryInput.value,
         shortDescription: shortDescriptionInput.value,
-        additionalComments: document.getElementById('additional-comments').value,
+        additionalComments: document.getElementById('additional-comments')?.value || '',
         businessImpact: businessImpactTextarea.value,
-        workNotes: document.getElementById('work-notes').value,
-        state: document.getElementById('state').value,
+        workNotes: document.getElementById('work-notes')?.value || '',
+        state: document.getElementById('state')?.value || '',
         createdAt: new Date().toISOString()
       };
       tickets.push(formData);
@@ -786,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Integrations Functionality
+  // Integrations Handling
   const ADMIN_PASSWORD = 'admin123';
   const integrationIcons = {
     'PagerDuty': 'fa-bell',
@@ -802,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'Custom Webhook': 'fa-plug'
   };
 
-  let integrations = JSON.parse(localStorage.getItem('integrations')) || [
+  let integrations = safeParse('integrations', [
     {
       id: 'INT0001',
       name: 'PagerDuty',
@@ -825,12 +809,12 @@ document.addEventListener('DOMContentLoaded', () => {
       syncInterval: 10,
       eventsSynced: 0
     }
-  ];
+  ]);
 
-  let syncLog = JSON.parse(localStorage.getItem('syncLog')) || [
+  let syncLog = safeParse('syncLog', [
     { id: 'INT0001', timestamp: '2025-06-05 18:00', status: 'Success', message: 'Synced 120 events from PagerDuty' },
     { id: 'INT0002', timestamp: '2025-06-04 12:30', status: 'Failed', message: 'Splunk sync failed: Invalid API key' }
-  ];
+  ]);
 
   const integrationForm = document.getElementById('integrationForm');
   const integrationsList = document.getElementById('integrations-list');
@@ -896,23 +880,25 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('[Chart] Destroyed existing syncChart');
     }
     const ctx = canvas.getContext('2d');
-    window.charts.syncChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: integrations.map(int => int.name),
-        datasets: [{
-          label: 'Events Synced',
-          data: integrations.map(int => int.eventsSynced || 0),
-          backgroundColor: '#4F46E5'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-    console.log('[Chart] Initialized syncChart');
+    if (ctx) {
+      window.charts.syncChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: integrations.map(int => int.name),
+          datasets: [{
+            label: 'Events Synced',
+            data: integrations.map(int => int.eventsSynced || 0),
+            backgroundColor: '#4F46E5'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+      console.log('[Chart] Initialized syncChart');
+    }
   }
 
   window.viewIntegrationDetails = function(id) {
@@ -1024,7 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'SolarWinds': 'Monitoring',
             'Splunk': 'Monitoring',
             'Dynatrace': 'Monitoring',
-            'AWS': Anglesey,
+            'AWS': 'Cloud',
             'ServiceNow': 'ITSM',
             'Datadog': 'Monitoring',
             'Zabbix': 'Monitoring',
@@ -1060,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
 
-  // Settings Functionality
+  // Settings Handling
   const loginContainer = document.getElementById('login-container');
   const settingsContainer = document.getElementById('settings-container');
   const loginForm = document.getElementById('login-form');
@@ -1072,17 +1058,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const ADMIN_CREDENTIALS = { username: 'admin', password: 'admin123' };
 
-  let userProfilesSettings = JSON.parse(localStorage.getItem('userProfiles')) || {
+  let userProfilesSettings = safeParse('userProfiles', {
     'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', email: 'alice.johnson@example.com', contactNumber: '212-555-0101', jobTitle: 'Manager' },
     'bob-smith': { userName: 'Bob Smith', location: 'Chicago, IL', email: 'bob.smith@example.com', contactNumber: '312-555-0202', jobTitle: 'Technician' },
     'clara-lee': { userName: 'Clara Lee', location: 'San Francisco, CA', email: 'clara.lee@example.com', contactNumber: '415-555-0303', jobTitle: 'Analyst' },
     'david-brown': { userName: 'David Brown', location: 'Austin, TX', email: 'david.brown@example.com', contactNumber: '512-555-0404', jobTitle: 'Engineer' },
     'Jack-Berry': { userName: 'Jack Berry', location: 'Sandy, UT', email: 'jack.berry@example.com', contactNumber: '801-803-0608', jobTitle: 'Developer' }
-  };
+  });
 
-  let autoPopulateDataSettings = JSON.parse(localStorage.getItem('autoPopulateData')) || autoPopulateData;
+  let autoPopulateDataSettings = safeParse('autoPopulateData', autoPopulateData);
 
-  const updateUserTable = () => {
+  function updateUserTable() {
     if (!userTableBody) return;
     userTableBody.innerHTML = '';
     Object.entries(userProfilesSettings).forEach(([key, user]) => {
@@ -1098,9 +1084,9 @@ document.addEventListener('DOMContentLoaded', () => {
       userTableBody.appendChild(row);
     });
     localStorage.setItem('userProfiles', JSON.stringify(userProfilesSettings));
-  };
+  }
 
-  const updateAppTable = () => {
+  function updateAppTable() {
     if (!appTableBody) return;
     appTableBody.innerHTML = '';
     Object.entries(autoPopulateDataSettings).forEach(([key, app]) => {
@@ -1117,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
       appTableBody.appendChild(row);
     });
     localStorage.setItem('autoPopulateData', JSON.stringify(autoPopulateDataSettings));
-  };
+  }
 
   if (loginForm) {
     loginForm.addEventListener('submit', (e) => {
@@ -1158,17 +1144,13 @@ document.addEventListener('DOMContentLoaded', () => {
         userProfilesSettings[key] = {
           userName,
           location: document.getElementById('user-location').value.trim(),
-          email: true,
-          userName: document.getElementById('user-name-input').value.trim(),
-          contactNumber: true,
           email: document.getElementById('user-email').value.trim(),
-          ticketCounter: true,
+          contactNumber: document.getElementById('user-contact-number').value.trim(),
           jobTitle: document.getElementById('user-job-title').value.trim()
         };
         updateUserTable();
         userForm.reset();
         showToast('User added successfully');
-        showToast('Success');
       });
     });
   }
@@ -1179,23 +1161,23 @@ document.addEventListener('DOMContentLoaded', () => {
       checkAdminPassword(() => {
         const appName = document.getElementById('app-name').value.trim();
         const key = appName.toLowerCase().replace(/\s+/g, '-');
-      autoPopulateDataSettings[key] = {
-        priorityCap: document.getElementById('app-priority-cap').value,
-        urgency: document.getElementById('app-urgency').value,
-        impact: document.getElementById('app-impact').value,
-        assignmentGroup: document.getElementById('app-assignment-group').value,
-        category: document.getElementById('app-category').value,
-        shortDescription: document.getElementById('app-short-description').value,
-        businessImpact: document.getElementById('app-business-impact').value
-      };
-      updateAppTable();
-      appForm.reset();
-      showToast('Success');
+        autoPopulateDataSettings[key] = {
+          priorityCap: document.getElementById('app-priority-cap').value,
+          urgency: document.getElementById('app-urgency').value,
+          impact: document.getElementById('app-impact').value,
+          assignmentGroup: document.getElementById('app-assignment-group').value,
+          category: document.getElementById('app-category').value,
+          shortDescription: document.getElementById('app-short-description').value,
+          businessImpact: document.getElementById('app-business-impact').value
+        };
+        updateAppTable();
+        appForm.reset();
+        showToast('Application added successfully');
+      });
     });
-  });
-}
+  }
 
-  // Handle Remove Buttons for Settings Tables
+  // Handle Remove Buttons
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-btn')) {
       e.preventDefault();
@@ -1209,12 +1191,174 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (table === 'app-table-body') {
           delete autoPopulateDataSettings[key];
           updateAppTable();
-          showToast('Success');
+          showToast('Application removed successfully');
         }
       });
     }
   });
 
-  // Ensure Dashboard is Shown on Load
-  window.showPage('dashboard');
+  // Communications Handling
+  let messages = safeParse('chatMessages', { general: [], 'incident-p1': [], 'incident-p2': [] });
+  let templates = safeParse('emailTemplates', []);
+
+  function populateChatMessages() {
+    const chatMessages = document.getElementById('chat-messages');
+    const channel = document.getElementById('chat-channel')?.value || 'general';
+    const currentUser = 'Alice Johnson'; // Replace with auth system
+    if (chatMessages) {
+      chatMessages.innerHTML = messages[channel].map(msg => `
+        <div class="chat-message ${msg.user === currentUser ? 'sent' : 'received'}">
+          <div class="message-meta">${msg.user} - ${msg.time}</div>
+          ${msg.text}
+        </div>
+      `).join('');
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  }
+
+  function updateTemplateTable() {
+    const tbody = document.getElementById('template-table-body');
+    if (tbody) {
+      tbody.innerHTML = templates.map(template => `
+        <tr>
+          <td>${template.incidentNumber}</td>
+          <td>${template.priority}</td>
+          <td>${template.status}</td>
+          <td>
+            <button class="cta-btn small" onclick="window.viewTemplate(${template.id})">View</button>
+            <button class="cta-btn small" onclick="window.sendTemplate(${template.id})">Send</button>
+            <button class="remove-btn small" onclick="window.removeTemplate(${template.id})">Remove</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  const sendMessageBtn = document.getElementById('send-message');
+  if (sendMessageBtn) {
+    sendMessageBtn.addEventListener('click', () => {
+      const input = document.getElementById('chat-input');
+      const channel = document.getElementById('chat-channel').value;
+      const currentUser = 'Alice Johnson';
+      if (input.value.trim()) {
+        const message = {
+          user: currentUser,
+          text: input.value,
+          time: new Date().toLocaleTimeString()
+        };
+        messages[channel].push(message);
+        localStorage.setItem('chatMessages', JSON.stringify(messages));
+        input.value = '';
+        populateChatMessages();
+      }
+    });
+  }
+
+  const chatInput = document.getElementById('chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') document.getElementById('send-message')?.click();
+    });
+  }
+
+  const chatChannel = document.getElementById('chat-channel');
+  if (chatChannel) {
+    chatChannel.addEventListener('change', populateChatMessages);
+  }
+
+  const emailTemplateForm = document.getElementById('email-template-form');
+  if (emailTemplateForm) {
+    emailTemplateForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const template = {
+        id: Date.now(),
+        incidentNumber: document.getElementById('template-incident-number').value,
+        status: document.getElementById('template-status').value,
+        manager: document.getElementById('template-manager').value,
+        priority: document.getElementById('template-priority').value,
+        startTime: document.getElementById('template-start-time').value,
+        endTime: document.getElementById('template-end-time').value,
+        bridge: document.getElementById('template-bridge').value,
+        details: document.getElementById('template-details').value,
+        impact: document.getElementById('template-impact').value,
+        recipients: Array.from(document.getElementById('template-recipients').selectedOptions).map(o => o.value)
+      };
+      templates.push(template);
+      localStorage.setItem('emailTemplates', JSON.stringify(templates));
+      showToast('Template saved successfully');
+      emailTemplateForm.reset();
+      updateTemplateTable();
+    });
+  }
+
+  const previewTemplateBtn = document.getElementById('preview-template');
+  if (previewTemplateBtn) {
+    previewTemplateBtn.addEventListener('click', () => {
+      const template = {
+        incidentNumber: document.getElementById('template-incident-number').value,
+        status: document.getElementById('template-status').value,
+        manager: document.getElementById('template-manager').value,
+        priority: document.getElementById('template-priority').value,
+        startTime: document.getElementById('template-start-time').value,
+        endTime: document.getElementById('template-end-time').value,
+        bridge: document.getElementById('template-bridge').value,
+        details: document.getElementById('template-details').value,
+        impact: document.getElementById('template-impact').value,
+        recipients: Array.from(document.getElementById('template-recipients').selectedOptions).map(o => o.value)
+      };
+      const preview = `
+        <strong>Incident Number:</strong> ${template.incidentNumber}<br>
+        <strong>Status:</strong> ${template.status}<br>
+        <strong>Manager:</strong> ${template.manager}<br>
+        <strong>Priority:</strong> ${template.priority}<br>
+        <strong>Start Time:</strong> ${template.startTime}<br>
+        <strong>Estimated End Time:</strong> ${template.endTime || 'N/A'}<br>
+        <strong>Bridge Details:</strong> ${template.bridge || 'N/A'}<br>
+        <strong>Incident Details:</strong> ${template.details}<br>
+        <strong>Business Impact:</strong> ${template.impact}<br>
+        <strong>Recipients:</strong> ${template.recipients.join(', ')}
+      `;
+      alert(preview); // Replace with modal for better UX
+    });
+  }
+
+  window.viewTemplate = function(id) {
+    const template = templates.find(t => t.id === id);
+    if (template) {
+      const preview = `
+        <strong>Incident Number:</strong> ${template.incidentNumber}<br>
+        <strong>Status:</strong> ${template.status}<br>
+        <strong>Manager:</strong> ${template.manager}<br>
+        <strong>Priority:</strong> ${template.priority}<br>
+        <strong>Start Time:</strong> ${template.startTime}<br>
+        <strong>Estimated End Time:</strong> ${template.endTime || 'N/A'}<br>
+        <strong>Bridge Details:</strong> ${template.bridge || 'N/A'}<br>
+        <strong>Incident Details:</strong> ${template.details}<br>
+        <strong>Business Impact:</strong> ${template.impact}<br>
+        <strong>Recipients:</strong> ${template.recipients.join(', ')}
+      `;
+      alert(preview); // Replace with modal
+    }
+  };
+
+  window.sendTemplate = function(id) {
+    const template = templates.find(t => t.id === id);
+    if (template) {
+      showToast(`Email sent to ${template.recipients.join(', ')} for Incident ${template.incidentNumber}`);
+    }
+  };
+
+  window.removeTemplate = function(id) {
+    const index = templates.findIndex(t => t.id === id);
+    if (index !== -1) {
+      templates.splice(index, 1);
+      localStorage.setItem('emailTemplates', JSON.stringify(templates));
+      showToast('Template removed successfully');
+      updateTemplateTable();
+    }
+  };
+
+  // Initialize based on URL hash
+  const initialPage = window.location.hash === '#communications' ? 'communications' : 'dashboard';
+  window.showPage(initialPage);
 });
