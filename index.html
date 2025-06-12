@@ -264,7 +264,7 @@
     </section>
 
     <!-- Incidents Page -->
-    <section id="incidents" class="page" style="display: none;">
+    <section id="incidents" class="page hidden">
       <div class="header">
         <h1>Create Incident Ticket</h1>
       </div>
@@ -387,7 +387,7 @@
     </section>
 
     <!-- Monitoring Page -->
-    <section id="monitoring" class="page" style="display: none;">
+    <section id="monitoring" class="page hidden">
       <div class="header">
         <h1>Monitoring</h1>
         <div class="filters">
@@ -418,7 +418,7 @@
     </section>
 
     <!-- Workflows Page -->
-    <section id="workflows" class="page" style="display: none;">
+    <section id="workflows" class="page hidden">
       <div class="header">
         <h1>Workflows</h1>
         <div class="filters">
@@ -449,11 +449,11 @@
     </section>
 
     <!-- Communications Page -->
-    <section id="communications" class="page" style="display: none;">
+    <section id="communications" class="page hidden">
       <div class="header">
         <h1>Communications</h1>
         <div class="filters">
-          <select id="chat-channel" aria-label="Select chat channel">
+          <select id="comm-channel" aria-label="Select chat channel">
             <option value="general">General</option>
             <option value="incident-p1">Incident P1</option>
             <option value="incident-p2">Incident P2</option>
@@ -461,75 +461,75 @@
         </div>
       </div>
       <div class="communications-grid">
-        <div class="chat-container">
+        <div class="comm-chat-container">
           <h3>Team Chat</h3>
-          <div class="chat-messages" id="chat-messages"></div>
-          <div class="chat-input">
-            <input type="text" id="chat-input" placeholder="Type a message..." aria-label="Chat input">
-            <button class="cta-btn small" id="send-message">Send</button>
+          <div class="comm-chat-messages" id="comm-chat-messages"></div>
+          <div class="comm-chat-input">
+            <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
+            <button class="cta-btn small" id="comm-send-message">Send</button>
           </div>
         </div>
-        <div class="email-template-container">
+        <div class="comm-email-container">
           <h3>Email Templates</h3>
           <div class="form-container">
-            <form id="email-template-form">
+            <form id="comm-email-form">
               <div class="form-group">
-                <label for="template-incident-number">Incident Number</label>
-                <input type="text" id="template-incident-number" required>
+                <label for="comm-incident-number">Incident Number</label>
+                <input type="text" id="comm-incident-number" required>
               </div>
               <div class="form-group">
-                <label for="template-status">Incident Status</label>
-                <select id="template-status" required>
+                <label for="comm-status">Incident Status</label>
+                <select id="comm-status" required>
                   <option value="Open">Open</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Resolved">Resolved</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="template-manager">Incident Manager</label>
-                <input type="text" id="template-manager" required>
+                <label for="comm-manager">Incident Manager</label>
+                <input type="text" id="comm-manager" required>
               </div>
               <div class="form-group">
-                <label for="template-priority">Incident Priority</label>
-                <select id="template-priority" required>
+                <label for="comm-priority">Incident Priority</label>
+                <select id="comm-priority" required>
                   <option value="P1">P1 High</option>
                   <option value="P2">P2 Medium</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="template-start-time">Start Time</label>
-                <input type="datetime-local" id="template-start-time" required>
+                <label for="comm-start-time">Start Time</label>
+                <input type="datetime-local" id="comm-start-time" required>
               </div>
               <div class="form-group">
-                <label for="template-end-time">Estimated End Time</label>
-                <input type="datetime-local" id="template-end-time">
+                <label for="comm-end-time">Estimated End Time</label>
+                <input type="datetime-local" id="comm-end-time">
               </div>
               <div class="form-group">
-                <label for="template-bridge">Bridge Details</label>
-                <input type="text" id="template-bridge" placeholder="e.g., Zoom link or phone number">
+                <label for="comm-bridge">Bridge Details</label>
+                <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
               </div>
               <div class="form-group">
-                <label for="template-details">Incident Details</label>
-                <textarea id="template-details" required></textarea>
+                <label for="comm-details">Incident Details</label>
+                <textarea id="comm-details" rows="4" required></textarea>
               </div>
               <div class="form-group">
-                <label for="template-impact">Business Impact</label>
-                <textarea id="template-impact" required></textarea>
+                <label for="comm-impact">Business Impact</label>
+                <textarea id="comm-impact" rows="4" required></textarea>
               </div>
               <div class="form-group">
-                <label for="template-recipients">Recipients</label>
-                <select id="template-recipients" multiple required>
+                <label for="comm-recipients">Recipients</label>
+                <select id="comm-recipients" multiple required>
                   <option value="internal">Internal Team</option>
                   <option value="external">External Stakeholders</option>
                 </select>
               </div>
               <button type="submit" class="cta-btn">Save Template</button>
-              <button type="button" class="cta-btn secondary" id="preview-template">Preview</button>
+              <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
             </form>
           </div>
-          <div class="template-list">
+          <div class="comm-template-list">
             <h4>Saved Templates</h4>
-            <table class="settings-table" id="template-table">
+            <table class="settings-table" id="comm-template-table">
               <thead>
                 <tr>
                   <th>Incident Number</th>
@@ -538,7 +538,7 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="template-table-body"></tbody>
+              <tbody id="comm-template-table-body"></tbody>
             </table>
           </div>
         </div>
@@ -546,7 +546,7 @@
     </section>
 
     <!-- Reports Page -->
-    <section id="reports" class="page" style="display: none;">
+    <section id="reports" class="page hidden">
       <div class="header">
         <h1>Reports</h1>
         <div class="filters">
@@ -577,7 +577,7 @@
     </section>
 
     <!-- Integrations Page -->
-    <section id="integrations" class="page" style="display: none;">
+    <section id="integrations" class="page hidden">
       <div class="integrations">
         <div class="header">
           <h1>Integrations</h1>
@@ -602,7 +602,7 @@
             <div class="list" id="integrations-list" role="listbox" aria-label="Integrations list"></div>
             <p class="scroll-label">Scroll for more</p>
           </div>
-          <div class="integration-details" id="integration-details" style="display: none;">
+          <div class="integration-details" id="integration-details" class="hidden">
             <h3>Integration Details</h3>
             <div class="details-content">
               <p><strong>Name:</strong> <span id="detail-name"></span></p>
@@ -611,7 +611,7 @@
               <p><strong>Endpoint:</strong> <input type="text" id="detail-endpoint" readonly aria-label="Endpoint URL"></p>
               <p><strong>Sync Interval (min):</strong> <input type="number" id="detail-sync-interval" readonly aria-label="Sync interval"></p>
               <button class="cta-btn" onclick="window.editIntegrationDetails()" aria-label="Edit integration details">Edit</button>
-              <button class="cta-btn secondary" onclick="window.saveIntegrationDetails()" style="display: none;" aria-label="Save integration details">Save</button>
+              <button class="cta-btn secondary hidden" onclick="window.saveIntegrationDetails()" aria-label="Save integration details">Save</button>
               <button class="cta-btn secondary" onclick="window.closeIntegrationDetails()" aria-label="Close details">Close</button>
             </div>
           </div>
@@ -633,7 +633,7 @@
     </section>
 
     <!-- Settings Page -->
-    <section id="settings" class="page" style="display: none;">
+    <section id="settings" class="page hidden">
       <div class="header">
         <h1>Settings</h1>
       </div>
@@ -699,7 +699,7 @@
         </div>
         <div class="form-container">
           <h2>Manage Applications/Services/Infrastructure</h2>
-          <form id="app-form">
+          <form id="options-form">
             <div class="form-grid">
               <div class="form-column">
                 <div class="form-group">
@@ -709,7 +709,7 @@
                 <div class="form-group">
                   <label for="app-priority-cap">Priority Cap</label>
                   <select id="app-priority-cap" name="priority-cap" required>
-                    <option value="" disabled selected>Select priority cap</option>
+                    <option value="" disabled selected>Edit priority cap</option>
                     <option value="P1 High">P1 High</option>
                     <option value="P2 Medium">P2 Medium</option>
                     <option value="P3 Low">P3 Low</option>
@@ -719,7 +719,7 @@
                 <div class="form-group">
                   <label for="app-urgency">Urgency</label>
                   <select id="app-urgency" name="urgency" required>
-                    <option value="" disabled selected>Select urgency</option>
+                    <option value="" disabled selected>Edit urgency</option>
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
@@ -728,7 +728,7 @@
                 <div class="form-group">
                   <label for="app-impact">Impact</label>
                   <select id="app-impact" name="impact" required>
-                    <option value="" disabled selected>Select impact</option>
+                    <option value="" disabled selected>Edit impact</option>
                     <option value="High">High</option>
                     <option value="Medium">Medium</option>
                     <option value="Low">Low</option>
@@ -775,7 +775,7 @@
     </section>
 
     <!-- Add Integration Modal -->
-    <div class="modal" id="add-integration-modal" style="display: none;">
+    <div class="modal hidden" id="add-integration-modal">
       <div class="modal-content">
         <h2>Add New Integration</h2>
         <form id="integrationForm">
@@ -806,7 +806,8 @@
           </div>
           <div class="form-group">
             <label for="sync-interval">Sync Interval (minutes)</label>
-            <input type="number" id="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
+            <input type="number" idUSPAN="info">Integration</span>
+            ="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
           </div>
           <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
           <button type="button" class="cta-btn secondary" onclick="window.closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
