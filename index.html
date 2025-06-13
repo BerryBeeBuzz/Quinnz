@@ -449,101 +449,232 @@
     </section>
 
     <!-- Communications Page -->
-    <section id="communications" class="page hidden">
-      <div class="header">
-        <h1>Communications</h1>
-        <div class="filters">
-          <select id="comm-channel" aria-label="Select chat channel">
-            <option value="general">General</option>
-            <option value="incident-p1">Incident P1</option>
-            <option value="incident-p2">Incident P2</option>
-          </select>
-        </div>
-      </div>
-      <div class="communications-grid">
-        <div class="comm-chat-container">
-          <h3>Team Chat</h3>
-          <div class="comm-chat-messages" id="comm-chat-messages"></div>
-          <div class="comm-chat-input">
-            <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
-            <button class="cta-btn small" id="comm-send-message">Send</button>
-          </div>
-        </div>
-        <div class="comm-email-container">
-          <h3>Email Templates</h3>
-          <div class="form-container">
-            <form id="comm-email-form">
-              <div class="form-group">
-                <label for="comm-incident-number">Incident Number</label>
-                <input type="text" id="comm-incident-number" required>
-              </div>
-              <div class="form-group">
-                <label for="comm-status">Incident Status</label>
-                <select id="comm-status" required>
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="comm-manager">Incident Manager</label>
-                <input type="text" id="comm-manager" required>
-              </div>
-              <div class="form-group">
-                <label for="comm-priority">Incident Priority</label>
-                <select id="comm-priority" required>
-                  <option value="P1">P1 High</option>
-                  <option value="P2">P2 Medium</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="comm-start-time">Start Time</label>
-                <input type="datetime-local" id="comm-start-time" required>
-              </div>
-              <div class="form-group">
-                <label for="comm-end-time">Estimated End Time</label>
-                <input type="datetime-local" id="comm-end-time">
-              </div>
-              <div class="form-group">
-                <label for="comm-bridge">Bridge Details</label>
-                <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
-              </div>
-              <div class="form-group">
-                <label for="comm-details">Incident Details</label>
-                <textarea id="comm-details" rows="4" required></textarea>
-              </div>
-              <div class="form-group">
-                <label for="comm-impact">Business Impact</label>
-                <textarea id="comm-impact" rows="4" required></textarea>
-              </div>
-              <div class="form-group">
-                <label for="comm-recipients">Recipients</label>
-                <select id="comm-recipients" multiple required>
-                  <option value="internal">Internal Team</option>
-                  <option value="external">External Stakeholders</option>
-                </select>
-              </div>
-              <button type="submit" class="cta-btn">Save Template</button>
-              <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
-            </form>
-          </div>
-          <div class="comm-template-list">
-            <h4>Saved Templates</h4>
-            <table class="settings-table" id="comm-template-table">
-              <thead>
-                <tr>
-                  <th>Incident Number</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="comm-template-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
+    --- index.html (original)
++++ index.html (updated)
+@@ -8,6 +8,7 @@
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
++  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
+ </head>
+@@ -496,62 +496,104 @@
+     <!-- Communications Page -->
+     <section id="communications" class="page hidden">
+       <div class="header">
+-        <h1>Communications</h1>
++        <h1>Collaboration Hub</h1>
+         <div class="filters">
+-          <select id="comm-channel" aria-label="Select chat channel">
++          <select id="comm-channel" aria-label="Select team channel">
+             <option value="general">General</option>
+             <option value="incident-p1">Incident P1</option>
+             <option value="incident-p2">Incident P2</option>
+           </select>
+         </div>
+       </div>
+-      <div class="communications-grid">
+-        <div class="comm-chat-container">
+-          <h3>Team Chat</h3>
+-          <div class="comm-chat-messages" id="comm-chat-messages"></div>
+-          <div class="comm-chat-input">
+-            <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
+-            <button class="cta-btn small" id="comm-send-message">Send</button>
+-          </div>
++      <div class="communications-grid muuri">
++        <div class="widget uniform muuri-item comm-chat-container" data-id="comm-chat">
++          <div class="muuri-item-content">
++            <h3>Team Chat</h3>
++            <div class="comm-presence" id="comm-presence"></div>
++            <div class="comm-chat-messages" id="comm-chat-messages"></div>
++            <div class="comm-typing" id="comm-typing"></div>
++            <div class="comm-chat-input">
++              <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
++              <button class="cta-btn small" id="comm-send-message">Send</button>
++              <button class="cta-btn small" id="comm-teams-chat">Teams Chat</button>
++            </div>
++          </div>
+         </div>
+-        <div class="comm-email-container">
+-          <h3>Email Templates</h3>
+-          <div class="form-container">
+-            <form id="comm-email-form">
+-              <div class="form-group">
+-                <label for="comm-incident-number">Incident Number</label>
+-                <input type="text" id="comm-incident-number" required>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-status">Incident Status</label>
+-                <select id="comm-status" required>
+-                  <option value="Open">Open</option>
+-                  <option value="In Progress">In Progress</option>
+-                  <option value="Resolved">Resolved</option>
+-                </select>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-manager">Incident Manager</label>
+-                <input type="text" id="comm-manager" required>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-priority">Incident Priority</label>
+-                <select id="comm-priority" required>
+-                  <option value="P1">P1 High</option>
+-                  <option value="P2">P2 Medium</option>
+-                </select>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-start-time">Start Time</label>
+-                <input type="datetime-local" id="comm-start-time" required>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-end-time">Estimated End Time</label>
+-                <input type="datetime-local" id="comm-end-time">
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-bridge">Bridge Details</label>
+-                <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-details">Incident Details</label>
+-                <textarea id="comm-details" rows="4" required></textarea>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-impact">Business Impact</label>
+-                <textarea id="comm-impact" rows="4" required></textarea>
+-              </div>
+-              <div class="form-group">
+-                <label for="comm-recipients">Recipients</label>
+-                <select id="comm-recipients" multiple required>
+-                  <option value="internal">Internal Team</option>
+-                  <option value="external">External Stakeholders</option>
+-                </select>
+-              </div>
+-              <button type="submit" class="cta-btn">Save Template</button>
+-              <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
+-            </form>
++        <div class="widget uniform muuri-item comm-email-container" data-id="comm-email">
++          <div class="muuri-item-content">
++            <h3>Email Templates</h3>
++            <div class="form-container">
++              <form id="comm-email-form">
++                <div class="form-group">
++                  <label for="comm-incident-number">Incident Number</label>
++                  <input type="text" id="comm-incident-number" required>
++                </div>
++                <div class="form-group">
++                  <label for="comm-status">Incident Status</label>
++                  <select id="comm-status" required>
++                    <option value="Open">Open</option>
++                    <option value="In Progress">In Progress</option>
++                    <option value="Resolved">Resolved</option>
++                  </select>
++                </div>
++                <div class="form-group">
++                  <label for="comm-manager">Incident Manager</label>
++                  <input type="text" id="comm-manager" required>
++                </div>
++                <div class="form-group">
++                  <label for="comm-priority">Incident Priority</label>
++                  <select id="comm-priority" required>
++                    <option value="P1">P1 High</option>
++                    <option value="P2">P2 Medium</option>
++                  </select>
++                </div>
++                <div class="form-group">
++                  <label for="comm-start-time">Start Time</label>
++                  <input type="datetime-local" id="comm-start-time" required>
++                </div>
++                <div class="form-group">
++                  <label for="comm-end-time">Estimated End Time</label>
++                  <input type="datetime-local" id="comm-end-time">
++                </div>
++                <div class="form-group">
++                  <label for="comm-bridge">Bridge Details</label>
++                  <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
++                </div>
++                <div class="form-group">
++                  <label for="comm-details">Incident Details</label>
++                  <textarea id="comm-details" rows="4" required></textarea>
++                </div>
++                <div class="form-group">
++                  <label for="comm-impact">Business Impact</label>
++                  <textarea id="comm-impact" rows="4" required></textarea>
++                </div>
++                <div class="form-group">
++                  <label for="comm-recipients">Recipients</label>
++                  <select id="comm-recipients" multiple required>
++                    <option value="internal">Internal Team</option>
++                    <option value="external">External Stakeholders</option>
++                  </select>
++                </div>
++                <button type="submit" class="cta-btn">Save Template</button>
++                <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
++              </form>
++            </div>
+           </div>
+-          <div class="comm-template-list">
+-            <h4>Saved Templates</h4>
+-            <table class="settings-table" id="comm-template-table">
+-              <thead>
+-                <tr>
+-                  <th>Incident Number</th>
+-                  <th>Priority</th>
+-                  <th>Status</th>
+-                  <th>Actions</th>
+-                </tr>
+-              </thead>
+-              <tbody id="comm-template-table-body"></tbody>
+-            </table>
++        </div>
++        <div class="widget uniform muuri-item comm-activity-container" data-id="comm-activity">
++          <div class="muuri-item-content">
++            <h3>Activity Feed</h3>
++            <div class="list" id="comm-activity-list"></div>
++            <p class="scroll-label">Scroll for more</p>
++          </div>
++        </div>
++        <div class="widget uniform muuri-item comm-calendar-container" data-id="comm-calendar">
++          <div class="muuri-item-content">
++            <h3>Incident Calendar</h3>
++            <div id="comm-calendar"></div>
++          </div>
++        </div>
++        <div class="widget uniform muuri-item comm-call-container" data-id="comm-call">
++          <div class="muuri-item-content">
++            <h3>IP Calls</h3>
++            <div class="comm-call-status" id="comm-call-status">No active call</div>
++            <div class="form-group">
++              <label for="comm-call-recipient">Call Recipient</label>
++              <select id="comm-call-recipient">
++                <option value="">Select recipient</option>
++                <option value="alice.johnson@tech.com">Alice Johnson</option>
++                <option value="bob.smith@tech.com">Bob Smith</option>
++                <option value="clara.davis@tech.com">Clara Davis</option>
++              </select>
++            </div>
++            <button class="cta-btn" id="comm-start-call">Start Call</button>
++            <button class="cta-btn secondary hidden" id="comm-end-call">End Call</button>
++            <button class="cta-btn" id="comm-teams-call">Teams Call</button>
++          </div>
++        </div>
++        <div class="widget uniform muuri-item comm-template-list" data-id="comm-templates">
++          <div class="muuri-item-content">
++            <h3>Saved Templates</h3>
++            <table class="settings-table" id="comm-template-table">
++              <thead>
++                <tr>
++                  <th>Incident Number</th>
++                  <th>Priority</th>
++                  <th>Status</th>
++                  <th>Actions</th>
++                </tr>
++              </thead>
++              <tbody id="comm-template-table-body"></tbody>
++            </table>
+           </div>
+         </div>
+       </div>
+     </section>
 
     <!-- Reports Page -->
     <section id="reports" class="page hidden">

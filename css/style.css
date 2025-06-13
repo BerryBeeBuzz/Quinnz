@@ -1360,4 +1360,163 @@ canvas {
 .high-contrast .comm-action-btn.remove {
   background: #ff0000;
 }
+/* Enhanced Communications Page Styles */
+.communications-grid.muuri {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.comm-chat-container {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.comm-presence {
+  font-size: 12px;
+  color: #4b5563;
+  padding: 5px 10px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.comm-typing {
+  font-size: 12px;
+  color: #4f46e5;
+  padding: 5px 10px;
+  min-height: 20px;
+}
+
+.comm-email-container {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.comm-email-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comm-email-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.comm-email-container::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 3px;
+}
+
+.comm-activity-container {
+  height: 400px;
+}
+
+.comm-activity-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.comm-calendar-container {
+  height: 400px;
+}
+
+#comm-calendar {
+  font-size: 12px;
+  padding: 10px;
+}
+
+#comm-calendar .fc {
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+#comm-calendar .fc-toolbar-title {
+  color: #1e3a8a;
+  font-size: 16px;
+}
+
+#comm-calendar .fc-event {
+  background: #4f46e5;
+  border: none;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 2px 5px;
+}
+
+.comm-call-container {
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comm-call-status {
+  font-size: 14px;
+  color: #4b5563;
+  padding: 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.comm-template-list {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.comm-template-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comm-template-list::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.comm-template-list::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 3px;
+}
+
+/* Dark Mode */
+.dark-mode .comm-presence,
+.dark-mode .comm-typing,
+.dark-mode .comm-call-status,
+.dark-mode #comm-calendar .fc {
+  background: #4b5563;
+  color: #f9fafb;
+}
+
+.dark-mode #comm-calendar .fc-toolbar-title {
+  color: #f9fafb;
+}
+
+/* High Contrast */
+.high-contrast .comm-presence,
+.high-contrast .comm-typing,
+.high-contrast .comm-call-status,
+.high-contrast #comm-calendar .fc {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+}
+
+.high-contrast #comm-calendar .fc-toolbar-title {
+  color: #ffffff;
+}
+
+.high-contrast #comm-calendar .fc-event {
+  background: #ffff00;
+  color: #000000;
+}
+
+@media (max-width: 960px) {
+  .communications-grid.muuri {
+    grid-template-columns: 1fr;
+  }
+}
 }
