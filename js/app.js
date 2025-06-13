@@ -959,45 +959,28 @@ document.addEventListener('DOMContentLoaded', () => {
   if (statusFilter) {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
- // Communications Handling
+  // Communications Handling
 console.log('[COMM] Initializing Communications page');
 document.getElementById('menu-communications')?.addEventListener('click', () => {
   console.log('[COMM NAV] Communications menu clicked');
   window.showPage('communications');
 });
 
-// Data Storage
+// Chat Messages
 let messages = JSON.parse(localStorage.getItem('commMessages')) || {
   general: [],
   'incident-p1': [],
   'incident-p2': []
 };
+
+// Email Templates
 let templates = JSON.parse(localStorage.getItem('commTemplates')) || [];
-let activities = JSON.parse(localStorage.getItem('commActivities')) || [];
-let users = JSON.parse(localStorage.getItem('commUsers')) || {
-  'user1': { name: 'Alice Johnson', status: 'online' },
-  'user2': { name: 'Bob Smith', status: 'offline' }
-};
 
-// Utility to Log Activity
-function logActivity(action) {
-  const activity = {
-    id: Date.now(),
-    action,
-    timestamp: new Date().toLocaleString('en-US', { hour12: true })
-  };
-  activities.unshift(activity);
-  if (activities.length > 50) activities.pop(); // Limit to 50
-  localStorage.setItem('commActivities', JSON.stringify(activities));
-  updateCommActivities();
-}
-
-// Populate Chat Messages
 function populateCommMessages() {
   console.log('[COMM] Populating chat messages');
   const chatMessages = document.getElementById('comm-chat-messages');
   const channel = document.getElementById('comm-channel').value;
-  const currentUserId = 'user1';
+  const currentUserId = 'user1'; // Simulated; replace with auth system
   if (chatMessages) {
     chatMessages.innerHTML = messages[channel].map(msg => `
       <div class="comm-chat-message ${msg.userId === currentUserId ? 'my-message' : 'other-message'}">
@@ -1012,43 +995,6 @@ function populateCommMessages() {
   }
 }
 
-// Update User Presence
-function updateCommPresence() {
-  console.log('[COMM] Updating user presence');
-  const presence = document.getElementById('comm-presence');
-  if (presence) {
-    presence.innerHTML = Object.values(users).map(u => `
-      <span>${u.name}: <span style="color: ${u.status === 'online' ? '#22c55e' : '#ef4444'}">${u.status}</span></span>
-    `).join(' | ');
-  }
-}
-
-// Typing Indicator
-let typingTimeout;
-function showTypingIndicator(userId, userName) {
-  const typing = document.getElementById('comm-typing');
-  if (typing) {
-    typing.textContent = `${userName} is typing...`;
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      typing.textContent = '';
-    }, 2000);
-  }
-}
-
-// Update Activities
-function updateCommActivities() {
-  console.log('[COMM] Updating activity feed');
-  const activityList = document.getElementById('comm-activity-list');
-  if (activityList) {
-    activityList.innerHTML = activities.map(a => `
-      <div class="list-item">${a.action} - ${a.timestamp}</div>
-    `).join('');
-    activityList.scrollTop = 0;
-  }
-}
-
-// Update Templates
 function updateCommTemplates() {
   console.log('[COMM] Updating templates table');
   const tbody = document.getElementById('comm-template-table-body');
@@ -1066,28 +1012,8 @@ function updateCommTemplates() {
       </tr>
     `).join('');
     console.log(`[COMM] Rendered ${templates.length} templates`);
-  }
-}
-
-// Initialize Calendar
-function initCommCalendar() {
-  console.log('[COMM] Initializing calendar');
-  const calendarEl = document.getElementById('comm-calendar');
-  if (calendarEl) {
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      height: '320px',
-      events: templates.map(t => ({
-        title: `${t.name} (${t.priority})`,
-        start: t.startTime,
-        end: t.endTime || null,
-        backgroundColor: t.priority === 'P1' ? '#ef4444' : '#fbbf24'
-      }))
-    });
-    calendar.render();
-    console.log('[COMM] Calendar rendered');
   } else {
-    console.error('[COMM] Calendar container not found');
+    console.error('[COMM] Templates table body not found');
   }
 }
 
@@ -1097,7 +1023,7 @@ document.getElementById('comm-send-message')?.addEventListener('click', () => {
   const input = document.getElementById('comm-chat-input');
   const channel = document.getElementById('comm-channel').value;
   const currentUserId = 'user1';
-  const currentUserName = users['user1'].name;
+  const currentUserName = 'Alice Johnson'; // Simulated; replace with auth
   if (input.value.trim()) {
     const message = {
       userId: currentUserId,
@@ -1107,12 +1033,9 @@ document.getElementById('comm-send-message')?.addEventListener('click', () => {
     };
     messages[channel].push(message);
     localStorage.setItem('commMessages', JSON.stringify(messages));
-    logActivity(`Sent message in ${channel}: ${input.value}`);
     input.value = '';
     populateCommMessages();
     showToast('Message sent');
-    // Simulate other user typing
-    setTimeout(() => showTypingIndicator('user2', users['user2'].name), 1000);
   } else {
     showToast('Message cannot be empty');
   }
@@ -1127,23 +1050,10 @@ document.getElementById('comm-chat-input')?.addEventListener('keypress', e => {
   }
 });
 
-// Chat Typing
-document.getElementById('comm-chat-input')?.addEventListener('input', () => {
-  showTypingIndicator('user1', users['user1'].name);
-});
-
 // Channel Change
 document.getElementById('comm-channel')?.addEventListener('change', () => {
   console.log('[COMM] Channel changed');
   populateCommMessages();
-});
-
-// Teams Chat
-document.getElementById('comm-teams-chat')?.addEventListener('click', () => {
-  console.log('[COMM] Teams chat clicked');
-  window.open('msteams://teams.microsoft.com/l/chat/0/0?users=alice.johnson@tech.com', '_blank');
-  logActivity('Initiated Teams chat with Alice Johnson');
-  showToast('Opening Teams chat');
 });
 
 // Email Template Form
@@ -1167,11 +1077,9 @@ if (emailForm) {
     };
     templates.push(template);
     localStorage.setItem('commTemplates', JSON.stringify(templates));
-    logActivity(`Saved email template: ${template.name}`);
     showToast('Template saved');
     emailForm.reset();
     updateCommTemplates();
-    initCommCalendar();
   });
 }
 
@@ -1202,8 +1110,7 @@ document.getElementById('comm-preview')?.addEventListener('click', () => {
     `Business Impact: ${template.impact}`,
     `Recipients: ${template.recipients.join(', ')}`
   ].join('\n');
-  alert(preview);
-  logActivity(`Previewed email template: ${template.name}`);
+  alert(preview); // Simple preview; replace with modal if needed
 });
 
 // Template Table Actions
@@ -1229,61 +1136,17 @@ document.getElementById('comm-template-table')?.addEventListener('click', e => {
         `Recipients: ${template.recipients.join(', ')}`
       ].join('\n');
       alert(preview);
-      logActivity(`Viewed email template: ${template.name}`);
     }
   } else if (action === 'send') {
     const template = templates.find(t => t.id == id.replace('send-', ''));
     if (template) {
       showToast(`Email sent to ${template.recipients.join(', ')} for ${template.name}`);
-      logActivity(`Sent email for template: ${template.name}`);
     }
   } else if (action === 'remove') {
     templates = templates.filter(t => t.id != id);
     localStorage.setItem('commTemplates', JSON.stringify(templates));
     updateCommTemplates();
-    initCommCalendar();
     showToast('Template removed');
-    logActivity(`Removed email template: ${template.name}`);
-  }
-});
-
-// IP Calls
-document.getElementById('comm-start-call')?.addEventListener('click', () => {
-  console.log('[COMM] Start call clicked');
-  const recipient = document.getElementById('comm-call-recipient').value;
-  const status = document.getElementById('comm-call-status');
-  const endCallBtn = document.getElementById('comm-end-call');
-  if (recipient) {
-    status.textContent = `Calling ${recipient}...`;
-    endCallBtn.classList.remove('hidden');
-    document.getElementById('comm-start-call').classList.add('hidden');
-    showToast(`Initiated call to ${recipient}`);
-    logActivity(`Started call to ${recipient}`);
-  } else {
-    showToast('Select a recipient');
-  }
-});
-
-document.getElementById('comm-end-call')?.addEventListener('click', () => {
-  console.log('[COMM] End call clicked');
-  const status = document.getElementById('comm-call-status');
-  const endCallBtn = document.getElementById('comm-end-call');
-  status.textContent = 'No active call';
-  endCallBtn.classList.add('hidden');
-  document.getElementById('comm-start-call').classList.remove('hidden');
-  showToast('Call ended');
-  logActivity('Ended call');
-});
-
-document.getElementById('comm-teams-call')?.addEventListener('click', () => {
-  console.log('[COMM] Teams call clicked');
-  const recipient = document.getElementById('comm-call-recipient').value;
-  if (recipient) {
-    window.open(`msteams://teams.microsoft.com/l/call/0/0?users=${recipient}`, '_blank');
-    showToast(`Opening Teams call with ${recipient}`);
-    logActivity(`Initiated Teams call with ${recipient}`);
-  } else {
-    showToast('Select a recipient');
   }
 });
 
@@ -1291,14 +1154,7 @@ document.getElementById('comm-teams-call')?.addEventListener('click', () => {
 function initCommunications() {
   console.log('[COMM] Initializing Communications page content');
   populateCommMessages();
-  updateCommPresence();
-  updateCommActivities();
   updateCommTemplates();
-  initCommCalendar();
-  new Muuri('.communications-grid.muuri', {
-    dragEnabled: true,
-    layout: { fillGaps: true }
-  });
 }
 
 // Update showPage to Initialize Communications
@@ -1319,4 +1175,4 @@ if (window.location.hash === '#communications') {
 
   // Ensure Dashboard is Shown on Load
   window.showPage('dashboard');
-}); 
+});
