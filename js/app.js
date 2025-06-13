@@ -57,6 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+      if (pageId === 'communications') {
+        initCommunications();
+      }
     } catch (error) {
       console.error('[NAV] Error in showPage:', error);
     }
@@ -275,6 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let ticketCounter = parseInt(localStorage.getItem('ticketCounter')) || 0;
   let currentTicketNumber = null;
+  let incidents = JSON.parse(localStorage.getItem('incidents')) || []; // Store incidents
 
   const userProfiles = {
     'alice-johnson': { userName: 'Alice Johnson', location: 'New York, NY', contactNumber: '212-555-0101' },
@@ -519,6 +523,8 @@ document.addEventListener('DOMContentLoaded', () => {
         workNotes: document.getElementById('work-notes').value,
         state: document.getElementById('state').value
       };
+      incidents.push(formData);
+      localStorage.setItem('incidents', JSON.stringify(incidents));
       console.log('Incident Created:', formData);
       showToast(`An incident has been created and sent for review. Ticket Number: ${ticketNumber}`);
       ticketCounter++;
@@ -536,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsContainer = document.getElementById('settings-container');
   const loginForm = document.getElementById('login-form');
   const userForm = document.getElementById('user-form');
-  const appForm = document.getElementById('app-form');
+  const appForm = document.getElementById('options-form'); // Corrected ID
   const userTableBody = document.getElementById('user-table-body');
   const appTableBody = document.getElementById('app-table-body');
   const logoutBtn = document.getElementById('logout-btn');
@@ -744,19 +750,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const syncLogList = document.getElementById('sync-log-list');
   let selectedIntegration = null;
 
-  function checkAdminPassword(actionCallback) {
-    if (window.isAdminAuthenticated) {
-      actionCallback();
-    } else {
-      const password = prompt('Enter admin password:');
-      if (password === ADMIN_PASSWORD) {
-        actionCallback();
-      } else {
-        showToast('Incorrect admin password');
-      }
-    }
-  }
-
   function renderIntegrationsList() {
     if (!integrationsList) return;
     const filterValue = statusFilter ? statusFilter.value : 'all';
@@ -959,219 +952,228 @@ document.addEventListener('DOMContentLoaded', () => {
   if (statusFilter) {
     statusFilter.addEventListener('change', renderIntegrationsList);
   }
+
   // Communications Handling
-console.log('[COMM] Initializing Communications page');
-document.getElementById('menu-communications')?.addEventListener('click', () => {
-  console.log('[COMM NAV] Communications menu clicked');
-  window.showPage('communications');
-});
+  console.log('[COMM] Initializing Communications page');
 
-// Chat Messages
-let messages = JSON.parse(localStorage.getItem('commMessages')) || {
-  general: [],
-  'incident-p1': [],
-  'incident-p2': []
-};
+  // Initialize EmailJS (replace with your EmailJS public key)
+  emailjs.init('YOUR_EMAILJS_PUBLIC_KEY'); // Get from EmailJS dashboard after signup
 
-// Email Templates
-let templates = JSON.parse(localStorage.getItem('commTemplates')) || [];
-
-function populateCommMessages() {
-  console.log('[COMM] Populating chat messages');
-  const chatMessages = document.getElementById('comm-chat-messages');
-  const channel = document.getElementById('comm-channel').value;
-  const currentUserId = 'user1'; // Simulated; replace with auth system
-  if (chatMessages) {
-    chatMessages.innerHTML = messages[channel].map(msg => `
-      <div class="comm-chat-message ${msg.userId === currentUserId ? 'my-message' : 'other-message'}">
-        <div class="message-meta">${msg.userName} - ${msg.timestamp}</div>
-        ${msg.text}
-      </div>
-    `).join('');
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-    console.log(`[COMM] Rendered ${messages[channel].length} messages for channel ${channel}`);
-  } else {
-    console.error('[COMM] Chat messages container not found');
-  }
-}
-
-function updateCommTemplates() {
-  console.log('[COMM] Updating templates table');
-  const tbody = document.getElementById('comm-template-table-body');
-  if (tbody) {
-    tbody.innerHTML = templates.map(t => `
-      <tr>
-        <td>${t.name}</td>
-        <td>${t.priority}</td>
-        <td>${t.status}</td>
-        <td>
-          <button class="comm-action-btn" data-action="view" data-id="${t.id}">View</button>
-          <button class="comm-action-btn" data-action="send" data-id="send-${t.id}">Send</button>
-          <button class="comm-action-btn remove" data-action="remove" data-id="${t.id}">Remove</button>
-        </td>
-      </tr>
-    `).join('');
-    console.log(`[COMM] Rendered ${templates.length} templates`);
-  } else {
-    console.error('[COMM] Templates table body not found');
-  }
-}
-
-// Chat Send Message
-document.getElementById('comm-send-message')?.addEventListener('click', () => {
-  console.log('[COMM] Send message clicked');
-  const input = document.getElementById('comm-chat-input');
-  const channel = document.getElementById('comm-channel').value;
-  const currentUserId = 'user1';
-  const currentUserName = 'Alice Johnson'; // Simulated; replace with auth
-  if (input.value.trim()) {
-    const message = {
-      userId: currentUserId,
-      userName: currentUserName,
-      text: input.value,
-      timestamp: new Date().toLocaleString('en-US', { hour12: true })
-    };
-    messages[channel].push(message);
-    localStorage.setItem('commMessages', JSON.stringify(messages));
-    input.value = '';
-    populateCommMessages();
-    showToast('Message sent');
-  } else {
-    showToast('Message cannot be empty');
-  }
-});
-
-// Chat Enter Key
-document.getElementById('comm-chat-input')?.addEventListener('keypress', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    console.log('[COMM] Enter key pressed in chat input');
-    document.getElementById('comm-send-message').click();
-  }
-});
-
-// Channel Change
-document.getElementById('comm-channel')?.addEventListener('change', () => {
-  console.log('[COMM] Channel changed');
-  populateCommMessages();
-});
-
-// Email Template Form
-const emailForm = document.getElementById('comm-email-form');
-if (emailForm) {
-  emailForm.addEventListener('submit', e => {
-    e.preventDefault();
-    console.log('[COMM] Email form submitted');
-    const template = {
-      id: Date.now(),
-      name: document.getElementById('comm-incident-number').value,
-      status: document.getElementById('comm-status').value,
-      manager: document.getElementById('comm-manager').value,
-      priority: document.getElementById('comm-priority').value,
-      startTime: document.getElementById('comm-start-time').value,
-      endTime: document.getElementById('comm-end-time').value,
-      bridge: document.getElementById('comm-bridge').value,
-      details: document.getElementById('comm-details').value,
-      impact: document.getElementById('comm-impact').value,
-      recipients: Array.from(document.getElementById('comm-recipients').selectedOptions).map(o => o.value)
-    };
-    templates.push(template);
-    localStorage.setItem('commTemplates', JSON.stringify(templates));
-    showToast('Template saved');
-    emailForm.reset();
-    updateCommTemplates();
-  });
-}
-
-// Preview Template
-document.getElementById('comm-preview')?.addEventListener('click', () => {
-  console.log('[COMM] Preview template clicked');
-  const template = {
-    name: document.getElementById('comm-incident-number').value,
-    status: document.getElementById('comm-status').value,
-    manager: document.getElementById('comm-manager').value,
-    priority: document.getElementById('comm-priority').value,
-    startTime: document.getElementById('comm-start-time').value,
-    endTime: document.getElementById('comm-end-time').value || 'N/A',
-    bridge: document.getElementById('comm-bridge').value || 'N/A',
-    details: document.getElementById('comm-details').value,
-    impact: document.getElementById('comm-impact').value,
-    recipients: Array.from(document.getElementById('comm-recipients').selectedOptions).map(o => o.value)
+  // Chat Messages
+  let messages = JSON.parse(localStorage.getItem('commMessages')) || {
+    general: [],
+    'incident-p1': [],
+    'incident-p2': []
   };
-  const preview = [
-    `Incident Number: ${template.name}`,
-    `Status: ${template.status}`,
-    `Manager: ${template.manager}`,
-    `Priority: ${template.priority}`,
-    `Start Time: ${template.startTime}`,
-    `Estimated End Time: ${template.endTime}`,
-    `Bridge Details: ${template.bridge}`,
-    `Incident Details: ${template.details}`,
-    `Business Impact: ${template.impact}`,
-    `Recipients: ${template.recipients.join(', ')}`
-  ].join('\n');
-  alert(preview); // Simple preview; replace with modal if needed
-});
 
-// Template Table Actions
-document.getElementById('comm-template-table')?.addEventListener('click', e => {
-  const btn = e.target.closest('.comm-action-btn');
-  if (!btn) return;
-  const action = btn.dataset.action;
-  const id = btn.dataset.id;
-  console.log(`[COMM] Template action: ${action}, ID: ${id}`);
-  if (action === 'view') {
-    const template = templates.find(t => t.id == id);
-    if (template) {
-      const preview = [
-        `Incident Number: ${template.name}`,
-        `Status: ${template.status}`,
-        `Manager: ${template.manager}`,
-        `Priority: ${template.priority}`,
-        `Start Time: ${template.startTime}`,
-        `Estimated End Time: ${template.endTime || 'N/A'}`,
-        `Bridge Details: ${template.bridge || 'N/A'}`,
-        `Incident Details: ${template.details}`,
-        `Business Impact: ${template.impact}`,
-        `Recipients: ${template.recipients.join(', ')}`
-      ].join('\n');
-      alert(preview);
+  // Email Templates
+  let templates = JSON.parse(localStorage.getItem('commTemplates')) || [];
+
+  function populateCommMessages() {
+    console.log('[COMM] Populating chat messages');
+    const chatMessages = document.getElementById('comm-chat-messages');
+    const channel = document.getElementById('comm-channel').value;
+    const currentUserId = 'user1'; // Simulated; replace with auth system
+    const currentUserName = userProfiles['Jack-Berry']?.userName || 'Jack Berry'; // Simulated logged-in user
+    if (chatMessages) {
+      chatMessages.innerHTML = messages[channel].map(msg => `
+        <div class="comm-chat-message ${msg.userId === currentUserId ? 'my-message' : 'other-message'}">
+          <div class="message-meta">${msg.userName} - ${msg.timestamp}</div>
+          <div class="message-text">${msg.text}</div>
+        </div>
+      `).join('');
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      console.log(`[COMM] Rendered ${messages[channel].length} messages for channel ${channel}`);
+    } else {
+      console.error('[COMM] Chat messages container not found');
     }
-  } else if (action === 'send') {
-    const template = templates.find(t => t.id == id.replace('send-', ''));
-    if (template) {
-      showToast(`Email sent to ${template.recipients.join(', ')} for ${template.name}`);
+  }
+
+  function updateCommTemplates() {
+    console.log('[COMM] Updating templates table');
+    const tbody = document.getElementById('comm-template-table-body');
+    if (tbody) {
+      tbody.innerHTML = templates.map(t => `
+        <tr>
+          <td>${t.ticketNumber}</td>
+          <td>${t.application.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</td>
+          <td>${t.priority}</td>
+          <td>
+            <button class="comm-action-btn" data-action="view" data-id="${t.id}">View</button>
+            <button class="comm-action-btn" data-action="send" data-id="send-${t.id}">Send</button>
+            <button class="comm-action-btn remove" data-action="remove" data-id="${t.id}">Remove</button>
+          </td>
+        </tr>
+      `).join('');
+      console.log(`[COMM] Rendered ${templates.length} templates`);
+    } else {
+      console.error('[COMM] Templates table body not found');
     }
-  } else if (action === 'remove') {
-    templates = templates.filter(t => t.id != id);
-    localStorage.setItem('commTemplates', JSON.stringify(templates));
+  }
+
+  // Chat Send Message
+  document.getElementById('comm-send-message')?.addEventListener('click', () => {
+    console.log('[COMM] Send message clicked');
+    const input = document.getElementById('comm-chat-input');
+    const channel = document.getElementById('comm-channel').value;
+    const currentUserId = 'user1';
+    const currentUserName = userProfiles['Jack-Berry']?.userName || 'Jack Berry';
+    if (input.value.trim()) {
+      const message = {
+        userId: currentUserId,
+        userName: currentUserName,
+        text: input.value,
+        timestamp: new Date().toLocaleString('en-US', { hour12: true })
+      };
+      messages[channel].push(message);
+      localStorage.setItem('commMessages', JSON.stringify(messages));
+      input.value = '';
+      populateCommMessages();
+      showToast('Message sent');
+    } else {
+      showToast('Message cannot be empty');
+    }
+  });
+
+  // Chat Enter Key
+  document.getElementById('comm-chat-input')?.addEventListener('keypress', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      console.log('[COMM] Enter key pressed in chat input');
+      document.getElementById('comm-send-message').click();
+    }
+  });
+
+  // Channel Change
+  document.getElementById('comm-channel')?.addEventListener('change', () => {
+    console.log('[COMM] Channel changed');
+    populateCommMessages();
+  });
+
+  // Email Template Form
+  const emailForm = document.getElementById('comm-email-form');
+  const commTicketNumberInput = document.getElementById('comm-ticket-number');
+  const commAppServiceSelect = document.getElementById('comm-app-service');
+  const commShortDescriptionInput = document.getElementById('comm-short-description');
+  const commBusinessImpactTextarea = document.getElementById('comm-business-impact');
+  const commPriorityInput = document.getElementById('comm-priority');
+  const commRecipientsSelect = document.getElementById('comm-recipients');
+  const commMessageTextarea = document.getElementById('comm-message');
+
+  if (commAppServiceSelect) {
+    commAppServiceSelect.addEventListener('change', () => {
+      const selectedApp = commAppServiceSelect.value;
+      const data = autoPopulateData[selectedApp] || {};
+      commShortDescriptionInput.value = data.shortDescription || '';
+      commBusinessImpactTextarea.value = data.businessImpact || '';
+      commPriorityInput.value = data.priorityCap || 'P4 Low';
+      commTicketNumberInput.value = formatTicketNumber(ticketCounter);
+    });
+  }
+
+  if (emailForm) {
+    emailForm.addEventListener('submit', e => {
+      e.preventDefault();
+      console.log('[COMM] Email form submitted');
+      const template = {
+        id: Date.now(),
+        ticketNumber: commTicketNumberInput.value,
+        application: commAppServiceSelect.value,
+        shortDescription: commShortDescriptionInput.value,
+        businessImpact: commBusinessImpactTextarea.value,
+        priority: commPriorityInput.value,
+        recipients: Array.from(commRecipientsSelect.selectedOptions).map(o => o.value),
+        message: commMessageTextarea.value || `Incident ${commTicketNumberInput.value}: ${commShortDescriptionInput.value}`
+      };
+      templates.push(template);
+      localStorage.setItem('commTemplates', JSON.stringify(templates));
+      showToast('Template saved');
+      emailForm.reset();
+      commTicketNumberInput.value = '';
+      updateCommTemplates();
+    });
+  }
+
+  // Preview Template
+  document.getElementById('comm-preview')?.addEventListener('click', () => {
+    console.log('[COMM] Preview template clicked');
+    const template = {
+      ticketNumber: commTicketNumberInput.value,
+      application: commAppServiceSelect.value.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+      shortDescription: commShortDescriptionInput.value,
+      businessImpact: commBusinessImpactTextarea.value,
+      priority: commPriorityInput.value,
+      recipients: Array.from(commRecipientsSelect.selectedOptions).map(o => o.value),
+      message: commMessageTextarea.value || `Incident ${commTicketNumberInput.value}: ${commShortDescriptionInput.value}`
+    };
+    const preview = [
+      `Ticket Number: ${template.ticketNumber}`,
+      `Application/Service: ${template.application}`,
+      `Short Description: ${template.shortDescription}`,
+      `Business Impact: ${template.businessImpact}`,
+      `Priority: ${template.priority}`,
+      `Recipients: ${template.recipients.join(', ')}`,
+      `Message: ${template.message}`
+    ].join('\n');
+    alert(preview); // Simple preview; replace with modal if needed
+  });
+
+  // Template Table Actions
+  document.getElementById('comm-template-table')?.addEventListener('click', e => {
+    const btn = e.target.closest('.comm-action-btn');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    console.log(`[COMM] Template action: ${action}, ID: ${id}`);
+    if (action === 'view') {
+      const template = templates.find(t => t.id == id);
+      if (template) {
+        const preview = [
+          `Ticket Number: ${template.ticketNumber}`,
+          `Application/Service: ${template.application.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}`,
+          `Short Description: ${template.shortDescription}`,
+          `Business Impact: ${template.businessImpact}`,
+          `Priority: ${template.priority}`,
+          `Recipients: ${template.recipients.join(', ')}`,
+          `Message: ${template.message}`
+        ].join('\n');
+        alert(preview);
+      }
+    } else if (action === 'send') {
+      const template = templates.find(t => t.id == id.replace('send-', ''));
+      if (template) {
+        // Simulated email sending with EmailJS
+        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+          ticket_number: template.ticketNumber,
+          application: template.application.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          short_description: template.shortDescription,
+          business_impact: template.businessImpact,
+          priority: template.priority,
+          recipients: template.recipients.join(', '),
+          message: template.message,
+          to_email: 'recipient@example.com' // Replace with actual recipient email mapping
+        }).then(
+          () => showToast(`Email sent to ${template.recipients.join(', ')} for ${template.ticketNumber}`),
+          (error) => {
+            console.error('[COMM] EmailJS error:', error);
+            showToast('Failed to send email');
+          }
+        );
+      }
+    } else if (action === 'remove') {
+      templates = templates.filter(t => t.id != id);
+      localStorage.setItem('commTemplates', JSON.stringify(templates));
+      updateCommTemplates();
+      showToast('Template removed');
+    }
+  });
+
+  // Initialize Communications Page
+  function initCommunications() {
+    console.log('[COMM] Initializing Communications page content');
+    populateCommMessages();
     updateCommTemplates();
-    showToast('Template removed');
   }
-});
-
-// Initialize Communications Page
-function initCommunications() {
-  console.log('[COMM] Initializing Communications page content');
-  populateCommMessages();
-  updateCommTemplates();
-}
-
-// Update showPage to Initialize Communications
-const originalShowPage = window.showPage;
-window.showPage = function(pageId) {
-  console.log(`[COMM] Intercepted showPage for ${pageId}`);
-  originalShowPage(pageId);
-  if (pageId === 'communications') {
-    initCommunications();
-  }
-};
-
-// Initialize if Comms Page is Loaded Directly
-if (window.location.hash === '#communications') {
-  console.log('[COMM] Direct load of communications page');
-  window.showPage('communications');
-}
 
   // Ensure Dashboard is Shown on Load
   window.showPage('dashboard');
