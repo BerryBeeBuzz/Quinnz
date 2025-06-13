@@ -450,100 +450,106 @@
     </section>
 
     <!-- Communications Page -->
-    <section id="communications" class="page hidden">
-      <div class="header">
-        <h1>Communications</h1>
-        <div class="filters">
-          <select id="comm-channel" aria-label="Select chat channel">
-            <option value="general">General</option>
-            <option value="incident-p1">Incident P1</option>
-            <option value="incident-p2">Incident P2</option>
-          </select>
-        </div>
+<section id="communications" class="page hidden">
+  <div class="header">
+    <h1>Communications</h1>
+    <div class="filters">
+      <select id="comm-channel" aria-label="Select chat channel">
+        <option value="general">General</option>
+        <!-- Dynamic channels populated by JS -->
+      </select>
+      <button class="cta-btn small" id="comm-create-channel" aria-label="Create new channel">+ New Channel</button>
+    </div>
+  </div>
+  <div class="communications-grid">
+    <div class="comm-chat-container">
+      <h3>Team Chat</h3>
+      <div class="comm-user-presence" id="comm-user-presence" aria-live="polite">
+        <!-- Populated with user status (e.g., Alice Johnson - Online) -->
       </div>
-      <div class="communications-grid">
-        <div class="comm-chat-container">
-          <h3>Team Chat</h3>
-          <div class="comm-chat-messages" id="comm-chat-messages" role="log" aria-live="polite"></div>
-          <div class="comm-chat-input">
-            <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
-            <button class="cta-btn small" id="comm-send-message" aria-label="Send message">Send</button>
-          </div>
-        </div>
-        <div class="comm-email-container">
-          <h3>Email Templates</h3>
-          <div class="form-container">
-            <form id="comm-email-form">
-              <div class="form-group">
-                <label for="comm-ticket-number">Ticket Number</label>
-                <input type="text" id="comm-ticket-number" name="ticket-number" readonly>
-              </div>
-              <div class="form-group">
-                <label for="comm-app-service">Application/Service/Infrastructure</label>
-                <select id="comm-app-service" name="app-service" required>
-                  <option value="" disabled selected>Select an option</option>
-                  <option value="citrix-storefront">Citrix Storefront</option>
-                  <option value="email-service">Email Service</option>
-                  <option value="server-cluster-a">Server Cluster A</option>
-                  <option value="printer-service">Printer Service</option>
-                  <option value="billing-app">Billing Application</option>
-                  <option value="network-router">Network Router</option>
-                  <option value="helpdesk-portal">Helpdesk Portal</option>
-                  <option value="database-b">Database B</option>
-                  <option value="vpn-service">VPN Service</option>
-                  <option value="file-server">File Server</option>
-                  <option value="sap-erp">SAP ERP</option>
-                  <option value="zoom-service">Zoom Service</option>
-                  <option value="aws-lambda">AWS Lambda</option>
-                  <option value="password-reset">Password Reset</option>
-                  <option value="Access Request">Access Request</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="comm-short-description">Short Description</label>
-                <input type="text" id="comm-short-description" name="short-description" maxlength="80" readonly>
-              </div>
-              <div class="form-group">
-                <label for="comm-business-impact">Business Impact</label>
-                <textarea id="comm-business-impact" name="business-impact" rows="4" readonly></textarea>
-              </div>
-              <div class="form-group">
-                <label for="comm-priority">Priority</label>
-                <input type="text" id="comm-priority" name="priority" readonly>
-              </div>
-              <div class="form-group">
-                <label for="comm-recipients">Recipients</label>
-                <select id="comm-recipients" multiple required>
-                  <option value="internal">Internal Team</option>
-                  <option value="external">External Stakeholders</option>
-                  <option value="management">Management</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="comm-message">Message</label>
-                <textarea id="comm-message" name="message" rows="6" required placeholder="Enter custom message or leave blank to use default template"></textarea>
-              </div>
-              <button type="submit" class="cta-btn">Save Template</button>
-              <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
-            </form>
-          </div>
-          <div class="comm-template-list">
-            <h4>Saved Templates</h4>
-            <table class="settings-table" id="comm-template-table">
-              <thead>
-                <tr>
-                  <th>Ticket Number</th>
-                  <th>Application/Service</th>
-                  <th>Priority</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="comm-template-table-body"></tbody>
-            </table>
-          </div>
-        </div>
+      <div class="comm-chat-messages" id="comm-chat-messages" role="log" aria-live="polite"></div>
+      <div class="comm-typing-indicator" id="comm-typing-indicator" aria-live="polite"></div>
+      <div class="comm-chat-input">
+        <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
+        <button class="cta-btn small" id="comm-send-message" aria-label="Send message">Send</button>
+        <button class="cta-btn small" id="comm-attach-file" aria-label="Attach file">📎</button>
       </div>
-    </section>
+    </div>
+    <div class="comm-email-container">
+      <h3>Email Templates</h3>
+      <div class="form-container">
+        <form id="comm-email-form">
+          <div class="form-group">
+            <label for="comm-ticket-number">Ticket Number</label>
+            <input type="text" id="comm-ticket-number" name="ticket-number" readonly>
+          </div>
+          <div class="form-group">
+            <label for="comm-app-service">Application/Service/Infrastructure</label>
+            <select id="comm-app-service" name="app-service" required>
+              <option value="" disabled selected>Select an option</option>
+              <option value="citrix-storefront">Citrix Storefront</option>
+              <option value="email-service">Email Service</option>
+              <option value="server-cluster-a">Server Cluster A</option>
+              <option value="printer-service">Printer Service</option>
+              <option value="billing-app">Billing Application</option>
+              <option value="network-router">Network Router</option>
+              <option value="helpdesk-portal">Helpdesk Portal</option>
+              <option value="database-b">Database B</option>
+              <option value="vpn-service">VPN Service</option>
+              <option value="file-server">File Server</option>
+              <option value="sap-erp">SAP ERP</option>
+              <option value="zoom-service">Zoom Service</option>
+              <option value="aws-lambda">AWS Lambda</option>
+              <option value="password-reset">Password Reset</option>
+              <option value="Access Request">Access Request</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="comm-short-description">Short Description</label>
+            <input type="text" id="comm-short-description" name="short-description" maxlength="80" readonly>
+          </div>
+          <div class="form-group">
+            <label for="comm-business-impact">Business Impact</label>
+            <textarea id="comm-business-impact" name="business-impact" rows="4" readonly></textarea>
+          </div>
+          <div class="form-group">
+            <label for="comm-priority">Priority</label>
+            <input type="text" id="comm-priority" name="priority" readonly>
+          </div>
+          <div class="form-group">
+            <label for="comm-recipients">Recipients</label>
+            <select id="comm-recipients" multiple required>
+              <option value="internal">Internal Team</option>
+              <option value="external">External Stakeholders</option>
+              <option value="management">Management</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="comm-message">Message</label>
+            <textarea id="comm-message" name="message" rows="6" required placeholder="Enter custom message or leave blank to use default template"></textarea>
+          </div>
+          <button type="submit" class="cta-btn">Save Template</button>
+          <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
+          <button type="button" class="cta-btn secondary" id="comm-post-to-chat" aria-label="Post to chat">Post to Chat</button>
+        </form>
+      </div>
+      <div class="comm-template-list">
+        <h4>Saved Templates</h4>
+        <table class="settings-table" id="comm-template-table">
+          <thead>
+            <tr>
+              <th>Ticket Number</th>
+              <th>Application/Service</th>
+              <th>Priority</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="comm-template-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
 
     <!-- Reports Page -->
     <section id="reports" class="page hidden">
