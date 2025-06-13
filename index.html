@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"></script>
 </head>
 <body>
   <!-- Sidebar -->
@@ -26,19 +27,19 @@
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
-      <div class="menu-item" data-tooltip="Monitoring" onclick="showPage('monitoring')">
+      <div class="menu-item" data-tooltip="Monitoring" onclick="window.showPage('monitoring')">
         <span aria-label="Monitoring Icon">📈</span>
         <span>Monitoring</span>
       </div>
-      <div class="menu-item" data-tooltip="Workflows" onclick="showPage('workflows')">
+      <div class="menu-item" data-tooltip="Workflows" onclick="window.showPage('workflows')">
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
-      <div class="menu-item" id="menu-communications" data-tooltip="Communications">
+      <div class="menu-item" id="menu-communications" data-tooltip="Communications" onclick="window.showPage('communications')">
         <span aria-label="Communications Icon">💬</span>
         <span>Communications</span>
       </div>
-      <div class="menu-item" data-tooltip="Reports" onclick="showPage('Reports')">
+      <div class="menu-item" data-tooltip="Reports" onclick="window.showPage('reports')">
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
@@ -463,10 +464,10 @@
       <div class="communications-grid">
         <div class="comm-chat-container">
           <h3>Team Chat</h3>
-          <div class="comm-chat-messages" id="comm-chat-messages"></div>
+          <div class="comm-chat-messages" id="comm-chat-messages" role="log" aria-live="polite"></div>
           <div class="comm-chat-input">
             <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
-            <button class="cta-btn small" id="comm-send-message">Send</button>
+            <button class="cta-btn small" id="comm-send-message" aria-label="Send message">Send</button>
           </div>
         </div>
         <div class="comm-email-container">
@@ -474,54 +475,53 @@
           <div class="form-container">
             <form id="comm-email-form">
               <div class="form-group">
-                <label for="comm-incident-number">Incident Number</label>
-                <input type="text" id="comm-incident-number" required>
+                <label for="comm-ticket-number">Ticket Number</label>
+                <input type="text" id="comm-ticket-number" name="ticket-number" readonly>
               </div>
               <div class="form-group">
-                <label for="comm-status">Incident Status</label>
-                <select id="comm-status" required>
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
+                <label for="comm-app-service">Application/Service/Infrastructure</label>
+                <select id="comm-app-service" name="app-service" required>
+                  <option value="" disabled selected>Select an option</option>
+                  <option value="citrix-storefront">Citrix Storefront</option>
+                  <option value="email-service">Email Service</option>
+                  <option value="server-cluster-a">Server Cluster A</option>
+                  <option value="printer-service">Printer Service</option>
+                  <option value="billing-app">Billing Application</option>
+                  <option value="network-router">Network Router</option>
+                  <option value="helpdesk-portal">Helpdesk Portal</option>
+                  <option value="database-b">Database B</option>
+                  <option value="vpn-service">VPN Service</option>
+                  <option value="file-server">File Server</option>
+                  <option value="sap-erp">SAP ERP</option>
+                  <option value="zoom-service">Zoom Service</option>
+                  <option value="aws-lambda">AWS Lambda</option>
+                  <option value="password-reset">Password Reset</option>
+                  <option value="Access Request">Access Request</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="comm-manager">Incident Manager</label>
-                <input type="text" id="comm-manager" required>
+                <label for="comm-short-description">Short Description</label>
+                <input type="text" id="comm-short-description" name="short-description" maxlength="80" readonly>
               </div>
               <div class="form-group">
-                <label for="comm-priority">Incident Priority</label>
-                <select id="comm-priority" required>
-                  <option value="P1">P1 High</option>
-                  <option value="P2">P2 Medium</option>
-                </select>
+                <label for="comm-business-impact">Business Impact</label>
+                <textarea id="comm-business-impact" name="business-impact" rows="4" readonly></textarea>
               </div>
               <div class="form-group">
-                <label for="comm-start-time">Start Time</label>
-                <input type="datetime-local" id="comm-start-time" required>
-              </div>
-              <div class="form-group">
-                <label for="comm-end-time">Estimated End Time</label>
-                <input type="datetime-local" id="comm-end-time">
-              </div>
-              <div class="form-group">
-                <label for="comm-bridge">Bridge Details</label>
-                <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
-              </div>
-              <div class="form-group">
-                <label for="comm-details">Incident Details</label>
-                <textarea id="comm-details" rows="4" required></textarea>
-              </div>
-              <div class="form-group">
-                <label for="comm-impact">Business Impact</label>
-                <textarea id="comm-impact" rows="4" required></textarea>
+                <label for="comm-priority">Priority</label>
+                <input type="text" id="comm-priority" name="priority" readonly>
               </div>
               <div class="form-group">
                 <label for="comm-recipients">Recipients</label>
                 <select id="comm-recipients" multiple required>
                   <option value="internal">Internal Team</option>
                   <option value="external">External Stakeholders</option>
+                  <option value="management">Management</option>
                 </select>
+              </div>
+              <div class="form-group">
+                <label for="comm-message">Message</label>
+                <textarea id="comm-message" name="message" rows="6" required placeholder="Enter custom message or leave blank to use default template"></textarea>
               </div>
               <button type="submit" class="cta-btn">Save Template</button>
               <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
@@ -532,9 +532,9 @@
             <table class="settings-table" id="comm-template-table">
               <thead>
                 <tr>
-                  <th>Incident Number</th>
+                  <th>Ticket Number</th>
+                  <th>Application/Service</th>
                   <th>Priority</th>
-                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -806,8 +806,7 @@
           </div>
           <div class="form-group">
             <label for="sync-interval">Sync Interval (minutes)</label>
-            <input type="number" idUSPAN="info">Integration</span>
-            ="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
+            <input type="number" id="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
           </div>
           <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
           <button type="button" class="cta-btn secondary" onclick="window.closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
