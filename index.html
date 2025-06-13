@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/muuri@0.9.5/dist/muuri.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 </head>
 <body>
   <!-- Sidebar -->
@@ -19,19 +18,19 @@
     </div>
     <div class="toggle-btn" id="toggle-btn" aria-label="Toggle Sidebar">☰</div>
     <div class="menu">
-      <div class="menu-item" id="menu-dashboard" data-tooltip="Dashboard">
+      <div class="menu-item active" data-tooltip="Dashboard" onclick="window.showPage('dashboard')">
         <span aria-label="Dashboard Icon">🏠</span>
         <span>Dashboard</span>
       </div>
-      <div class="menu-item" id="menu-incidents" data-tooltip="Incidents">
+      <div class="menu-item" data-tooltip="Incidents" onclick="window.showPage('incidents')">
         <span aria-label="Incidents Icon">🎫</span>
         <span>Incidents</span>
       </div>
-      <div class="menu-item" id="menu-monitoring" data-tooltip="Monitoring">
+      <div class="menu-item" data-tooltip="Monitoring" onclick="showPage('monitoring')">
         <span aria-label="Monitoring Icon">📈</span>
         <span>Monitoring</span>
       </div>
-      <div class="menu-item" id="menu-workflows" data-tooltip="Workflows">
+      <div class="menu-item" data-tooltip="Workflows" onclick="showPage('workflows')">
         <span aria-label="Workflows Icon">⚙️</span>
         <span>Workflows</span>
       </div>
@@ -39,20 +38,20 @@
         <span aria-label="Communications Icon">💬</span>
         <span>Communications</span>
       </div>
-      <div class="menu-item" id="menu-reports" data-tooltip="Reports">
+      <div class="menu-item" data-tooltip="Reports" onclick="showPage('Reports')">
         <span aria-label="Reports Icon">📊</span>
         <span>Reports</span>
       </div>
-      <div class="menu-item" id="menu-integrations" data-tooltip="Integrations">
+      <div class="menu-item" data-tooltip="Integrations" onclick="window.showPage('integrations')">
         <span aria-label="Integrations Icon">🔌</span>
         <span>Integrations</span>
       </div>
-      <div class="menu-item" id="menu-settings" data-tooltip="Settings">
+      <div class="menu-item" data-tooltip="Settings" onclick="window.showPage('settings')">
         <span aria-label="Settings Icon">⚙️</span>
         <span>Settings</span>
       </div>
     </div>
-    <button class="create-btn" id="create-incident-btn" aria-label="Create Incident">+ Create Incident</button>
+    <button class="create-btn" onclick="window.showPage('incidents')" aria-label="Create Incident">+ Create Incident</button>
   </aside>
 
   <!-- Main Content -->
@@ -60,18 +59,17 @@
     <div id="toast" class="toast hidden">
       <span id="toast-message"></span>
     </div>
-
     <!-- Dashboard Page -->
     <section id="dashboard" class="page">
       <div class="header">
         <h1>Dashboard</h1>
         <div class="filters">
-          <select aria-label="Filter by time period">
+          <select>
             <option>Today</option>
             <option>This Week</option>
             <option>This Month</option>
           </select>
-          <select aria-label="Filter by team">
+          <select>
             <option>All Teams</option>
             <option>DevOps</option>
             <option>IT</option>
@@ -151,7 +149,7 @@
                   <span>Cell (555) 987-6543</span>
                   <span>Email - alice.johnson@tech.com</span>
                 </div>
-                <button class="page-btn" data-contact="Alice Johnson|Network">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Alice Johnson', 'Network')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -160,7 +158,7 @@
                   <span>Cell (555) 876-5432</span>
                   <span>Email - bob.smith@tech.com</span>
                 </div>
-                <button class="page-btn" data-contact="Bob Smith|Server">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Bob Smith', 'Server')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -169,7 +167,7 @@
                   <span>Cell (555) 765-4321</span>
                   <span>Email - clara.davis@tech.com</span>
                 </div>
-                <button class="page-btn" data-contact="Clara Davis|Cybersecurity">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Clara Davis', 'Cybersecurity')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -178,7 +176,7 @@
                   <span>Cell (555) 654-3210</span>
                   <span>Email - david.lee@tech.com</span>
                 </div>
-                <button class="page-btn" data-contact="David Lee|Software Dev">Page</button>
+                <button class="page-btn" onclick="window.pageContact('David Lee', 'Software Dev')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -187,7 +185,7 @@
                   <span>Cell (555) 543-2109</span>
                   <span>Email - emma.brown@tech.com</span>
                 </div>
-                <button class="page-btn" data-contact="Emma Brown|Infrastructure">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Emma Brown', 'Infrastructure')">Page</button>
               </div>
               <div class="list-item">
                 <div class="contact-info">
@@ -196,7 +194,7 @@
                   <span>Cell (555) 432-1098</span>
                   <span>Email - frank.wilson@tech.com</span>
                 </div>
-                <button class="page-btn" data-contact="Frank Wilson|VoIP">Page</button>
+                <button class="page-btn" onclick="window.pageContact('Frank Wilson', 'VoIP')">Page</button>
               </div>
             </div>
           </div>
@@ -262,7 +260,7 @@
         </div>
       </div>
       <button class="add-widget-btn cta-btn">Add New Widget</button>
-      <button class="cta-btn" id="dashboard-create-incident-btn">Create New Incident</button>
+      <button class="cta-btn" onclick="window.showPage('incidents')">Create New Incident</button>
     </section>
 
     <!-- Incidents Page -->
@@ -404,7 +402,9 @@
         <div class="widget uniform muuri-item" data-id="monitoring-alerts">
           <div class="muuri-item-content">
             <h3>Monitoring Alerts</h3>
-            <div class="list" id="monitoring-alerts-list"></div>
+            <div class="list" id="monitoring-alerts-list">
+              <!-- Populated by JS -->
+            </div>
             <p class="scroll-label">Scroll for more</p>
           </div>
         </div>
@@ -433,7 +433,9 @@
         <div class="widget uniform muuri-item" data-id="workflow-status">
           <div class="muuri-item-content">
             <h3>Workflow Status</h3>
-            <div class="list" id="workflows-list"></div>
+            <div class="list" id="workflows-list">
+              <!-- Populated by JS -->
+            </div>
             <p class="scroll-label">Scroll for more</p>
           </div>
         </div>
@@ -449,124 +451,84 @@
     <!-- Communications Page -->
     <section id="communications" class="page hidden">
       <div class="header">
-        <h1>Collaboration Hub</h1>
+        <h1>Communications</h1>
         <div class="filters">
-          <select id="comm-channel" aria-label="Select team channel">
+          <select id="comm-channel" aria-label="Select chat channel">
             <option value="general">General</option>
             <option value="incident-p1">Incident P1</option>
             <option value="incident-p2">Incident P2</option>
           </select>
         </div>
       </div>
-      <div class="communications-grid muuri">
-        <div class="widget uniform muuri-item comm-chat-container" data-id="comm-chat">
-          <div class="muuri-item-content">
-            <h3>Team Chat</h3>
-            <div class="comm-presence" id="comm-presence"></div>
-            <div class="comm-chat-messages" id="comm-chat-messages"></div>
-            <div class="comm-typing" id="comm-typing"></div>
-            <div class="comm-chat-input">
-              <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
-              <button class="cta-btn small" id="comm-send-message">Send</button>
-              <button class="cta-btn small" id="comm-teams-chat">Teams Chat</button>
-            </div>
+      <div class="communications-grid">
+        <div class="comm-chat-container">
+          <h3>Team Chat</h3>
+          <div class="comm-chat-messages" id="comm-chat-messages"></div>
+          <div class="comm-chat-input">
+            <input type="text" id="comm-chat-input" placeholder="Type a message..." aria-label="Chat input">
+            <button class="cta-btn small" id="comm-send-message">Send</button>
           </div>
         </div>
-        <div class="widget uniform muuri-item comm-email-container" data-id="comm-email">
-          <div class="muuri-item-content">
-            <h3>Email Templates</h3>
-            <div class="form-container">
-              <form id="comm-email-form">
-                <div class="form-group">
-                  <label for="comm-incident-number">Incident Number</label>
-                  <input type="text" id="comm-incident-number" required>
-                </div>
-                <div class="form-group">
-                  <label for="comm-status">Incident Status</label>
-                  <select id="comm-status" required>
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="comm-manager">Incident Manager</label>
-                  <input type="text" id="comm-manager" required>
-                </div>
-                <div class="form-group">
-                  <label for="comm-priority">Incident Priority</label>
-                  <select id="comm-priority" required>
-                    <option value="P1">P1 High</option>
-                    <option value="P2">P2 Medium</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="comm-start-time">Start Time</label>
-                  <input type="datetime-local" id="comm-start-time" required>
-                </div>
-                <div class="form-group">
-                  <label for="comm-end-time">Estimated End Time</label>
-                  <input type="datetime-local" id="comm-end-time">
-                </div>
-                <div class="form-group">
-                  <label for="comm-bridge">Bridge Details</label>
-                  <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
-                </div>
-                <div class="form-group">
-                  <label for="comm-details">Incident Details</label>
-                  <textarea id="comm-details" rows="4" required></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="comm-impact">Business Impact</label>
-                  <textarea id="comm-impact" rows="4" required></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="comm-recipients">Recipients</label>
-                  <select id="comm-recipients" multiple required>
-                    <option value="internal">Internal Team</option>
-                    <option value="external">External Stakeholders</option>
-                  </select>
-                </div>
-                <button type="submit" class="cta-btn">Save Template</button>
-                <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
-              </form>
-            </div>
+        <div class="comm-email-container">
+          <h3>Email Templates</h3>
+          <div class="form-container">
+            <form id="comm-email-form">
+              <div class="form-group">
+                <label for="comm-incident-number">Incident Number</label>
+                <input type="text" id="comm-incident-number" required>
+              </div>
+              <div class="form-group">
+                <label for="comm-status">Incident Status</label>
+                <select id="comm-status" required>
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="comm-manager">Incident Manager</label>
+                <input type="text" id="comm-manager" required>
+              </div>
+              <div class="form-group">
+                <label for="comm-priority">Incident Priority</label>
+                <select id="comm-priority" required>
+                  <option value="P1">P1 High</option>
+                  <option value="P2">P2 Medium</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="comm-start-time">Start Time</label>
+                <input type="datetime-local" id="comm-start-time" required>
+              </div>
+              <div class="form-group">
+                <label for="comm-end-time">Estimated End Time</label>
+                <input type="datetime-local" id="comm-end-time">
+              </div>
+              <div class="form-group">
+                <label for="comm-bridge">Bridge Details</label>
+                <input type="text" id="comm-bridge" placeholder="e.g., Zoom link or phone number">
+              </div>
+              <div class="form-group">
+                <label for="comm-details">Incident Details</label>
+                <textarea id="comm-details" rows="4" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="comm-impact">Business Impact</label>
+                <textarea id="comm-impact" rows="4" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="comm-recipients">Recipients</label>
+                <select id="comm-recipients" multiple required>
+                  <option value="internal">Internal Team</option>
+                  <option value="external">External Stakeholders</option>
+                </select>
+              </div>
+              <button type="submit" class="cta-btn">Save Template</button>
+              <button type="button" class="cta-btn secondary" id="comm-preview">Preview</button>
+            </form>
           </div>
-        </div>
-        <div class="widget uniform muuri-item comm-activity-container" data-id="comm-activity">
-          <div class="muuri-item-content">
-            <h3>Activity Feed</h3>
-            <div class="list" id="comm-activity-list"></div>
-            <p class="scroll-label">Scroll for more</p>
-          </div>
-        </div>
-        <div class="widget uniform muuri-item comm-calendar-container" data-id="comm-calendar">
-          <div class="muuri-item-content">
-            <h3>Incident Calendar</h3>
-            <div id="comm-calendar"></div>
-          </div>
-        </div>
-        <div class="widget uniform muuri-item comm-call-container" data-id="comm-call">
-          <div class="muuri-item-content">
-            <h3>IP Calls</h3>
-            <div class="comm-call-status" id="comm-call-status">No active call</div>
-            <div class="form-group">
-              <label for="comm-call-recipient">Call Recipient</label>
-              <select id="comm-call-recipient">
-                <option value="">Select recipient</option>
-                <option value="alice.johnson@tech.com">Alice Johnson</option>
-                <option value="bob.smith@tech.com">Bob Smith</option>
-                <option value="clara.davis@tech.com">Clara Davis</option>
-              </select>
-            </div>
-            <button class="cta-btn" id="comm-start-call">Start Call</button>
-            <button class="cta-btn secondary hidden" id="comm-end-call">End Call</button>
-            <button class="cta-btn" id="comm-teams-call">Teams Call</button>
-          </div>
-        </div>
-        <div class="widget uniform muuri-item comm-template-list" data-id="comm-templates">
-          <div class="muuri-item-content">
-            <h3>Saved Templates</h3>
+          <div class="comm-template-list">
+            <h4>Saved Templates</h4>
             <table class="settings-table" id="comm-template-table">
               <thead>
                 <tr>
@@ -599,7 +561,9 @@
         <div class="widget uniform muuri-item" data-id="report-status">
           <div class="muuri-item-content">
             <h3>Report Status</h3>
-            <div class="list" id="reports-list"></div>
+            <div class="list" id="reports-list">
+              <!-- Populated by JS -->
+            </div>
             <p class="scroll-label">Scroll for more</p>
           </div>
         </div>
@@ -623,7 +587,7 @@
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
-            <button class="cta-btn" id="add-integration-btn" aria-label="Add new integration">Add Integration</button>
+            <button class="cta-btn" onclick="window.openAddIntegrationModal()" aria-label="Add new integration">Add Integration</button>
           </div>
         </div>
         <div class="integrations-grid">
@@ -638,7 +602,7 @@
             <div class="list" id="integrations-list" role="listbox" aria-label="Integrations list"></div>
             <p class="scroll-label">Scroll for more</p>
           </div>
-          <div class="integration-details hidden" id="integration-details">
+          <div class="integration-details" id="integration-details" class="hidden">
             <h3>Integration Details</h3>
             <div class="details-content">
               <p><strong>Name:</strong> <span id="detail-name"></span></p>
@@ -646,9 +610,9 @@
               <p><strong>API Key:</strong> <input type="text" id="detail-api-key" readonly aria-label="API key"></p>
               <p><strong>Endpoint:</strong> <input type="text" id="detail-endpoint" readonly aria-label="Endpoint URL"></p>
               <p><strong>Sync Interval (min):</strong> <input type="number" id="detail-sync-interval" readonly aria-label="Sync interval"></p>
-              <button class="cta-btn" id="edit-integration-btn" aria-label="Edit integration details">Edit</button>
-              <button class="cta-btn secondary hidden" id="save-integration-btn" aria-label="Save integration details">Save</button>
-              <button class="cta-btn secondary" id="close-integration-btn" aria-label="Close details">Close</button>
+              <button class="cta-btn" onclick="window.editIntegrationDetails()" aria-label="Edit integration details">Edit</button>
+              <button class="cta-btn secondary hidden" onclick="window.saveIntegrationDetails()" aria-label="Save integration details">Save</button>
+              <button class="cta-btn secondary" onclick="window.closeIntegrationDetails()" aria-label="Close details">Close</button>
             </div>
           </div>
         </div>
@@ -735,7 +699,7 @@
         </div>
         <div class="form-container">
           <h2>Manage Applications/Services/Infrastructure</h2>
-          <form id="app-form">
+          <form id="options-form">
             <div class="form-grid">
               <div class="form-column">
                 <div class="form-group">
@@ -842,10 +806,11 @@
           </div>
           <div class="form-group">
             <label for="sync-interval">Sync Interval (minutes)</label>
-            <input type="number" id="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
+            <input type="number" idUSPAN="info">Integration</span>
+            ="sync-interval" min="1" value="5" required aria-label="Sync interval in minutes">
           </div>
           <button type="submit" class="cta-btn" aria-label="Add integration">Add Integration</button>
-          <button type="button" class="cta-btn secondary" id="cancel-integration-btn" aria-label="Cancel">Cancel</button>
+          <button type="button" class="cta-btn secondary" onclick="window.closeAddIntegrationModal()" aria-label="Cancel">Cancel</button>
         </form>
       </div>
     </div>
